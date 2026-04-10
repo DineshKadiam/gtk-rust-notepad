@@ -6,6 +6,13 @@ use sourceview5::prelude::*;
 
 mod imp {
 
+    use std::sync::RwLock;
+
+    use gtk::{
+        EventControllerMotion,
+        glib::{SourceId, clone},
+    };
+
     use super::*;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
@@ -14,6 +21,8 @@ mod imp {
     pub struct Buffer {
         #[template_child]
         pub source_view: TemplateChild<sourceview5::View>,
+        #[template_child]
+        pub source_map: TemplateChild<sourceview5::Map>,
     }
 
     #[glib::object_subclass]
@@ -32,7 +41,25 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for Buffer {}
+    impl ObjectImpl for Buffer {
+        fn constructed(&self) {
+            self.parent_constructed();
+            // Show map on mouse motion only
+            let motion_controller = EventControllerMotion::new();
+            self.source_map.set_visible(false);
+            motion_controller.connect_enter(clone!(
+                #[strong(rename_to=map)]
+                self.source_map,
+                move |_controller, _, _| map.set_visible(true)
+            ));
+            motion_controller.connect_leave(clone!(
+                #[strong(rename_to=map)]
+                self.source_map,
+                move |_controller| map.set_visible(false)
+            ));
+            self.obj().add_controller(motion_controller);
+        }
+    }
     impl WidgetImpl for Buffer {}
     impl BoxImpl for Buffer {}
 }

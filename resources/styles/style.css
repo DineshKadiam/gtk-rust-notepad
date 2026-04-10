@@ -1,3 +1,25 @@
+/* Sidebar peek animation */
+@keyframes peek {
+    0% {
+        transform: translateX(-100%);
+        --gtk-visible: true;
+    }
+    10% {
+        transform: translateX(0%);
+    }
+    90% {
+        transform: translateX(0%);
+    }
+    99% {
+        transform: translateX(-100%);
+        --gtk-visible: true;
+    }
+    100% {
+        --gtk-visible: false;
+    }
+}
+
+/* Theme sidebar/source */
 gutter > * {
     margin-left: 10px;
 }
@@ -8,4 +30,31 @@ gutter > * {
 
 .GtkSourceMap *:last-child {
     background: none;
+}
+
+.peek {
+    animation: 5s peek ease;
+}
+
+/* compact libadwaita headerbars */
+headerbar,
+headerbar > * > * {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    min-height: 0;
+}
+.vertical.collapse-spacing {
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 0;
+}
+
+/* Compact tabs */
+tabbox {
+    padding-top: 2px;
+    min-height: 0;
+}
+tabbar tab {
+    padding-top: 2px;
+    padding-bottom: 2px;
 }

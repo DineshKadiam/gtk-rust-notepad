@@ -106,7 +106,8 @@ mod imp {
                 "Scratch buffer".to_string()
             });
             if page.is_selected() {
-                self.window_title.set_subtitle(&page.title().to_string());
+                self.window_title
+                    .set_title(&format!("spikedit · {}", page.title().to_string()));
             }
             page
         }
@@ -278,11 +279,11 @@ impl EditorWindow {
             move |tab_view| {
                 {
                     let subtitle = if let Some(page) = tab_view.selected_page() {
-                        &page.title().to_string()
+                        &format!("spikedit · {}", page.title().to_string())
                     } else {
-                        ""
+                        "spikedit"
                     };
-                    window_title.upgrade().unwrap().set_subtitle(subtitle);
+                    window_title.upgrade().unwrap().set_title(subtitle);
                 }
             }
         ));
