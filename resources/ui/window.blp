@@ -17,6 +17,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
         [sidebar]
         Adw.ToolbarView {
+
             [top]
             Adw.HeaderBar {
                 title-widget: Adw.WindowTitle sidebar_title {
@@ -53,6 +54,8 @@ template $EditorWindow: Adw.ApplicationWindow {
             enable-search: true;
 
             Adw.ToolbarView {
+                top-bar-style: raised_border;
+
                 [top]
                 Adw.HeaderBar {
                     Button {

@@ -1,0 +1,11 @@
+gutter > * {
+    margin-left: 10px;
+}
+
+.GtkSourceMap {
+    border-left: 1px solid var(--border-color);
+}
+
+.GtkSourceMap *:last-child {
+    background: none;
+}

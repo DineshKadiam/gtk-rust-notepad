@@ -83,11 +83,8 @@ mod imp {
                 let file = gio::File::for_path(path);
                 let file = sourceview5::File::builder().location(&file).build();
                 let loader = sourceview5::FileLoader::new(&buffer, &file);
-                loader.load_async(glib::Priority::default(), gio::Cancellable::NONE, |res| {
-                    println!("loaded: {:?}", res);
-                });
+                loader.load_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
                 // Set syntax highlighting
-                println!("{}", path.split(".").last().unwrap());
                 if let Some(ref language) =
                     sourceview5::LanguageManager::new().guess_language(Some(&path), None)
                 {
@@ -249,6 +246,8 @@ impl EditorWindow {
                                 let file_name =
                                     file.path().unwrap().to_str().unwrap().to_string().clone();
                                 window.update_file_tree(&file_name);
+                                // close tabs + open sidebar
+                                window.imp().split_view.set_show_sidebar(true);
                                 for page in window.imp().tabview.pages().iter::<TabPage>() {
                                     window.imp().tabview.close_page(&page.unwrap());
                                 }

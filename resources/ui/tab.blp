@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using GtkSource 5;
+using Adw 1;
 
 template $Buffer: Box {
     ScrolledWindow {
@@ -8,18 +9,26 @@ template $Buffer: Box {
         GtkSource.View source_view {
             monospace: true;
             show-line-numbers: true;
+            show-line-marks: true;
             tab-width: 4;
-            top-margin: 4;
+            top-margin: 12;
             bottom-margin: 4;
+            pixels-below-lines: 4;
             hexpand: true;
             // configurable things
             highlight-current-line: true;
-            background-pattern: grid;
+            //background-pattern: grid;
+            //
+            //
         }
     }
 
-    GtkSource.Map {
+    GtkSource.Map source_map {
+        halign: end;
+        valign: fill;
         view: source_view;
         font-desc: "None 2";
+        highlight-current-line: true;
+        vexpand: true;
     }
 }
