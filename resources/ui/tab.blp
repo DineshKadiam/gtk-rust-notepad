@@ -18,17 +18,22 @@ template $Buffer: Box {
             // configurable things
             highlight-current-line: true;
             //background-pattern: grid;
-            //
-            //
+            
+            [overlay]
+            Label {
+                label: _("test");
+            }
         }
     }
 
-    GtkSource.Map source_map {
-        halign: end;
-        valign: fill;
-        view: source_view;
-        font-desc: "None 2";
-        highlight-current-line: true;
-        vexpand: true;
+    Revealer map_revealer {
+        transition-type: slide_left;
+        GtkSource.Map source_map {
+            halign: end;
+            valign: fill;
+            view: source_view;
+            highlight-current-line: true;
+            vexpand: true;
+        }
     }
 }

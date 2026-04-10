@@ -1,39 +1,18 @@
-/* Sidebar peek animation */
-@keyframes peek {
-    0% {
-        transform: translateX(-100%);
-        --gtk-visible: true;
-    }
-    10% {
-        transform: translateX(0%);
-    }
-    90% {
-        transform: translateX(0%);
-    }
-    99% {
-        transform: translateX(-100%);
-        --gtk-visible: true;
-    }
-    100% {
-        --gtk-visible: false;
-    }
-}
-
 /* Theme sidebar/source */
 gutter > * {
     margin-left: 10px;
 }
 
-.GtkSourceMap {
-    border-left: 1px solid var(--border-color);
+textview.GtkSourceMap {
+    border-left: 1px solid
+        color-mix(in srgb, var(--border-color) 30%, transparent);
+    background: transparent;
+    font-size: 2pt;
+    line-height: 2px;
 }
 
-.GtkSourceMap *:last-child {
+textview.GtkSourceMap *:last-child {
     background: none;
-}
-
-.peek {
-    animation: 5s peek ease;
 }
 
 /* compact libadwaita headerbars */
