@@ -13,6 +13,7 @@ template $EditorWindow: Adw.ApplicationWindow {
     Adw.OverlaySplitView split_view {
         min-sidebar-width: 256;
         sidebar-width-fraction: 0.4;
+        show-sidebar: false;
 
         [sidebar]
         Adw.ToolbarView {
@@ -40,7 +41,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                         ]
                     }
                 }
-    
+
             }
 
         }
@@ -73,7 +74,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                 Adw.TabBar {
                     view: tabview;
                 }
-        
+
                 Adw.TabView tabview {
                     Adw.TabPage {
                         title: _("Welcome");
@@ -107,7 +108,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                                     label: _("Open a folder");
                                     action-name: "win.open.folder";
                                 }
-                                
+
                                 Button {
                                     styles[
                                         "pill",
