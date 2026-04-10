@@ -197,6 +197,15 @@ impl EditorWindow {
                 window.imp().new_tab(None);
             })
             .build();
+        // Close tab
+        let action_tab_close = ActionEntry::builder("tab.close")
+            .parameter_type(None)
+            .activate(move |window: &Self, _, param| {
+                if let Some(page) = window.imp().tabview.selected_page() {
+                    window.imp().tabview.close_page(&page);
+                }
+            })
+            .build();
         // Toggle sidebar
         let action_sidebar_toggle = ActionEntry::builder("sidebar.toggle")
             .parameter_type(None)
@@ -261,6 +270,7 @@ impl EditorWindow {
         self.add_action_entries([
             action_new_tab,
             action_new_scratch,
+            action_tab_close,
             action_sidebar_toggle,
             action_open_file,
             action_open_folder,

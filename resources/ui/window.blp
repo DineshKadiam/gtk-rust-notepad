@@ -24,10 +24,31 @@ template $EditorWindow: Adw.ApplicationWindow {
                   title: _("waf?");
                 };
 
-                /* TODO replace with MenuButton */
                 [end]
-                Button {
+                MenuButton {
                     icon-name: "open-menu-symbolic";
+                    menu-model: menu {
+                        section {
+                            label: _("File");
+                            item {
+                              label: _("Open file");
+                              icon: "document-open-symbolic";
+                              action: "win.open.file";
+                            }
+                            item {
+                              label: _("Open folder");
+                              icon: "folder-open-symbolic";
+                              action: "win.open.folder";
+                            }
+                        }
+                        section {
+                            label: _("Edit");
+                            item {
+                              label: _("Close current tab");
+                              action: "win.tab.close";
+                            }
+                        }
+                    };
                 }
 
             }

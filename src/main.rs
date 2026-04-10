@@ -9,6 +9,12 @@ fn main() {
     let application = adw::Application::new(Some("ca.potatoe.spikedit"), Default::default());
     application.connect_startup(load_css);
     application.connect_activate(build_ui);
+    // Set up accels
+    application.set_accels_for_action("win.tab.close", &["<Ctrl>W"]);
+    application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>N"]);
+    application.set_accels_for_action("win.open.file", &["<Ctrl>O"]);
+    application.set_accels_for_action("win.open.folder", &["<Ctrl><Shift>O"]);
+    // run
     application.run();
 }
 
