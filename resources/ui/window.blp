@@ -1,0 +1,126 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $EditorWindow: Adw.ApplicationWindow {
+    Adw.Breakpoint {
+        condition("max-width: 600sp")
+        setters {
+          split_view.collapsed: true;
+        }
+    }
+
+    [content]
+    Adw.OverlaySplitView split_view {
+        min-sidebar-width: 256;
+        sidebar-width-fraction: 0.4;
+
+        [sidebar]
+        Adw.ToolbarView {
+            [top]
+            Adw.HeaderBar {
+                title-widget: Adw.WindowTitle sidebar_title {
+                  title: _("waf?");
+                };
+
+                /* TODO replace with MenuButton */
+                [end]
+                Button {
+                    icon-name: "open-menu-symbolic";
+                }
+
+            }
+
+            ScrolledWindow {
+                hscrollbar-policy: external;
+                Adw.ClampScrollable {
+                    [child]
+                    ListView file_tree {
+                        styles[
+                            "navigation-sidebar"
+                        ]
+                    }
+                }
+    
+            }
+
+        }
+
+        [content]
+        Adw.TabOverview tab_overview {
+            view: tabview;
+            enable-new-tab: true;
+            enable-search: true;
+
+            Adw.ToolbarView {
+                [top]
+                Adw.HeaderBar {
+                    Button {
+                        icon-name: "sidebar-show-symbolic";
+                        action-name: "win.sidebar.toggle";
+                    }
+
+                    Adw.TabButton {
+                        view: tabview;
+                        action-name: "overview.open";
+                    }
+
+                    title-widget: Adw.WindowTitle window_title {
+                      title: _("spikedit");
+                    };
+                }
+
+                [top]
+                Adw.TabBar {
+                    view: tabview;
+                }
+        
+                Adw.TabView tabview {
+                    Adw.TabPage {
+                        title: _("Welcome");
+
+                        child: Adw.StatusPage startpage {
+                            icon-name: "accessories-text-editor-symbolic";
+                            title: _("Welcome");
+                            description: _("Choose an option to get started.");
+
+                            child: Box {
+                                orientation: vertical;
+                                halign: center;
+                                spacing: 12;
+
+                                Button {
+                                    styles[
+                                        "suggested-action",
+                                        "pill",
+                                    ]
+
+                                    label: _("Open a file");
+                                    action-name: "win.open.file";
+                                }
+
+                                Button {
+                                    styles[
+                                        "suggested-action",
+                                        "pill",
+                                    ]
+
+                                    label: _("Open a folder");
+                                    action-name: "win.open.folder";
+                                }
+                                
+                                Button {
+                                    styles[
+                                        "pill",
+                                    ]
+
+                                    label: _("Start with an empty buffer");
+                                    action-name: "win.tab.new_scratch";
+                                }
+                            };
+                        };
+                    }
+                }
+            }
+        }
+    }
+}
