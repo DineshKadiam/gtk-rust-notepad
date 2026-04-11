@@ -3,6 +3,8 @@ using GtkSource 5;
 using Adw 1;
 
 template $Buffer: Box {
+    file_path: "";
+
     ScrolledWindow {
         vscrollbar-policy: external;
 
@@ -18,7 +20,7 @@ template $Buffer: Box {
             // configurable things
             highlight-current-line: true;
             //background-pattern: grid;
-            
+
             [overlay]
             Label {
                 label: _("test");

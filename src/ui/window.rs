@@ -1,42 +1,18 @@
 use std::any::Any;
-use std::str::FromStr;
 
-use adw::TabPage;
-use adw::TabView;
 use adw::prelude::*;
-use adw::subclass::application_window::AdwApplicationWindowImpl;
 use adw::subclass::prelude::*;
-use glib::Properties;
-use gtk::CustomSorter;
-use gtk::DirectoryList;
-use gtk::Image;
-use gtk::Label;
-use gtk::ListItem;
-use gtk::ListItemFactory;
-use gtk::SignalListItemFactory;
-use gtk::SingleSelection;
-use gtk::SortListModel;
-use gtk::Sorter;
-use gtk::TreeExpander;
-use gtk::TreeListModel;
-use gtk::TreeListRow;
-use gtk::TreeListRowSorter;
-use gtk::gio::ActionEntry;
-use gtk::gio::Cancellable;
-use gtk::gio::FileInfo;
-use gtk::glib::Variant;
-use gtk::glib::VariantTy;
-use gtk::glib::clone;
-use gtk::glib::{self};
-use gtk::{CompositeTemplate, gio};
+use adw::{OverlaySplitView, StatusPage, TabOverview, TabPage, TabView, WindowTitle};
+use gtk::gio::{ActionEntry, Cancellable, FileInfo};
+use gtk::glib::{self, Properties, VariantTy, clone};
+use gtk::{
+    CompositeTemplate, CustomSorter, DirectoryList, Image, Label, ListItem, ListView,
+    SignalListItemFactory, SingleSelection, SortListModel, TreeExpander, TreeListModel,
+    TreeListRow, gio,
+};
 use sourceview5::prelude::*;
 
 mod imp {
-
-    use adw::{
-        OverlaySplitView, StatusPage, TabOverview, TabPage, WindowTitle, ffi::AdwStyleManager,
-    };
-    use gtk::ListView;
 
     use crate::ui::buffer::Buffer;
 
@@ -94,6 +70,7 @@ mod imp {
             // Add tab
             let buffer_ui = Buffer::with_source(buffer);
             let page = self.tabview.add_page(&buffer_ui, None);
+            buffer_ui.set_file_path(path.unwrap_or_default());
             page.set_title(&if let Some(path) = path {
                 let file = gio::File::for_path(path);
                 file.basename()
@@ -107,9 +84,85 @@ mod imp {
             });
             if page.is_selected() {
                 self.window_title
-                    .set_title(&format!("spikedit · {}", page.title().to_string()));
+                    .set_title(&format!("spikedit · {}", page.title()));
             }
             page
+        }
+
+        pub fn save_current_buffer(&self, save_as: bool) {
+            if let Some(page) = self.tabview.selected_page()
+                && let Some(buffer) = page.child().downcast_ref::<Buffer>()
+            {
+                if buffer.file_path() == "" || save_as {
+                    let gtk_window = (self as &dyn Any).downcast_ref::<gtk::Window>();
+                    let file_chooser = gtk::FileDialog::new();
+                    file_chooser.save(
+                        gtk_window,
+                        Some(&Cancellable::new()),
+                        clone!(
+                            #[strong]
+                            buffer,
+                            #[strong]
+                            page,
+                            #[weak(rename_to=window)]
+                            self,
+                            move |result| {
+                                if let Ok(file) = result {
+                                    let file_name =
+                                        file.path().unwrap().to_str().unwrap().to_string().clone();
+                                    let file_base_name = file
+                                        .basename()
+                                        .unwrap()
+                                        .as_mut_os_string()
+                                        .clone()
+                                        .into_string()
+                                        .unwrap();
+                                    // Set syntax highlighting
+                                    if let Some(ref language) = sourceview5::LanguageManager::new()
+                                        .guess_language(Some(&file_name), None)
+                                    {
+                                        buffer
+                                            .imp()
+                                            .source_view
+                                            .buffer()
+                                            .downcast_ref::<sourceview5::Buffer>()
+                                            .unwrap()
+                                            .set_language(Some(language));
+                                    }
+                                    // Set window/tab title
+                                    page.set_title(&file_base_name);
+                                    if page.is_selected() {
+                                        window
+                                            .window_title
+                                            .set_title(&format!("spikedit · {}", page.title()));
+                                    }
+                                    // Set buffer path and save
+                                    buffer.set_file_path(file_name);
+                                    EditorWindow::save_buffer(&buffer);
+                                }
+                            }
+                        ),
+                    );
+                    println!("yeah");
+                } else {
+                    EditorWindow::save_buffer(buffer);
+                }
+            }
+        }
+
+        fn save_buffer(buffer: &Buffer) {
+            let file = gio::File::for_path(buffer.file_path());
+            let file = sourceview5::File::builder().location(&file).build();
+            let save = sourceview5::FileSaver::new(
+                buffer
+                    .imp()
+                    .source_view
+                    .buffer()
+                    .downcast_ref::<sourceview5::Buffer>()
+                    .unwrap(),
+                &file,
+            );
+            save.save_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
         }
 
         fn connect_tree(&self) {
@@ -200,7 +253,7 @@ impl EditorWindow {
         // Close tab
         let action_tab_close = ActionEntry::builder("tab.close")
             .parameter_type(None)
-            .activate(move |window: &Self, _, param| {
+            .activate(move |window: &Self, _, _param| {
                 if let Some(page) = window.imp().tabview.selected_page() {
                     window.imp().tabview.close_page(&page);
                 }
@@ -218,7 +271,7 @@ impl EditorWindow {
         let action_open_file = ActionEntry::builder("open.file")
             .parameter_type(None)
             .activate(move |window: &Self, _, _| {
-                let gtk_window = (&*window as &dyn Any).downcast_ref::<gtk::Window>();
+                let gtk_window = (window as &dyn Any).downcast_ref::<gtk::Window>();
                 let cancellable = Cancellable::new();
                 let file_chooser = gtk::FileDialog::new();
                 file_chooser.open(
@@ -242,7 +295,7 @@ impl EditorWindow {
         let action_open_folder = ActionEntry::builder("open.folder")
             .parameter_type(None)
             .activate(move |window: &Self, _, _| {
-                let gtk_window = (&*window as &dyn Any).downcast_ref::<gtk::Window>();
+                let gtk_window = (window as &dyn Any).downcast_ref::<gtk::Window>();
                 let cancellable = Cancellable::new();
                 let file_chooser = gtk::FileDialog::new();
                 file_chooser.select_folder(
@@ -266,7 +319,18 @@ impl EditorWindow {
                     ),
                 );
             })
-            .build(); // Add actions
+            .build();
+        // Save file (the currently open tab)
+        let action_save_tab = ActionEntry::builder("save")
+            .parameter_type(None)
+            .activate(move |window: &Self, _, _| window.imp().save_current_buffer(false))
+            .build();
+        // Save file as (the currently open tab)
+        let action_save_tab_as = ActionEntry::builder("save_as")
+            .parameter_type(None)
+            .activate(move |window: &Self, _, _| window.imp().save_current_buffer(true))
+            .build();
+        // Add actions
         self.add_action_entries([
             action_new_tab,
             action_new_scratch,
@@ -274,6 +338,8 @@ impl EditorWindow {
             action_sidebar_toggle,
             action_open_file,
             action_open_folder,
+            action_save_tab,
+            action_save_tab_as,
         ]);
     }
 
@@ -289,7 +355,7 @@ impl EditorWindow {
             move |tab_view| {
                 {
                     let subtitle = if let Some(page) = tab_view.selected_page() {
-                        &format!("spikedit · {}", page.title().to_string())
+                        &format!("spikedit · {}", page.title())
                     } else {
                         "spikedit"
                     };

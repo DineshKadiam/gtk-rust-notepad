@@ -1,8 +1,9 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
-use gtk::glib::{self};
+use gtk::glib;
 use sourceview5::prelude::*;
+use std::cell::RefCell;
 
 mod imp {
 
@@ -20,6 +21,8 @@ mod imp {
         pub source_map: TemplateChild<sourceview5::Map>,
         #[template_child]
         pub map_revealer: TemplateChild<Revealer>,
+        #[property(get, set)]
+        pub file_path: RefCell<String>,
     }
 
     #[glib::object_subclass]

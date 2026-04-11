@@ -14,6 +14,8 @@ fn main() {
     application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>N"]);
     application.set_accels_for_action("win.open.file", &["<Ctrl>O"]);
     application.set_accels_for_action("win.open.folder", &["<Ctrl><Shift>O"]);
+    application.set_accels_for_action("win.save", &["<Ctrl>S"]);
+    application.set_accels_for_action("win.save_as", &["<Ctrl><Shift>S"]);
     // run
     application.run();
 }

@@ -40,6 +40,16 @@ template $EditorWindow: Adw.ApplicationWindow {
                               icon: "folder-open-symbolic";
                               action: "win.open.folder";
                             }
+                            item {
+                              label: _("Save file");
+                              icon: "document-save-symbolic";
+                              action: "win.save";
+                            }
+                            item {
+                              label: _("Save file as");
+                              icon: "document-save-as-symbolic";
+                              action: "win.save_as";
+                            }
                         }
                         section {
                             label: _("Edit");
