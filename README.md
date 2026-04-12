@@ -3,8 +3,8 @@ oh my god can everything stop being slop please for the love of god i make *game
 # spikedit
 
 ![](resources/screenshots/code.png)
-![](resources/screenshots/welcome.png)
-![](resources/screenshots/mobile.png)
+
+see resources/screenshots for more screenshots
 
 my editor. test. i don't know if this will go anywhere. slapping together gtk things
 a lot of editors that i use are either slow as fuck or on thin ice so i'm making this as an escape hatch in case something happens. also i want a lightweight editor
