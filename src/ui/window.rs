@@ -468,8 +468,11 @@ impl EditorWindow {
                     });
                 } else {
                     label.set_text(&file_info.display_name());
-                    //file_info.icon().unwrap();
-                    image.set_icon_name(Some("text-x-generic-symbolic")); // FIXME dynamic icons when :neofox_pleading:
+                    if let Some(icon) = file_info.symbolic_icon() {
+                        image.set_from_gicon(&icon);
+                    } else {
+                        image.set_icon_name(Some("text-x-generic-symbolic"));
+                    }
                 }
                 tree.set_list_row(Some(&row));
             }
