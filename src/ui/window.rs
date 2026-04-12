@@ -6,11 +6,12 @@ use adw::{OverlaySplitView, StatusPage, TabOverview, TabPage, TabView, WindowTit
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, VariantTy, clone};
 use gtk::{
-    CompositeTemplate, CustomSorter, DirectoryList, Image, Label, ListItem, ListView,
-    SignalListItemFactory, SingleSelection, SortListModel, TreeExpander, TreeListModel,
+    CompositeTemplate, ListView,
     TreeListRow, gio,
 };
 use sourceview5::prelude::*;
+
+use crate::ui::file_tree;
 
 mod imp {
 
@@ -83,8 +84,7 @@ mod imp {
                 "Scratch buffer".to_string()
             });
             if page.is_selected() {
-                self.window_title
-                    .set_title(&format!("spikedit · {}", page.title()));
+                self.window_title.set_title(&page.title());
             }
             page
         }
@@ -94,10 +94,8 @@ mod imp {
                 && let Some(buffer) = page.child().downcast_ref::<Buffer>()
             {
                 if buffer.file_path() == "" || save_as {
-                    let gtk_window = (self as &dyn Any).downcast_ref::<gtk::Window>();
-                    let file_chooser = gtk::FileDialog::new();
-                    file_chooser.save(
-                        gtk_window,
+                    gtk::FileDialog::new().save(
+                        Some::<&gtk::Window>(&self.obj().clone().into()),
                         Some(&Cancellable::new()),
                         clone!(
                             #[strong]
@@ -110,13 +108,7 @@ mod imp {
                                 if let Ok(file) = result {
                                     let file_name =
                                         file.path().unwrap().to_str().unwrap().to_string().clone();
-                                    let file_base_name = file
-                                        .basename()
-                                        .unwrap()
-                                        .as_mut_os_string()
-                                        .clone()
-                                        .into_string()
-                                        .unwrap();
+                                    let file_base_name = file_name.split("/").last().unwrap();
                                     // Set syntax highlighting
                                     if let Some(ref language) = sourceview5::LanguageManager::new()
                                         .guess_language(Some(&file_name), None)
@@ -130,11 +122,9 @@ mod imp {
                                             .set_language(Some(language));
                                     }
                                     // Set window/tab title
-                                    page.set_title(&file_base_name);
+                                    page.set_title(file_base_name);
                                     if page.is_selected() {
-                                        window
-                                            .window_title
-                                            .set_title(&format!("spikedit · {}", page.title()));
+                                        window.window_title.set_title(&page.title());
                                     }
                                     // Set buffer path and save
                                     buffer.set_file_path(file_name);
@@ -143,7 +133,6 @@ mod imp {
                             }
                         ),
                     );
-                    println!("yeah");
                 } else {
                     EditorWindow::save_buffer(buffer);
                 }
@@ -190,6 +179,15 @@ mod imp {
         }
     }
 
+    impl From<EditorWindow> for gtk::Window {
+        fn from(val: EditorWindow) -> Self {
+            (&val as &dyn Any)
+                .downcast_ref::<gtk::Window>()
+                .unwrap()
+                .clone()
+        }
+    }
+
     #[glib::object_subclass]
     impl ObjectSubclass for EditorWindow {
         const NAME: &'static str = "EditorWindow";
@@ -212,7 +210,7 @@ mod imp {
             self.connect_tree();
             self.obj().setup_actions();
             self.obj().setup_callbacks();
-            self.obj().update_file_tree(std::env::home_dir().unwrap().to_str().unwrap());
+            self.obj().update_file_tree("/home/pastthepixels"); // FIXME
         }
     }
     impl WidgetImpl for EditorWindow {}
@@ -235,56 +233,21 @@ impl EditorWindow {
     }
 
     fn setup_actions(&self) {
-        // New tab
-        let action_new_tab = ActionEntry::builder("tab.new")
-            .parameter_type(Some(VariantTy::STRING))
-            .activate(move |window: &Self, _, param| {
-                let path = param.unwrap().to_string();
-                window.imp().new_tab(Some(&path[1..(path.len() - 1)]));
-            })
-            .build();
-        // New scratch buffer
-        let action_new_scratch = ActionEntry::builder("tab.new_scratch")
-            .parameter_type(None)
-            .activate(move |window: &Self, _, _| {
-                window.imp().new_tab(None);
-            })
-            .build();
-        // Close tab
-        let action_tab_close = ActionEntry::builder("tab.close")
-            .parameter_type(None)
-            .activate(move |window: &Self, _, _param| {
-                if let Some(page) = window.imp().tabview.selected_page() {
-                    window.imp().tabview.close_page(&page);
-                }
-            })
-            .build();
-        // Toggle sidebar
-        let action_sidebar_toggle = ActionEntry::builder("sidebar.toggle")
-            .parameter_type(None)
-            .activate(move |window: &Self, _, _| {
-                let split_view = window.imp().split_view.clone();
-                split_view.set_show_sidebar(!split_view.shows_sidebar());
-            })
-            .build();
         // Open file
         let action_open_file = ActionEntry::builder("open.file")
             .parameter_type(None)
             .activate(move |window: &Self, _, _| {
-                let gtk_window = (window as &dyn Any).downcast_ref::<gtk::Window>();
-                let cancellable = Cancellable::new();
-                let file_chooser = gtk::FileDialog::new();
-                file_chooser.open(
-                    gtk_window,
-                    Some(&cancellable),
+                gtk::FileDialog::new().open(
+                    window.into(),
+                    Some(&Cancellable::new()),
                     clone!(
                         #[strong]
                         window,
                         move |result| {
                             if let Ok(file) = result {
-                                let file_name =
-                                    file.path().unwrap().to_str().unwrap().to_string().clone();
-                                window.imp().new_tab(Some(&file_name));
+                                window
+                                    .imp()
+                                    .new_tab(Some(file.path().unwrap().to_str().unwrap()));
                             }
                         }
                     ),
@@ -295,20 +258,15 @@ impl EditorWindow {
         let action_open_folder = ActionEntry::builder("open.folder")
             .parameter_type(None)
             .activate(move |window: &Self, _, _| {
-                let gtk_window = (window as &dyn Any).downcast_ref::<gtk::Window>();
-                let cancellable = Cancellable::new();
-                let file_chooser = gtk::FileDialog::new();
-                file_chooser.select_folder(
-                    gtk_window,
-                    Some(&cancellable),
+                gtk::FileDialog::new().select_folder(
+                    window.into(),
+                    Some(&Cancellable::new()),
                     clone!(
                         #[strong]
                         window,
                         move |result| {
                             if let Ok(file) = result {
-                                let file_name =
-                                    file.path().unwrap().to_str().unwrap().to_string().clone();
-                                window.update_file_tree(&file_name);
+                                window.update_file_tree(file.path().unwrap().to_str().unwrap());
                                 // close tabs + open sidebar
                                 window.imp().split_view.set_show_sidebar(true);
                                 for page in window.imp().tabview.pages().iter::<TabPage>() {
@@ -320,26 +278,52 @@ impl EditorWindow {
                 );
             })
             .build();
-        // Save file (the currently open tab)
-        let action_save_tab = ActionEntry::builder("save")
-            .parameter_type(None)
-            .activate(move |window: &Self, _, _| window.imp().save_current_buffer(false))
-            .build();
-        // Save file as (the currently open tab)
-        let action_save_tab_as = ActionEntry::builder("save_as")
-            .parameter_type(None)
-            .activate(move |window: &Self, _, _| window.imp().save_current_buffer(true))
-            .build();
         // Add actions
         self.add_action_entries([
-            action_new_tab,
-            action_new_scratch,
-            action_tab_close,
-            action_sidebar_toggle,
+            // Loads a file into a new tab
+            ActionEntry::builder("tab.new")
+                .parameter_type(Some(VariantTy::STRING))
+                .activate(move |window: &Self, _, param| {
+                    let path = param.unwrap().to_string();
+                    window.imp().new_tab(Some(&path[1..(path.len() - 1)]));
+                })
+                .build(),
+            // New empty tab -- scratch buffer
+            ActionEntry::builder("tab.new_scratch")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    window.imp().new_tab(None);
+                })
+                .build(),
+            // Closes current tab
+            ActionEntry::builder("tab.close")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _param| {
+                    if let Some(page) = window.imp().tabview.selected_page() {
+                        window.imp().tabview.close_page(&page);
+                    }
+                })
+                .build(),
+            // Toggles sidebar visibility
+            ActionEntry::builder("sidebar.toggle")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    let split_view = window.imp().split_view.clone();
+                    split_view.set_show_sidebar(!split_view.shows_sidebar());
+                })
+                .build(),
             action_open_file,
             action_open_folder,
-            action_save_tab,
-            action_save_tab_as,
+            // Saves the buffer in the current tab
+            ActionEntry::builder("save")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| window.imp().save_current_buffer(false))
+                .build(),
+            // Saves the buffer in the current tab to a specified file
+            ActionEntry::builder("save_as")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| window.imp().save_current_buffer(true))
+                .build(),
         ]);
     }
 
@@ -355,7 +339,7 @@ impl EditorWindow {
             move |tab_view| {
                 {
                     let subtitle = if let Some(page) = tab_view.selected_page() {
-                        &format!("spikedit · {}", page.title())
+                        &page.title()
                     } else {
                         "spikedit"
                     };
@@ -365,121 +349,11 @@ impl EditorWindow {
         ));
     }
 
-    /// credit to https://codeberg.org/Cyncrovee/Datolite/src/branch/main/src/util.rs which i used as a reference
-    /// idk how the fuck to do this and the wiki doesn't really help
     fn update_file_tree(&self, dir_path: &str) {
-        let tree = self.imp().file_tree.clone();
-
         self.imp()
             .sidebar_title
             .set_title(dir_path.split("/").last().unwrap()); // yeah fuck you windows "\" users
 
-        // Sort
-        let file_sorter = CustomSorter::new(|a, b| {
-            let a = a.downcast_ref::<FileInfo>().unwrap();
-            let b = b.downcast_ref::<FileInfo>().unwrap();
-            let a_name = a.name().to_str().unwrap().to_string().clone();
-            let b_name = b.name().to_str().unwrap().to_string().clone();
-            let is_a_hidden = a_name.clone().as_bytes().starts_with(".".as_bytes());
-            let is_b_hidden = b_name.clone().as_bytes().starts_with(".".as_bytes());
-            if a.file_type() != b.file_type() {
-                // 1. Directories go higher than non-directories
-                if a.file_type() == gio::FileType::Directory {
-                    gtk::Ordering::Smaller
-                } else {
-                    gtk::Ordering::Larger
-                }
-            } else if is_a_hidden != is_b_hidden {
-                // 2. Hidden files go last.
-                if is_a_hidden {
-                    gtk::Ordering::Larger
-                } else {
-                    gtk::Ordering::Smaller
-                }
-            } else {
-                // 3. Compare names
-                a_name.cmp(&b_name).into()
-            }
-        });
-
-        // Create directory list/tree list model
-        let list = DirectoryList::new(Some("standard::*"), Some(&gio::File::for_path(dir_path)));
-        let list = SortListModel::new(Some(list), Some(file_sorter.clone()));
-        let tree_model = TreeListModel::new(list, false, false, move |file_object| {
-            if let Some(file_info) = file_object.downcast_ref::<FileInfo>()
-                && file_info.file_type() == gio::FileType::Directory
-                && let Some(file) = file_info
-                    .attribute_object("standard::file")
-                    .and_dynamic_cast_ref::<gio::File>()
-            {
-                let dir_list_local = DirectoryList::new(Some("standard::*"), Some(file));
-                let list = SortListModel::new(Some(dir_list_local), Some(file_sorter.clone()));
-                Some(list.into())
-            } else {
-                None
-            }
-        });
-
-        // Set up factory
-        let factory = SignalListItemFactory::new();
-
-        // Adds labels to ListItem objects
-        factory.connect_setup(move |_, list_item| {
-            // TODO put into template??
-            let container = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-            let label = Label::new(None);
-            label.set_ellipsize(gtk::pango::EllipsizeMode::Middle);
-            container.append(&Image::new());
-            container.append(&label);
-            list_item
-                .downcast_ref::<ListItem>()
-                .unwrap()
-                .set_child(Some(
-                    &TreeExpander::builder()
-                        .child(&container)
-                        .hide_expander(true)
-                        .build(),
-                ));
-        });
-
-        factory.connect_bind(move |_, list_item| {
-            let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-            if let Some(row) = list_item.item().and_downcast::<TreeListRow>()
-                && let Some(file_info) = row.item().and_downcast::<FileInfo>()
-                && let Some(tree) = list_item.child().and_downcast::<TreeExpander>()
-                && let Some(container) = tree.child().and_downcast::<gtk::Box>()
-            {
-                let image = container
-                    .first_child()
-                    .unwrap()
-                    .downcast::<Image>()
-                    .unwrap();
-                let label = container.last_child().unwrap().downcast::<Label>().unwrap();
-                if file_info.file_type() == gio::FileType::Directory {
-                    label.set_text(&format!("{}/", &file_info.display_name()));
-                    // Icons
-                    image.set_icon_name(Some("folder-symbolic"));
-                    row.connect_expanded_notify(move |row| {
-                        image.set_icon_name(Some(if row.is_expanded() {
-                            "folder-open-symbolic"
-                        } else {
-                            "folder-symbolic"
-                        }))
-                    });
-                } else {
-                    label.set_text(&file_info.display_name());
-                    if let Some(icon) = file_info.symbolic_icon() {
-                        image.set_from_gicon(&icon);
-                    } else {
-                        image.set_icon_name(Some("text-x-generic-symbolic"));
-                    }
-                }
-                tree.set_list_row(Some(&row));
-            }
-        });
-
-        // Hook things up
-        tree.set_model(Some(&SingleSelection::new(Some(tree_model.clone()))));
-        tree.set_factory(Some(&factory));
+        file_tree::update(&self.imp().file_tree.clone(), dir_path);
     }
 }
