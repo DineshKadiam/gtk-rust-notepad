@@ -40,6 +40,19 @@ mod imp {
     }
 
     impl EditorWindow {
+        fn tab_name(full_path: &str, modified: bool) -> String {
+            let modified_string = if modified {
+                " [+]"
+            } else {
+                ""
+            };
+            let path_string = if full_path != "" {
+                full_path.split("/").last().unwrap()
+            } else {
+                "scratch"
+            }.to_string();
+            path_string + modified_string
+        }
         pub fn new_tab(&self, path: Option<&str>) -> TabPage {
             // Get rid of welcome page
             if self.startpage.parent().is_some() {
@@ -69,23 +82,27 @@ mod imp {
                 }
             }
             // Add tab
-            let buffer_ui = Buffer::with_source(buffer);
+            let buffer_ui = Buffer::with_source(buffer.clone());
             let page = self.tabview.add_page(&buffer_ui, None);
             buffer_ui.set_file_path(path.unwrap_or_default());
-            page.set_title(&if let Some(path) = path {
-                let file = gio::File::for_path(path);
-                file.basename()
-                    .unwrap()
-                    .as_mut_os_string()
-                    .clone()
-                    .into_string()
-                    .unwrap()
-            } else {
-                "Scratch buffer".to_string()
-            });
+            page.set_title(&EditorWindow::tab_name(&path.unwrap_or_default(), false));
             if page.is_selected() {
                 self.window_title.set_title(&page.title());
             }
+            // Connect modified
+            //buffer_ui.imp().source_view.connect_paste_clipboard(f)
+            buffer.connect_changed(clone!(
+                #[strong]
+                page,
+                #[strong(rename_to=window_title)]
+                self.window_title,
+                move |_| {
+                    page.set_title(&EditorWindow::tab_name(&buffer_ui.file_path(), true));
+                    if page.is_selected() {
+                        window_title.set_title(&page.title());
+                    }
+            }));
+            // Return page
             page
         }
 
@@ -108,7 +125,6 @@ mod imp {
                                 if let Ok(file) = result {
                                     let file_name =
                                         file.path().unwrap().to_str().unwrap().to_string().clone();
-                                    let file_base_name = file_name.split("/").last().unwrap();
                                     // Set syntax highlighting
                                     if let Some(ref language) = sourceview5::LanguageManager::new()
                                         .guess_language(Some(&file_name), None)
@@ -122,8 +138,8 @@ mod imp {
                                             .set_language(Some(language));
                                     }
                                     // Set window/tab title
-                                    page.set_title(file_base_name);
-                                    if page.is_selected() {
+                                    page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
+                                    if page.is_selected() { // TODO clearly i should be able to simplify this right
                                         window.window_title.set_title(&page.title());
                                     }
                                     // Set buffer path and save
@@ -135,6 +151,10 @@ mod imp {
                     );
                 } else {
                     EditorWindow::save_buffer(buffer);
+                    page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
+                    if page.is_selected() {
+                        self.window_title.set_title(&page.title());
+                    }
                 }
             }
         }
