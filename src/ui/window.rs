@@ -210,7 +210,7 @@ mod imp {
             self.connect_tree();
             self.obj().setup_actions();
             self.obj().setup_callbacks();
-            self.obj().update_file_tree("/home/pastthepixels"); // FIXME
+            self.obj().update_file_tree(std::env::home_dir().unwrap().to_str().unwrap());
         }
     }
     impl WidgetImpl for EditorWindow {}
