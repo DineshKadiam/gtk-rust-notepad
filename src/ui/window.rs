@@ -68,6 +68,10 @@ mod imp {
             {
                 buffer.set_style_scheme(Some(scheme));
             }
+            // Create buffer UI and page
+            let buffer_ui = Buffer::with_source(buffer.clone());
+            let page = self.tabview.add_page(&buffer_ui, None);
+            buffer_ui.set_file_path(path.unwrap_or_default());
             // Files
             if let Some(path) = path {
                 let file = gio::File::for_path(path);
@@ -82,9 +86,6 @@ mod imp {
                 }
             }
             // Add tab
-            let buffer_ui = Buffer::with_source(buffer.clone());
-            let page = self.tabview.add_page(&buffer_ui, None);
-            buffer_ui.set_file_path(path.unwrap_or_default());
             page.set_title(&EditorWindow::tab_name(&path.unwrap_or_default(), false));
             if page.is_selected() {
                 self.window_title.set_title(&page.title());
@@ -96,10 +97,12 @@ mod imp {
                 page,
                 #[strong(rename_to=window_title)]
                 self.window_title,
-                move |_| {
-                    page.set_title(&EditorWindow::tab_name(&buffer_ui.file_path(), true));
-                    if page.is_selected() {
-                        window_title.set_title(&page.title());
+                move |buffer| {
+                    if !buffer.is_loading() {
+                        page.set_title(&EditorWindow::tab_name(&buffer_ui.file_path(), true));
+                        if page.is_selected() {
+                            window_title.set_title(&page.title());
+                        }
                     }
             }));
             // Return page
