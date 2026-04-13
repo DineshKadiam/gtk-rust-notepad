@@ -33,7 +33,6 @@ a lot of editors that i use are either slow as fuck or on thin ice so i'm making
 
 ## todo
 
-- highlight when tabs are unsaved
 - search with rust regex (instead of whatever gtk has. if possible idk how much is ingrained to gtksourceview that i can't do myself)
 - tab right click actions
 - terminal that opens from the bottom
