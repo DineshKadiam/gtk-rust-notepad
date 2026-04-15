@@ -137,6 +137,20 @@ impl EditorWindow {
                     }
                 })
                 .build(),
+            // New window
+            ActionEntry::builder("new_window")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    let app = window
+                        .application()
+                        .unwrap()
+                        .downcast_ref::<adw::Application>()
+                        .unwrap()
+                        .clone();
+                    let new_window = Self::new(&app);
+                    new_window.present();
+                })
+                .build(),
         ]);
     }
 
@@ -182,8 +196,17 @@ impl EditorWindow {
                     .unwrap()
                     .clone();
                 let new_window = Self::new(&app);
+                // Get rid of welcome page
+                new_window
+                    .imp()
+                    .tab_view
+                    .close_page(&new_window.imp().tab_view.selected_page().unwrap());
                 new_window.present();
-                new_window.imp().tab_view.downcast_ref::<TabView>().cloned()
+                new_window
+                    .imp()
+                    .tab_view
+                    .downcast_ref::<adw::TabView>()
+                    .cloned()
             }
         ));
         // Custom search keybinds

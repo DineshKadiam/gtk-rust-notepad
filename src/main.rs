@@ -11,7 +11,8 @@ fn main() {
     application.connect_activate(build_ui);
     // Set up accels
     application.set_accels_for_action("win.tab.close", &["<Ctrl>W"]);
-    application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>N"]);
+    application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>T"]);
+    application.set_accels_for_action("win.new_window", &["<Ctrl>N"]);
     application.set_accels_for_action("win.open.file", &["<Ctrl>O"]);
     application.set_accels_for_action("win.open.folder", &["<Ctrl><Shift>O"]);
     application.set_accels_for_action("win.save", &["<Ctrl>S"]);
