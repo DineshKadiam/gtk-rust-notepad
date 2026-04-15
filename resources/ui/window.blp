@@ -141,6 +141,44 @@ template $EditorWindow: Adw.ApplicationWindow {
                 }
 
                 Adw.TabView tab_view {
+                    menu-model: menu {
+                        section {
+                            item {
+                                label: _("Pin tab");
+                                action: "tab_context.pin";
+                                hidden-when: 'action-disabled';
+                            }
+                            item {
+                                label: _("Unpin tab");
+                                action: "tab_context.unpin";
+                                hidden-when: 'action-disabled';
+                            }
+                        }
+                        section {
+                            item {
+                                label: _("Move left");
+                                action: "tab_context.move_left";
+                            }
+                            item {
+                                label: _("Move right");
+                                action: "tab_context.move_right";
+                            }
+                            item {
+                                label: _("Move to new window");
+                                action: "tab_context.move_new";
+                            }
+                        }
+                        section {
+                            item {
+                                label: _("Close tab");
+                                action: "tab_context.close";
+                            }
+                            item {
+                                label: _("Close other tabs");
+                                action: "tab_context.close_other";
+                            }
+                        }
+                    };
                     Adw.TabPage {
                         title: _("Welcome");
 

@@ -11,6 +11,7 @@ use sourceview5::prelude::*;
 use crate::ui::file_tree;
 
 mod imp;
+mod tabs;
 
 glib::wrapper! {
     pub struct EditorWindow(ObjectSubclass<imp::EditorWindow>)
@@ -186,7 +187,6 @@ impl EditorWindow {
             #[strong]
             window,
             move |_| {
-                println!("Wah?");
                 let window = window.upgrade().unwrap();
                 let app = window
                     .obj()
@@ -265,6 +265,8 @@ impl EditorWindow {
                 }
             }
         ));
+        // Set up tab context thingies
+        tabs::init_tab_menus(self);
     }
 
     fn update_file_tree(&self, dir_path: &str) {

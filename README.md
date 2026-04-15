@@ -33,7 +33,6 @@ a lot of editors that i use are either slow as fuck or on thin ice so i'm making
 
 ## todo
 
-- tab right click actions
 - terminal that opens from the bottom
 
 - lsp integration
