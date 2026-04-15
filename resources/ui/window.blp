@@ -85,7 +85,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
         [content]
         Adw.TabOverview tab_overview {
-            view: tabview;
+            view: tab_view;
             enable-new-tab: true;
             enable-search: true;
 
@@ -101,7 +101,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                     }
 
                     Adw.TabButton {
-                        view: tabview;
+                        view: tab_view;
                         action-name: "overview.open";
                     }
 
@@ -112,7 +112,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                 [top]
                 Adw.TabBar {
-                    view: tabview;
+                    view: tab_view;
                 }
 
                 [bottom]
@@ -136,7 +136,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                     }
                 }
 
-                Adw.TabView tabview {
+                Adw.TabView tab_view {
                     Adw.TabPage {
                         title: _("Welcome");
 
