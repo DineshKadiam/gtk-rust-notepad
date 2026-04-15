@@ -37,3 +37,8 @@ tabbar tab {
     padding-top: 2px;
     padding-bottom: 2px;
 }
+
+/* Don't show highlight rings on compact entries */
+entry.flat {
+    outline: none;
+}

@@ -1,9 +1,11 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
+use gtk::TextSearchFlags;
 use gtk::glib;
 use sourceview5::prelude::*;
 use std::cell::RefCell;
+use std::io::Error;
 
 mod imp {
 
@@ -73,6 +75,12 @@ pub struct Buffer(ObjectSubclass<imp::Buffer>)
     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
+pub enum SearchDirection {
+    Forward,
+    Back,
+    Cursor,
+}
+
 impl Buffer {
     pub fn new() -> Self {
         glib::Object::builder::<Self>().build()
@@ -83,5 +91,77 @@ impl Buffer {
         let widget = glib::Object::builder::<Self>().build();
         widget.imp().source_view.set_buffer(Some(&buf));
         widget
+    }
+
+    pub fn search(&self, query: &str, direction: SearchDirection) -> Result<(), Error> {
+        let buffer = self
+            .imp()
+            .source_view
+            .buffer()
+            .downcast_ref::<sourceview5::Buffer>()
+            .unwrap()
+            .clone();
+        let bounds = buffer.bounds();
+        let mut cursor_pos = bounds.0.clone();
+        cursor_pos.forward_chars(match direction {
+            SearchDirection::Forward => buffer.cursor_position() + 1,
+            SearchDirection::Back => buffer.cursor_position(),
+            SearchDirection::Cursor => buffer.cursor_position(),
+        });
+
+        if let Some(bounds) = buffer.selection_bounds() {
+            cursor_pos = match direction {
+                SearchDirection::Forward => bounds.1,
+                SearchDirection::Back => bounds.0,
+                SearchDirection::Cursor => bounds.0,
+            }
+        }
+
+        // Search text
+        let text_iter = match direction {
+            SearchDirection::Forward => {
+                if let Some(text_iter) =
+                    cursor_pos.forward_search(query, TextSearchFlags::empty(), Some(&bounds.1))
+                {
+                    Some(text_iter)
+                } else {
+                    bounds
+                        .0
+                        .forward_search(query, TextSearchFlags::empty(), Some(&bounds.1))
+                }
+            }
+            SearchDirection::Cursor => {
+                if let Some(text_iter) =
+                    cursor_pos.forward_search(query, TextSearchFlags::empty(), Some(&bounds.1))
+                {
+                    Some(text_iter)
+                } else {
+                    bounds
+                        .0
+                        .forward_search(query, TextSearchFlags::empty(), Some(&bounds.1))
+                }
+            }
+            SearchDirection::Back => {
+                if let Some(text_iter) =
+                    cursor_pos.backward_search(query, TextSearchFlags::empty(), Some(&bounds.0))
+                {
+                    Some(text_iter)
+                } else {
+                    bounds
+                        .1
+                        .backward_search(query, TextSearchFlags::empty(), Some(&bounds.0))
+                }
+            }
+        };
+        if let Some(text_iter) = text_iter {
+            buffer.place_cursor(&text_iter.0);
+            buffer.select_range(&text_iter.0, &text_iter.1);
+            Ok(())
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "String not found",
+            ))
+        }
     }
 }

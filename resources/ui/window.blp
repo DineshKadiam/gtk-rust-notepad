@@ -57,6 +57,10 @@ template $EditorWindow: Adw.ApplicationWindow {
                               label: _("Close current tab");
                               action: "win.tab.close";
                             }
+                            item {
+                              label: _("Search for text");
+                              action: "win.search.toggle";
+                            }
                         }
                     };
                 }
@@ -87,6 +91,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
             Adw.ToolbarView {
                 // top-bar-style: raised_border;
+                bottom-bar-style: raised_border;
 
                 [top]
                 Adw.HeaderBar {
@@ -108,6 +113,27 @@ template $EditorWindow: Adw.ApplicationWindow {
                 [top]
                 Adw.TabBar {
                     view: tabview;
+                }
+
+                [bottom]
+                SearchBar search_bar {
+                    Box {
+                        spacing: 8;
+                        margin-start: 8;
+                        margin-end: 8;
+                        SearchEntry search_entry {
+                            styles ["flat"]
+                            hexpand: true;
+                            placeholder-text: _("Search");
+                        }
+                        ToggleButton {
+                            icon-name: "edit-find-replace-symbolic";
+                        }
+                        Button {
+                            icon-name: "window-close-symbolic";
+                            action-name: "win.search.toggle";
+                        }
+                    }
                 }
 
                 Adw.TabView tabview {

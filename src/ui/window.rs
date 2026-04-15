@@ -5,15 +5,14 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, StatusPage, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, VariantTy, clone};
-use gtk::{
-    CompositeTemplate, ListView,
-    TreeListRow, gio,
-};
+use gtk::{CompositeTemplate, ListView, TreeListRow, gdk, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
 
 mod imp {
+
+    use gtk::{SearchBar, SearchEntry};
 
     use crate::ui::buffer::Buffer;
 
@@ -37,22 +36,24 @@ mod imp {
         pub startpage: TemplateChild<StatusPage>,
         #[template_child]
         pub file_tree: TemplateChild<ListView>,
+        #[template_child]
+        pub search_bar: TemplateChild<SearchBar>,
+        #[template_child]
+        pub search_entry: TemplateChild<SearchEntry>,
     }
 
     impl EditorWindow {
         fn tab_name(full_path: &str, modified: bool) -> String {
-            let modified_string = if modified {
-                " [+]"
-            } else {
-                ""
-            };
+            let modified_string = if modified { " [+]" } else { "" };
             let path_string = if full_path != "" {
                 full_path.split("/").last().unwrap()
             } else {
                 "scratch"
-            }.to_string();
+            }
+            .to_string();
             path_string + modified_string
         }
+
         pub fn new_tab(&self, path: Option<&str>) -> TabPage {
             // Get rid of welcome page
             if self.startpage.parent().is_some() {
@@ -104,7 +105,8 @@ mod imp {
                             window_title.set_title(&page.title());
                         }
                     }
-            }));
+                }
+            ));
             // Return page
             page
         }
@@ -141,8 +143,12 @@ mod imp {
                                             .set_language(Some(language));
                                     }
                                     // Set window/tab title
-                                    page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
-                                    if page.is_selected() { // TODO clearly i should be able to simplify this right
+                                    page.set_title(&EditorWindow::tab_name(
+                                        &buffer.file_path(),
+                                        false,
+                                    ));
+                                    if page.is_selected() {
+                                        // TODO clearly i should be able to simplify this right
                                         window.window_title.set_title(&page.title());
                                     }
                                     // Set buffer path and save
@@ -233,7 +239,8 @@ mod imp {
             self.connect_tree();
             self.obj().setup_actions();
             self.obj().setup_callbacks();
-            self.obj().update_file_tree(std::env::home_dir().unwrap().to_str().unwrap());
+            self.obj()
+                .update_file_tree(std::env::home_dir().unwrap().to_str().unwrap());
         }
     }
     impl WidgetImpl for EditorWindow {}
@@ -347,26 +354,110 @@ impl EditorWindow {
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _| window.imp().save_current_buffer(true))
                 .build(),
+            // Show/hide search bar
+            ActionEntry::builder("search.toggle")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    if let Some(page) = window.imp().tabview.selected_page()
+                        && let Some(buffer) = page.child().downcast_ref::<super::buffer::Buffer>()
+                    {
+                        let mode = !window.imp().search_bar.is_search_mode();
+                        window.imp().search_bar.set_search_mode(mode);
+                        // Focus the search entry (text widget)
+                        if mode {
+                            window.imp().search_entry.set_text("");
+                            window.imp().search_entry.grab_focus();
+                        } else {
+                            // Focus the current tab
+                            buffer.imp().source_view.grab_focus();
+                        }
+                    }
+                })
+                .build(),
         ]);
     }
 
     fn setup_callbacks(&self) {
         let window = self.imp().downgrade();
         let window_title = self.imp().window_title.downgrade();
-        self.imp()
-            .tab_overview
-            .connect_create_tab(move |_| window.upgrade().unwrap().new_tab(None));
+        self.imp().tab_overview.connect_create_tab(clone!(
+            #[strong]
+            window,
+            move |_| window.upgrade().unwrap().new_tab(None)
+        ));
         self.imp().tabview.connect_selected_page_notify(clone!(
             #[strong]
             window_title,
+            #[strong]
+            window,
             move |tab_view| {
                 {
+                    let window = window.upgrade().unwrap();
                     let subtitle = if let Some(page) = tab_view.selected_page() {
                         &page.title()
                     } else {
                         "spikedit"
                     };
+                    if window.search_bar.is_search_mode() {
+                        tab_view.activate_action("win.search.toggle", None).unwrap();
+                    }
                     window_title.upgrade().unwrap().set_title(subtitle);
+                }
+            }
+        ));
+        // Custom search keybinds
+        let search_controller = gtk::EventControllerKey::new();
+        search_controller.connect_key_pressed(clone!(
+            #[strong(rename_to=search_entry)]
+            self.imp().search_entry,
+            #[strong]
+            window,
+            move |_, key, _, modifier| {
+                if modifier == gtk::gdk::ModifierType::SHIFT_MASK && key == gtk::gdk::Key::Return {
+                    // Reverse search -- shift+Enter
+                    if let Some(page) = window.upgrade().unwrap().tabview.selected_page()
+                        && let Some(buffer) =
+                            page.child().downcast_ref::<crate::ui::buffer::Buffer>()
+                    {
+                        match buffer.search(
+                            &search_entry.text(),
+                            crate::ui::buffer::SearchDirection::Back,
+                        ) {
+                            Ok(_) => search_entry.remove_css_class("error"),
+                            Err(_) => search_entry.add_css_class("error"),
+                        }
+                    }
+                }
+                glib::Propagation::Proceed
+            }
+        ));
+        self.imp().search_entry.add_controller(search_controller);
+        self.imp().search_entry.connect_activate(clone!(
+            #[strong]
+            window,
+            move |entry| {
+                if let Some(page) = window.upgrade().unwrap().tabview.selected_page()
+                    && let Some(buffer) = page.child().downcast_ref::<crate::ui::buffer::Buffer>()
+                {
+                    match buffer.search(&entry.text(), crate::ui::buffer::SearchDirection::Forward)
+                    {
+                        Ok(_) => entry.remove_css_class("error"),
+                        Err(_) => entry.add_css_class("error"),
+                    }
+                }
+            }
+        ));
+        self.imp().search_entry.connect_search_changed(clone!(
+            #[strong]
+            window,
+            move |entry| {
+                if let Some(page) = window.upgrade().unwrap().tabview.selected_page()
+                    && let Some(buffer) = page.child().downcast_ref::<crate::ui::buffer::Buffer>()
+                {
+                    match buffer.search(&entry.text(), crate::ui::buffer::SearchDirection::Cursor) {
+                        Ok(_) => entry.remove_css_class("error"),
+                        Err(_) => entry.add_css_class("error"),
+                    }
                 }
             }
         ));
