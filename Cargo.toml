@@ -6,5 +6,6 @@ edition = "2024"
 [dependencies]
 adw = { version = "^0.9", package = "libadwaita", features = ["v1_8"] }
 gtk = { version = "^0.11", package = "gtk4", features = ["v4_20", "blueprint"] }
+libpanel = "0.7.0"
 sourceview5 = "^0.11"
 vte4 = "0.10.0"

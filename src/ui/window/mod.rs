@@ -267,14 +267,6 @@ impl EditorWindow {
         ));
         // Set up tab context thingies
         tabs::init_tab_menus(self);
-        // Set up button to toggle terminal view
-        self.imp().toggle_terminal_button.connect_activate(clone!(
-            #[strong(rename_to=revealer)]
-            self.imp().terminal_revealer,
-            move |_| {
-                revealer.set_reveal_child(!revealer.reveals_child());
-            }
-        ));
     }
 
     fn update_file_tree(&self, dir_path: &str) {

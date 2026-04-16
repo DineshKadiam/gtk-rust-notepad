@@ -44,11 +44,14 @@ entry.flat {
 }
 
 /* Buttons with shorter padding */
-button.compressed {
+.compressed {
     padding-top: 0;
     padding-bottom: 0;
 }
 
+.compressed * {
+	min-height: 16px;
+}
 
 /* Status bar */
 box.status-bar > box > *:not(separator) {

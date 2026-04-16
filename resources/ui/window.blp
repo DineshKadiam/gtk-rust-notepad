@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using Adw 1;
+using Panel 1;
 
 template $EditorWindow: Adw.ApplicationWindow {
     Adw.Breakpoint {
@@ -73,6 +74,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
             ScrolledWindow {
                 hscrollbar-policy: external;
+
                 Adw.ClampScrollable {
                     [child]
                     ListView file_tree {
@@ -82,7 +84,6 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                     }
                 }
-
             }
 
         }
@@ -143,66 +144,71 @@ template $EditorWindow: Adw.ApplicationWindow {
                 Box {
                     orientation: vertical;
 
-                    Adw.TabView tab_view {
+
+                    Panel.Dock dock {
                         vexpand: true;
 
-                        menu-model: menu {
-                            section {
-                                item {
-                                    label: _("Pin tab");
-                                    action: "tab_context.pin";
-                                    hidden-when: 'action-disabled';
+                        [content]
+                        Adw.TabView tab_view {
+                            vexpand: true;
+                            menu-model: menu {
+                                section {
+                                    item {
+                                        label: _("Pin tab");
+                                        action: "tab_context.pin";
+                                        hidden-when: 'action-disabled';
+                                    }
+                                    item {
+                                        label: _("Unpin tab");
+                                        action: "tab_context.unpin";
+                                        hidden-when: 'action-disabled';
+                                    }
                                 }
-                                item {
-                                    label: _("Unpin tab");
-                                    action: "tab_context.unpin";
-                                    hidden-when: 'action-disabled';
+                                section {
+                                    item {
+                                        label: _("Move left");
+                                        action: "tab_context.move_left";
+                                    }
+                                    item {
+                                        label: _("Move right");
+                                        action: "tab_context.move_right";
+                                    }
+                                    item {
+                                        label: _("Move to new window");
+                                        action: "tab_context.move_new";
+                                    }
                                 }
-                            }
-                            section {
-                                item {
-                                    label: _("Move left");
-                                    action: "tab_context.move_left";
+                                section {
+                                    item {
+                                        label: _("Close tab");
+                                        action: "tab_context.close";
+                                    }
+                                    item {
+                                        label: _("Close tabs to the left");
+                                        action: "tab_context.close_left";
+                                    }
+                                    item {
+                                        label: _("Close tabs to the right");
+                                        action: "tab_context.close_left";
+                                    }
+                                    item {
+                                        label: _("Close other tabs");
+                                        action: "tab_context.close_other";
+                                    }
                                 }
-                                item {
-                                    label: _("Move right");
-                                    action: "tab_context.move_right";
-                                }
-                                item {
-                                    label: _("Move to new window");
-                                    action: "tab_context.move_new";
-                                }
-                            }
-                            section {
-                                item {
-                                    label: _("Close tab");
-                                    action: "tab_context.close";
-                                }
-                                item {
-                                    label: _("Close tabs to the left");
-                                    action: "tab_context.close_left";
-                                }
-                                item {
-                                    label: _("Close tabs to the right");
-                                    action: "tab_context.close_left";
-                                }
-                                item {
-                                    label: _("Close other tabs");
-                                    action: "tab_context.close_other";
-                                }
-                            }
-                        };
+                            };
 
-                        Adw.TabPage {
-                            title: _("Welcome");
+                            Adw.TabPage {
+                                title: _("Welcome");
 
-                            child: $WelcomeScreen startpage {};
+                                child: $WelcomeScreen startpage {};
+                            }
                         }
-                    }
 
-                    Revealer terminal_revealer {
-                        transition-type: slide_up;
-                        $TerminalView terminal_view {}
+                        [bottom]
+                        $TerminalView terminal_view {
+                            height-request: 200;
+                        }
                     }
 
                     Separator {
@@ -257,12 +263,13 @@ template $EditorWindow: Adw.ApplicationWindow {
                         [end]
                         Box {
                             spacing: 8;
-                            Button toggle_terminal_button {
+                            Panel.ToggleButton toggle_terminal_button {
+                            
+                                dock: dock;
+                                area: bottom;
                                 styles[
-                                    "compressed",
-                                    "flat"
+                                    "compressed"
                                 ]
-                                icon-name: "pan-up-symbolic";
                             }
                         }
                     }

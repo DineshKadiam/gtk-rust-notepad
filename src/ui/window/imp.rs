@@ -1,4 +1,4 @@
-use gtk::{Button, Revealer, SearchBar, SearchEntry};
+use gtk::{SearchBar, SearchEntry};
 
 use crate::ui::{buffer::Buffer, terminal::TerminalView, welcome::WelcomeScreen};
 
@@ -27,9 +27,7 @@ pub struct EditorWindow {
     #[template_child]
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
-    pub toggle_terminal_button: TemplateChild<Button>,
-    #[template_child]
-    pub terminal_revealer: TemplateChild<Revealer>,
+    pub terminal_view: TemplateChild<TerminalView>,
 }
 
 impl EditorWindow {
@@ -213,6 +211,7 @@ impl ObjectSubclass for EditorWindow {
     fn class_init(klass: &mut Self::Class) {
         TerminalView::static_type();
         WelcomeScreen::static_type();
+        libpanel::Dock::static_type();
         Self::bind_template(klass);
     }
 
