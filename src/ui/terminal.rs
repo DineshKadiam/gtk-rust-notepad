@@ -2,7 +2,10 @@ use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::gdk::RGBA;
+use gtk::gio::Cancellable;
 use gtk::glib;
+use gtk::glib::SpawnFlags;
+use vte4::PtyFlags;
 use vte4::Terminal;
 use vte4::prelude::*;
 
@@ -40,17 +43,7 @@ mod imp {
     impl ObjectImpl for TerminalView {
         fn constructed(&self) {
             self.parent_constructed();
-            self.terminal.spawn_async(
-                PtyFlags::DEFAULT,
-                None,
-                &[&std::env::var("SHELL").unwrap_or("/bin/sh".to_string())],
-                &[],
-                SpawnFlags::empty(),
-                || {},
-                10,
-                Some(&Cancellable::new()),
-                |_| {},
-            );
+            // TODO fixme
             if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita") {
                 self.obj().set_palette(scheme);
             }
@@ -80,7 +73,22 @@ macro_rules! get_color {
 }
 
 impl TerminalView {
-    fn set_palette(&self, scheme: &sourceview5::StyleScheme) {
+    pub fn setup(&self, folder: &str) {
+        self.imp().terminal.reset(true, true);
+        self.imp().terminal.spawn_async(
+            PtyFlags::DEFAULT,
+            Some(folder),
+            &[&std::env::var("SHELL").unwrap_or("/bin/sh".to_string())],
+            &[],
+            SpawnFlags::empty(),
+            || {},
+            10,
+            Some(&Cancellable::new()),
+            |_| {},
+        );
+    }
+
+    pub fn set_palette(&self, scheme: &sourceview5::StyleScheme) {
         // Custom color definitions with a hard-coded fallback (adwaita light theme)
         let foreground =
             get_color!(scheme, "term:fg", foreground).unwrap_or(RGBA::parse("#c0bfbc").unwrap());

@@ -60,7 +60,7 @@ impl EditorWindow {
                         window,
                         move |result| {
                             if let Ok(file) = result {
-                                window.update_file_tree(file.path().unwrap().to_str().unwrap());
+                                window.update_folder(file.path().unwrap().to_str().unwrap());
                                 // close tabs + open sidebar
                                 window.imp().split_view.set_show_sidebar(true);
                                 for page in window.imp().tab_view.pages().iter::<TabPage>() {
@@ -269,11 +269,13 @@ impl EditorWindow {
         tabs::init_tab_menus(self);
     }
 
-    fn update_file_tree(&self, dir_path: &str) {
+    fn update_folder(&self, dir_path: &str) {
         self.imp()
             .sidebar_title
             .set_title(dir_path.split("/").last().unwrap()); // yeah fuck you windows "\" users
 
         file_tree::update(&self.imp().file_tree.clone(), dir_path);
+
+        self.imp().terminal_view.setup(dir_path);
     }
 }
