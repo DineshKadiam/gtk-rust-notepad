@@ -1,0 +1,15 @@
+using Gtk 4.0;
+using Vte 3.91;
+
+template $TerminalView: Box {
+    orientation: vertical;
+
+    Separator {
+        orientation: horizontal;
+    }
+
+    Vte.Terminal terminal {
+        height-request: 100;
+    }
+
+}

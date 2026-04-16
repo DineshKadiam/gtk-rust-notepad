@@ -1,6 +1,6 @@
-use gtk::{SearchBar, SearchEntry};
+use gtk::{Button, Revealer, SearchBar, SearchEntry};
 
-use crate::ui::buffer::Buffer;
+use crate::ui::{buffer::Buffer, terminal::TerminalView, welcome::WelcomeScreen};
 
 use super::*;
 
@@ -19,13 +19,17 @@ pub struct EditorWindow {
     #[template_child]
     pub sidebar_title: TemplateChild<WindowTitle>,
     #[template_child]
-    pub startpage: TemplateChild<StatusPage>,
+    pub startpage: TemplateChild<WelcomeScreen>,
     #[template_child]
     pub file_tree: TemplateChild<ListView>,
     #[template_child]
     pub search_bar: TemplateChild<SearchBar>,
     #[template_child]
     pub search_entry: TemplateChild<SearchEntry>,
+    #[template_child]
+    pub toggle_terminal_button: TemplateChild<Button>,
+    #[template_child]
+    pub terminal_revealer: TemplateChild<Revealer>,
 }
 
 impl EditorWindow {
@@ -50,7 +54,7 @@ impl EditorWindow {
         let buffer = sourceview5::Buffer::new(None);
         buffer.set_highlight_syntax(true);
         //     sourceview5::StyleSchemeManager::new().scheme_ids()
-        if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita-dark")
+        if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita")
             && adw::StyleManager::default().is_dark()
         {
             buffer.set_style_scheme(Some(scheme));
@@ -207,6 +211,8 @@ impl ObjectSubclass for EditorWindow {
     type ParentType = adw::ApplicationWindow;
 
     fn class_init(klass: &mut Self::Class) {
+        TerminalView::static_type();
+        WelcomeScreen::static_type();
         Self::bind_template(klass);
     }
 

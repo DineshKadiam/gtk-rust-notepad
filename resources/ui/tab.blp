@@ -3,33 +3,39 @@ using GtkSource 5;
 
 template $Buffer: Box {
     file_path: "";
+    orientation: vertical;
 
-    ScrolledWindow {
-        vscrollbar-policy: external;
+    Box {
+        orientation: horizontal;
+        
+        ScrolledWindow {
+            vscrollbar-policy: external;
 
-        GtkSource.View source_view {
-            monospace: true;
-            show-line-numbers: true;
-            show-line-marks: true;
-            tab-width: 4;
-            top-margin: 12;
-            bottom-margin: 4;
-            pixels-below-lines: 4;
-            hexpand: true;
-            // configurable things
-            highlight-current-line: true;
-            //background-pattern: grid;
+            GtkSource.View source_view {
+                monospace: true;
+                show-line-numbers: true;
+                show-line-marks: true;
+                tab-width: 4;
+                top-margin: 12;
+                bottom-margin: 4;
+                pixels-below-lines: 4;
+                hexpand: true;
+                // configurable things
+                highlight-current-line: true;
+                //background-pattern: grid;
+            }
+        }
+
+        Revealer map_revealer {
+            transition-type: slide_left;
+            GtkSource.Map source_map {
+                halign: end;
+                valign: fill;
+                view: source_view;
+                highlight-current-line: true;
+                vexpand: true;
+            }
         }
     }
 
-    Revealer map_revealer {
-        transition-type: slide_left;
-        GtkSource.Map source_map {
-            halign: end;
-            valign: fill;
-            view: source_view;
-            highlight-current-line: true;
-            vexpand: true;
-        }
-    }
 }

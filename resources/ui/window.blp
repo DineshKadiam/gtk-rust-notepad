@@ -140,96 +140,131 @@ template $EditorWindow: Adw.ApplicationWindow {
                     }
                 }
 
-                Adw.TabView tab_view {
-                    menu-model: menu {
-                        section {
-                            item {
-                                label: _("Pin tab");
-                                action: "tab_context.pin";
-                                hidden-when: 'action-disabled';
-                            }
-                            item {
-                                label: _("Unpin tab");
-                                action: "tab_context.unpin";
-                                hidden-when: 'action-disabled';
-                            }
-                        }
-                        section {
-                            item {
-                                label: _("Move left");
-                                action: "tab_context.move_left";
-                            }
-                            item {
-                                label: _("Move right");
-                                action: "tab_context.move_right";
-                            }
-                            item {
-                                label: _("Move to new window");
-                                action: "tab_context.move_new";
-                            }
-                        }
-                        section {
-                            item {
-                                label: _("Close tab");
-                                action: "tab_context.close";
-                            }
-                            item {
-                                label: _("Close tabs to the left");
-                                action: "tab_context.close_left";
-                            }
-                            item {
-                                label: _("Close tabs to the right");
-                                action: "tab_context.close_left";
-                            }
-                            item {
-                                label: _("Close other tabs");
-                                action: "tab_context.close_other";
-                            }
-                        }
-                    };
-                    Adw.TabPage {
-                        title: _("Welcome");
+                Box {
+                    orientation: vertical;
 
-                        child: Adw.StatusPage startpage {
-                            icon-name: "accessories-text-editor-symbolic";
-                            title: _("Welcome");
-                            description: _("Choose an option to get started.");
+                    Adw.TabView tab_view {
+                        vexpand: true;
 
-                            child: Box {
-                                orientation: vertical;
-                                halign: center;
-                                spacing: 12;
-
-                                Button {
-                                    styles[
-                                        "suggested-action",
-                                        "pill",
-                                    ]
-
-                                    label: _("Open a file");
-                                    action-name: "win.open.file";
+                        menu-model: menu {
+                            section {
+                                item {
+                                    label: _("Pin tab");
+                                    action: "tab_context.pin";
+                                    hidden-when: 'action-disabled';
                                 }
-
-                                Button {
-                                    styles[
-                                        "suggested-action",
-                                        "pill",
-                                    ]
-
-                                    label: _("Open a folder");
-                                    action-name: "win.open.folder";
+                                item {
+                                    label: _("Unpin tab");
+                                    action: "tab_context.unpin";
+                                    hidden-when: 'action-disabled';
                                 }
-
-                                Button {
-                                    styles[
-                                        "pill",
-                                    ]
-
-                                    label: _("Start with an empty buffer");
-                                    action-name: "win.tab.new_scratch";
+                            }
+                            section {
+                                item {
+                                    label: _("Move left");
+                                    action: "tab_context.move_left";
                                 }
-                            };
+                                item {
+                                    label: _("Move right");
+                                    action: "tab_context.move_right";
+                                }
+                                item {
+                                    label: _("Move to new window");
+                                    action: "tab_context.move_new";
+                                }
+                            }
+                            section {
+                                item {
+                                    label: _("Close tab");
+                                    action: "tab_context.close";
+                                }
+                                item {
+                                    label: _("Close tabs to the left");
+                                    action: "tab_context.close_left";
+                                }
+                                item {
+                                    label: _("Close tabs to the right");
+                                    action: "tab_context.close_left";
+                                }
+                                item {
+                                    label: _("Close other tabs");
+                                    action: "tab_context.close_other";
+                                }
+                            }
                         };
+
+                        Adw.TabPage {
+                            title: _("Welcome");
+
+                            child: $WelcomeScreen startpage {};
+                        }
+                    }
+
+                    Revealer terminal_revealer {
+                        transition-type: slide_up;
+                        $TerminalView terminal_view {}
+                    }
+
+                    Separator {
+                        orientation: horizontal;
+                    }
+
+                    /* Status bar */
+                    CenterBox {
+                        styles[
+                            "status-bar"
+                        ]
+
+                        orientation: horizontal;
+                        margin-start: 8;
+                        margin-end: 8;
+
+                        [start]
+                        Box {
+                            spacing: 8;
+
+                            /* TODO these are placeholders!! */
+                            Label {
+                                label: "NORMAL";
+                            }
+
+                            Separator {
+                                orientation: vertical;
+                            }
+
+                            Label {
+                                label: "full/path/to/file";
+                            }
+
+                            Separator {
+                                orientation: vertical;
+                            }
+
+                            Label {
+                                label: "lang";
+                            }
+
+                            Separator {
+                                orientation: vertical;
+                            }
+
+                            /* TODO scroll percentage */
+                            Label {
+                                label: "10%";
+                            }
+                        }
+
+                        [end]
+                        Box {
+                            spacing: 8;
+                            Button toggle_terminal_button {
+                                styles[
+                                    "compressed",
+                                    "flat"
+                                ]
+                                icon-name: "pan-up-symbolic";
+                            }
+                        }
                     }
                 }
             }

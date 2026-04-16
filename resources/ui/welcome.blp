@@ -1,0 +1,45 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $WelcomeScreen: Adw.Bin {
+    Adw.StatusPage {
+        icon-name: "accessories-text-editor-symbolic";
+        title: _("Welcome");
+        description: _("Choose an option to get started.");
+
+        child: Box {
+            orientation: vertical;
+            halign: center;
+            spacing: 12;
+
+            Button {
+                styles[
+                    "suggested-action",
+                    "pill",
+                ]
+
+                label: _("Open a file");
+                action-name: "win.open.file";
+            }
+
+            Button {
+                styles[
+                    "suggested-action",
+                    "pill",
+                ]
+
+                label: _("Open a folder");
+                action-name: "win.open.folder";
+            }
+
+            Button {
+                styles[
+                    "pill",
+                ]
+
+                label: _("Start with an empty buffer");
+                action-name: "win.tab.new_scratch";
+            }
+        };
+    }
+}

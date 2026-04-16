@@ -42,3 +42,21 @@ tabbar tab {
 entry.flat {
     outline: none;
 }
+
+/* Buttons with shorter padding */
+button.compressed {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+
+/* Status bar */
+box.status-bar > box > *:not(separator) {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+/* Terminal padding */
+vte-terminal {
+  padding: 8px;
+}

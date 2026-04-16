@@ -9,7 +9,7 @@ use std::io::Error;
 
 mod imp {
 
-    use gtk::{EventControllerMotion, Revealer, glib::clone};
+    use gtk::{Button, EventControllerMotion, Revealer, glib::clone};
 
     use super::*;
 
