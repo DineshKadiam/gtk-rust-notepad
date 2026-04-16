@@ -33,15 +33,17 @@ a lot of editors that i use are either slow as fuck or on thin ice so i'm making
 
 ## todo
 
-- terminal that opens from the bottom
+- settings page
+
+- libpanel omnibar
 
 - lsp integration
   - code actions
-- snippets
-- inlay hints
-- underline errors
+  - snippets
+  - inlay hints
+  - underline errors
 
 - helix keybinds (configurable)
-- plugins
+- mode line
 
-- settings page
+- plugins

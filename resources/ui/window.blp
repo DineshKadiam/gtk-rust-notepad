@@ -223,7 +223,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                         orientation: horizontal;
                         margin-start: 8;
-                        margin-end: 8;
+                        // margin-end: 8;
 
                         [start]
                         Box {
@@ -254,21 +254,20 @@ template $EditorWindow: Adw.ApplicationWindow {
                                 orientation: vertical;
                             }
 
-                            /* TODO scroll percentage */
-                            Label {
-                                label: "10%";
-                            }
                         }
 
                         [end]
                         Box {
-                            spacing: 8;
+                            Separator {
+                                orientation: vertical;
+                            }
+
                             Panel.ToggleButton toggle_terminal_button {
-                            
                                 dock: dock;
                                 area: bottom;
                                 styles[
-                                    "compressed"
+                                    "compressed",
+                                    "flat"
                                 ]
                             }
                         }

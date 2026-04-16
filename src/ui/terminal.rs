@@ -60,12 +60,15 @@ pub struct TerminalView(ObjectSubclass<imp::TerminalView>)
 }
 
 macro_rules! get_color {
-    ($scheme:ident, $style:expr, $color:ident) => {
+    ($scheme:ident, $style:expr) => {
         if let Some(scheme) = $scheme.style($style)
-            && let Some(color) = scheme.$color()
-            && let Ok(rgba) = RGBA::parse(color)
+            && let Some(foreground) = scheme.foreground()
+            && let Some(background) = scheme.background()
         {
-            Some(rgba)
+            Some((
+                RGBA::parse(foreground).unwrap(),
+                RGBA::parse(background).unwrap(),
+            ))
         } else {
             None
         }
@@ -90,33 +93,50 @@ impl TerminalView {
 
     pub fn set_palette(&self, scheme: &sourceview5::StyleScheme) {
         // Custom color definitions with a hard-coded fallback (adwaita light theme)
-        let foreground =
-            get_color!(scheme, "term:fg", foreground).unwrap_or(RGBA::parse("#c0bfbc").unwrap());
-        let background =
-            get_color!(scheme, "term:bg", foreground).unwrap_or(RGBA::parse("#1e1e1e").unwrap());
-        let black =
-            get_color!(scheme, "term:black", foreground).unwrap_or(RGBA::parse("#5d5d5d").unwrap());
-        let red =
-            get_color!(scheme, "term:red", foreground).unwrap_or(RGBA::parse("#f66151").unwrap());
-        let green =
-            get_color!(scheme, "term:green", foreground).unwrap_or(RGBA::parse("#33d17a").unwrap());
-        let yellow = get_color!(scheme, "term:yellow", foreground)
-            .unwrap_or(RGBA::parse("#e9ad0c").unwrap());
-        let blue =
-            get_color!(scheme, "term:blue", foreground).unwrap_or(RGBA::parse("#2a7bde").unwrap());
-        let magenta = get_color!(scheme, "term:magenta", foreground)
-            .unwrap_or(RGBA::parse("#c061cb").unwrap());
-        let teal =
-            get_color!(scheme, "term:teal", foreground).unwrap_or(RGBA::parse("#33c7de").unwrap());
-        let white =
-            get_color!(scheme, "term:white", foreground).unwrap_or(RGBA::parse("#ffffff").unwrap());
+        let foreground = get_color!(scheme, "term:fg")
+            .unwrap_or((RGBA::parse("#c0bfbc").unwrap(), RGBA::TRANSPARENT));
+        let background = get_color!(scheme, "term:bg")
+            .unwrap_or((RGBA::parse("#1d1d20").unwrap(), RGBA::TRANSPARENT));
+        let black = get_color!(scheme, "term:black").unwrap_or((
+            RGBA::parse("#5d5d5d").unwrap(),
+            RGBA::parse("#1e1e1e").unwrap(),
+        ));
+        let red = get_color!(scheme, "term:red").unwrap_or((
+            RGBA::parse("#f66151").unwrap(),
+            RGBA::parse("#c01c28").unwrap(),
+        ));
+        let green = get_color!(scheme, "term:green").unwrap_or((
+            RGBA::parse("#33d17a").unwrap(),
+            RGBA::parse("#26a269").unwrap(),
+        ));
+        let yellow = get_color!(scheme, "term:yellow").unwrap_or((
+            RGBA::parse("#e9ad0c").unwrap(),
+            RGBA::parse("#a2734c").unwrap(),
+        ));
+        let blue = get_color!(scheme, "term:blue").unwrap_or((
+            RGBA::parse("#2a7bde").unwrap(),
+            RGBA::parse("#12488b").unwrap(),
+        ));
+        let magenta = get_color!(scheme, "term:magenta").unwrap_or((
+            RGBA::parse("#c061cb").unwrap(),
+            RGBA::parse("#a347ba").unwrap(),
+        ));
+        let teal = get_color!(scheme, "term:teal").unwrap_or((
+            RGBA::parse("#33c7de").unwrap(),
+            RGBA::parse("#2aa1b3").unwrap(),
+        ));
+        let white = get_color!(scheme, "term:white").unwrap_or((
+            RGBA::parse("#ffffff").unwrap(),
+            RGBA::parse("#cfcfcf").unwrap(),
+        ));
 
         // Set colors
         self.imp().terminal.set_colors(
-            Some(&foreground),
-            Some(&background),
+            Some(&foreground.0),
+            Some(&background.0),
             &[
-                &black, &red, &green, &yellow, &blue, &magenta, &teal, &white,
+                &black.1, &red.1, &green.1, &yellow.1, &blue.1, &magenta.1, &teal.1, &white.1,
+                &black.0, &red.0, &green.0, &yellow.0, &blue.0, &magenta.0, &teal.0, &white.0,
             ],
         );
     }

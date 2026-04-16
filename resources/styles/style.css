@@ -44,22 +44,23 @@ entry.flat {
 }
 
 /* Buttons with shorter padding */
-.compressed {
-    padding-top: 0;
-    padding-bottom: 0;
+button.compressed, paneltogglebutton.compressed button {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-radius: 0;
 }
 
-.compressed * {
-	min-height: 16px;
+.compressed.flat button:not(:active):not(:checked):not(:hover) {
+    background: transparent;
 }
 
 /* Status bar */
-box.status-bar > box > *:not(separator) {
+box.status-bar > box > *:not(separator):not(.compressed) {
     margin-top: 2px;
     margin-bottom: 2px;
 }
 
 /* Terminal padding */
 vte-terminal {
-  padding: 8px;
+  padding: 12px;
 }

@@ -52,7 +52,7 @@ impl EditorWindow {
         let buffer = sourceview5::Buffer::new(None);
         buffer.set_highlight_syntax(true);
         //     sourceview5::StyleSchemeManager::new().scheme_ids()
-        if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita")
+        if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita-dark")
             && adw::StyleManager::default().is_dark()
         {
             buffer.set_style_scheme(Some(scheme));
