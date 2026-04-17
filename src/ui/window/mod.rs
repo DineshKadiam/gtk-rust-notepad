@@ -9,6 +9,7 @@ use gtk::{CompositeTemplate, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
+use crate::ui::preferences::PreferencesDialog;
 
 mod imp;
 mod tabs;
@@ -89,6 +90,13 @@ impl EditorWindow {
                     window.imp().new_tab(None);
                 })
                 .build(),
+            // New terminal tab
+            ActionEntry::builder("tab.new_terminal")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    window.imp().new_terminal_tab();
+                })
+                .build(),
             // Closes current tab
             ActionEntry::builder("tab.close")
                 .parameter_type(None)
@@ -150,6 +158,14 @@ impl EditorWindow {
                         .clone();
                     let new_window = Self::new(&app);
                     new_window.present();
+                })
+                .build(),
+            // Shows prefs dialog
+            ActionEntry::builder("show_prefs")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    let prefs = PreferencesDialog::new();
+                    prefs.present(&window.clone().into());
                 })
                 .build(),
         ]);

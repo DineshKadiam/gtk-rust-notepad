@@ -22,6 +22,14 @@ headerbar > * > * {
     padding-bottom: 1px;
     min-height: 0;
 }
+
+headerbar button {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
 .vertical.collapse-spacing {
     padding-top: 0;
     padding-bottom: 0;
@@ -63,4 +71,22 @@ box.status-bar > box > *:not(separator):not(.compressed) {
 /* Terminal padding */
 vte-terminal {
   padding: 12px;
+}
+
+/* for reasons unknown this isn't the default */
+GtkSourceStyleSchemePreview image {
+  margin: 4px;
+  padding: 4px;
+  background: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+  border-radius: 100%;
+}
+
+GtkSourceStyleSchemePreview.selected {
+  border: 3px solid @theme_selected_bg_color;
+}
+
+/* i hate the stupid overlay when you hover over flowbox children yet i have no choice */
+flowboxchild {
+  border-radius: 14px;
 }

@@ -32,6 +32,18 @@ template $EditorWindow: Adw.ApplicationWindow {
                         section {
                             label: _("File");
                             item {
+                              label: _("New window");
+                              action: "win.new_window";
+                            }
+                            item {
+                              label: _("New terminal tab");
+                              action: "win.tab.new_terminal";
+                            }
+                            item {
+                              label: _("New scratch buffer");
+                              action: "win.tab.new_scratch";
+                            }
+                            item {
                               label: _("Open file");
                               icon: "document-open-symbolic";
                               action: "win.open.file";
@@ -63,8 +75,8 @@ template $EditorWindow: Adw.ApplicationWindow {
                               action: "win.search.toggle";
                             }
                             item {
-                              label: _("New window");
-                              action: "win.new_window";
+                                label: _("Preferences");
+                                action: "win.show_prefs";
                             }
                         }
                     };
@@ -231,6 +243,9 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                             /* TODO these are placeholders!! */
                             Label {
+                                styles[
+                                    "monospace"
+                                ]
                                 label: "NORMAL";
                             }
 

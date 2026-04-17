@@ -42,6 +42,17 @@ impl EditorWindow {
         path_string + modified_string
     }
 
+    pub fn new_terminal_tab(&self) -> TabPage {
+        let term = TerminalView::new();
+        let page = self.tab_view.add_page(&term, None);
+        term.setup(std::env::home_dir().unwrap().to_str().unwrap());
+        page.set_title(&EditorWindow::tab_name("Terminal", false));
+        if page.is_selected() {
+            self.window_title.set_title(&page.title());
+        }
+        page
+    }
+
     pub fn new_tab(&self, path: Option<&str>) -> TabPage {
         // Get rid of welcome page
         if self.startpage.parent().is_some() {

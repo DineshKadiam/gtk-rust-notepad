@@ -1,0 +1,31 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $PreferencesDialog : Adw.PreferencesDialog {
+    height-request: 600;
+    width-request: 200;
+
+    Adw.PreferencesPage {
+        title: "Editor";
+
+        Adw.PreferencesGroup {
+            title: _("Color scheme");
+
+            FlowBox colorschemes {
+                row-spacing: 12;
+                column-spacing: 12;
+                max-children-per-line: 4;
+                min-children-per-line: 4;
+                selection-mode: none;
+            }
+        }
+
+        Adw.PreferencesGroup {
+            title: _("Appearance");
+
+            Adw.SwitchRow {
+                title: "Highlight line numbers";
+            }
+        }
+    }
+}

@@ -11,9 +11,6 @@ use vte4::prelude::*;
 
 mod imp {
 
-    use gtk::{gio::Cancellable, glib::SpawnFlags};
-    use vte4::PtyFlags;
-
     use super::*;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
@@ -139,5 +136,11 @@ impl TerminalView {
                 &black.0, &red.0, &green.0, &yellow.0, &blue.0, &magenta.0, &teal.0, &white.0,
             ],
         );
+    }
+}
+
+impl TerminalView {
+    pub fn new() -> Self {
+        glib::Object::builder::<Self>().build()
     }
 }
