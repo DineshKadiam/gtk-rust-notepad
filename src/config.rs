@@ -1,23 +1,35 @@
-use std::fs::{self, DirEntry};
+use std::fs::{self};
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(default)]
 pub struct Config {
     pub ui: UI,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(default)]
 pub struct UI {
     pub theme: String,
+    pub show_minimap: bool,
+    pub hl_line: bool,
+    pub grid_bg: bool,
 }
 
 impl Default for Config {
     fn default() -> Self {
+        Self { ui: UI::default() }
+    }
+}
+
+impl Default for UI {
+    fn default() -> Self {
         Self {
-            ui: UI {
-                theme: "Adwaita".to_string(),
-            },
+            theme: "Adwaita".to_string(),
+            show_minimap: true,
+            hl_line: true,
+            grid_bg: false,
         }
     }
 }

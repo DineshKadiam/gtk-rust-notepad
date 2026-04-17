@@ -1,13 +1,11 @@
+use crate::config::Config;
+use crate::utils;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::glib;
 use gtk::glib::clone;
-use sourceview5::StyleScheme;
-
-use crate::config::Config;
-use crate::utils;
 
 mod imp {
 
@@ -19,6 +17,12 @@ mod imp {
     pub struct PreferencesDialog {
         #[template_child]
         pub colorschemes: TemplateChild<gtk::FlowBox>,
+        #[template_child]
+        pub line_hl: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub minimap: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub grid_bg: TemplateChild<adw::SwitchRow>,
     }
 
     #[glib::object_subclass]
@@ -55,22 +59,37 @@ pub struct PreferencesDialog(ObjectSubclass<imp::PreferencesDialog>)
     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
+macro_rules! connect_switch {
+    ($switch:expr, $cfg:ident.$setting:ident.$key:ident) => {
+        $switch.set_active($cfg.$setting.$key);
+        $switch.connect_active_notify(|s| {
+            let mut config = Config::get_or_default();
+            config.$setting.$key = s.is_active();
+            config.write();
+            s.activate_action("win.reload_config", None).unwrap();
+        });
+    };
+}
+
 impl PreferencesDialog {
     pub fn new() -> Self {
         glib::Object::builder::<Self>().build()
     }
 
     pub fn present(&self, window: &gtk::Window) {
-        // Fill colorschemes
-        self.update_colorschemes();
+        let config = Config::get_or_default();
+        self.update_colorschemes(&config);
+        // Connect thingies
+        connect_switch!(self.imp().line_hl, config.ui.hl_line);
+        connect_switch!(self.imp().minimap, config.ui.show_minimap);
+        connect_switch!(self.imp().grid_bg, config.ui.grid_bg);
         // Present
         AdwDialogExt::present(self, Some(window));
     }
 
-    fn update_colorschemes(&self) {
+    fn update_colorschemes(&self, config: &Config) {
         let scheme_manager = sourceview5::StyleSchemeManager::new();
         let flow_box = self.imp().colorschemes.clone();
-        let config = Config::get_or_default();
         flow_box.remove_all();
         for scheme in scheme_manager.scheme_ids() {
             if let Some(ref scheme) = scheme_manager.scheme(&scheme)

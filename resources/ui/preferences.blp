@@ -20,14 +20,20 @@ template $PreferencesDialog : Adw.PreferencesDialog {
             }
         }
 
-/*
         Adw.PreferencesGroup {
             title: _("Appearance");
 
-            Adw.SwitchRow {
-                title: "Highlight line numbers";
+            Adw.SwitchRow line_hl {
+                title: "Highlight current line";
+            }
+
+            Adw.SwitchRow minimap {
+                title: "Show minimap";
+            }
+
+            Adw.SwitchRow grid_bg {
+                title: "Use grid background";
             }
         }
-*/
     }
 }

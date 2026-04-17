@@ -3,6 +3,7 @@ use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::TextSearchFlags;
 use gtk::glib;
+use sourceview5::BackgroundPatternType;
 use sourceview5::StyleSchemeManager;
 use sourceview5::prelude::*;
 use std::cell::RefCell;
@@ -113,6 +114,17 @@ impl Buffer {
                 buffer.set_style_scheme(Some(scheme));
             }
         }
+        self.imp().map_revealer.set_visible(config.ui.show_minimap);
+        self.imp()
+            .source_view
+            .set_highlight_current_line(config.ui.hl_line);
+        self.imp()
+            .source_view
+            .set_background_pattern(if config.ui.grid_bg {
+                BackgroundPatternType::Grid
+            } else {
+                BackgroundPatternType::None
+            });
     }
 
     pub fn search(&self, query: &str, direction: SearchDirection) -> Result<(), Error> {
