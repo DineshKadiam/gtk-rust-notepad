@@ -1,4 +1,6 @@
+mod config;
 mod ui;
+mod utils;
 
 use adw::{Application, prelude::*};
 use gtk::{CssProvider, gdk::Display};

@@ -3,7 +3,11 @@ use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::glib;
+use gtk::glib::clone;
 use sourceview5::StyleScheme;
+
+use crate::config::Config;
+use crate::utils;
 
 mod imp {
 
@@ -58,39 +62,60 @@ impl PreferencesDialog {
 
     pub fn present(&self, window: &gtk::Window) {
         // Fill colorschemes
+        self.update_colorschemes();
+        // Present
+        AdwDialogExt::present(self, Some(window));
+    }
+
+    fn update_colorschemes(&self) {
         let scheme_manager = sourceview5::StyleSchemeManager::new();
         let flow_box = self.imp().colorschemes.clone();
+        let config = Config::get_or_default();
+        flow_box.remove_all();
         for scheme in scheme_manager.scheme_ids() {
             if let Some(ref scheme) = scheme_manager.scheme(&scheme)
                 && (
-                    style_scheme_is_dark(scheme).is_none() // Theme doesn't have light/dark variants
-                || (style_scheme_is_dark(scheme).unwrap() && adw::StyleManager::default().is_dark()) // OR it is and it matches the dark theme
-                || (!style_scheme_is_dark(scheme).unwrap() && !adw::StyleManager::default().is_dark())
+                    utils::scheme::is_dark(scheme).is_none() // Theme doesn't have light/dark variants
+                || (utils::scheme::is_dark(scheme).unwrap() && adw::StyleManager::default().is_dark()) // OR it is and it matches the dark theme
+                || (!utils::scheme::is_dark(scheme).unwrap() && !adw::StyleManager::default().is_dark())
                     // OR it isn't and the system has a light theme
                 )
             {
                 let flow_child = gtk::FlowBoxChild::new();
                 let widget = sourceview5::StyleSchemePreview::new(scheme);
-                if &scheme.id() == "Adwaita" {
+                if utils::scheme::light(&scheme).id() == config.ui.theme {
                     widget.set_selected(true);
                 }
                 widget.add_css_class("card");
+                widget.connect_activate(clone!(
+                    #[strong]
+                    config,
+                    #[strong]
+                    scheme,
+                    #[strong]
+                    flow_box,
+                    move |widget| {
+                        let mut config = config.clone();
+                        let mut child = flow_box.first_child();
+                        while let Some(curr) = child {
+                            curr.downcast_ref::<gtk::FlowBoxChild>()
+                                .unwrap()
+                                .child()
+                                .unwrap()
+                                .downcast_ref::<sourceview5::StyleSchemePreview>()
+                                .unwrap()
+                                .set_selected(false);
+                            child = curr.next_sibling();
+                        }
+                        config.ui.theme = utils::scheme::light(&scheme).id().to_string();
+                        config.write();
+                        widget.set_selected(true);
+                        widget.activate_action("win.reload_config", None).unwrap();
+                    }
+                ));
                 flow_child.set_child(Some(&widget));
                 flow_box.append(&flow_child);
             }
         }
-        // Present
-        AdwDialogExt::present(self, Some(window));
-    }
-}
-
-// TODO put in global utils file??
-fn style_scheme_is_dark(scheme: &StyleScheme) -> Option<bool> {
-    if let Some(variant) = scheme.metadata("variant") {
-        Some(variant.contains("dark"))
-    } else if scheme.name().contains("dark") {
-        Some(true)
-    } else {
-        None
     }
 }

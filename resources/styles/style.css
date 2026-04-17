@@ -82,8 +82,13 @@ GtkSourceStyleSchemePreview image {
   border-radius: 100%;
 }
 
+GtkSourceStyleSchemePreview {
+  margin: 3px;
+}
+
 GtkSourceStyleSchemePreview.selected {
   border: 3px solid @theme_selected_bg_color;
+  margin: 0;
 }
 
 /* i hate the stupid overlay when you hover over flowbox children yet i have no choice */

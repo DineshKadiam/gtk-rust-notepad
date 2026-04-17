@@ -3,9 +3,13 @@ use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::TextSearchFlags;
 use gtk::glib;
+use sourceview5::StyleSchemeManager;
 use sourceview5::prelude::*;
 use std::cell::RefCell;
 use std::io::Error;
+
+use crate::config::Config;
+use crate::utils;
 
 mod imp {
 
@@ -91,6 +95,24 @@ impl Buffer {
         let widget = glib::Object::builder::<Self>().build();
         widget.imp().source_view.set_buffer(Some(&buf));
         widget
+    }
+
+    pub fn configure(&self) {
+        let config = Config::get_or_default();
+        let buffer = self
+            .imp()
+            .source_view
+            .buffer()
+            .downcast_ref::<sourceview5::Buffer>()
+            .unwrap()
+            .clone();
+        if let Some(ref scheme) = StyleSchemeManager::new().scheme(&config.ui.theme) {
+            if adw::StyleManager::default().is_dark() {
+                buffer.set_style_scheme(Some(&utils::scheme::dark(scheme)));
+            } else {
+                buffer.set_style_scheme(Some(scheme));
+            }
+        }
     }
 
     pub fn search(&self, query: &str, direction: SearchDirection) -> Result<(), Error> {

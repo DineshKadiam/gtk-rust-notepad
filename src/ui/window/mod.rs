@@ -168,6 +168,13 @@ impl EditorWindow {
                     prefs.present(&window.clone().into());
                 })
                 .build(),
+            // Reload config
+            ActionEntry::builder("reload_config")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    window.imp().reload_config();
+                })
+                .build(),
         ]);
     }
 
@@ -279,6 +286,15 @@ impl EditorWindow {
                         Err(_) => entry.add_css_class("error"),
                     }
                 }
+            }
+        ));
+        // Switching to/from dark theme
+        let style_man = adw::StyleManager::default();
+        style_man.connect_dark_notify(clone!(
+            #[strong]
+            window,
+            move |_| {
+                window.upgrade().unwrap().reload_config();
             }
         ));
         // Set up tab context thingies

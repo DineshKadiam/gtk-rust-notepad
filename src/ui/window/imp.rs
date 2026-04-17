@@ -1,6 +1,11 @@
 use gtk::{SearchBar, SearchEntry};
+use sourceview5::StyleSchemeManager;
 
-use crate::ui::{buffer::Buffer, terminal::TerminalView, welcome::WelcomeScreen};
+use crate::{
+    config::Config,
+    ui::{buffer::Buffer, terminal::TerminalView, welcome::WelcomeScreen},
+    utils,
+};
 
 use super::*;
 
@@ -42,6 +47,14 @@ impl EditorWindow {
         path_string + modified_string
     }
 
+    pub fn reload_config(&self) {
+        self.tab_view.pages().iter::<TabPage>().for_each(|page| {
+            if let Some(buffer) = page.unwrap().child().downcast_ref::<Buffer>() {
+                buffer.configure();
+            }
+        });
+    }
+
     pub fn new_terminal_tab(&self) -> TabPage {
         let term = TerminalView::new();
         let page = self.tab_view.add_page(&term, None);
@@ -62,16 +75,11 @@ impl EditorWindow {
         // Buffer
         let buffer = sourceview5::Buffer::new(None);
         buffer.set_highlight_syntax(true);
-        //     sourceview5::StyleSchemeManager::new().scheme_ids()
-        if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita-dark")
-            && adw::StyleManager::default().is_dark()
-        {
-            buffer.set_style_scheme(Some(scheme));
-        }
         // Create buffer UI and page
         let buffer_ui = Buffer::with_source(buffer.clone());
         let page = self.tab_view.add_page(&buffer_ui, None);
         buffer_ui.set_file_path(path.unwrap_or_default());
+        buffer_ui.configure();
         // Files
         if let Some(path) = path {
             let file = gio::File::for_path(path);
