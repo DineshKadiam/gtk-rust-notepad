@@ -1,3 +1,5 @@
+pub mod recolor;
+
 pub(crate) mod scheme {
     use sourceview5::{StyleScheme, StyleSchemeManager};
 

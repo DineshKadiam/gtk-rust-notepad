@@ -1,4 +1,6 @@
-use gtk::{SearchBar, SearchEntry};
+use std::{cell::RefCell, sync::RwLock};
+
+use gtk::{CssProvider, SearchBar, SearchEntry};
 use sourceview5::StyleSchemeManager;
 
 use crate::{
@@ -33,6 +35,8 @@ pub struct EditorWindow {
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
+    #[property(get, set)]
+    pub accent_style: RefCell<CssProvider>,
 }
 
 impl EditorWindow {
@@ -48,6 +52,18 @@ impl EditorWindow {
     }
 
     pub fn reload_config(&self) {
+        if let Some(ref scheme) =
+            StyleSchemeManager::new().scheme(&Config::get_or_default().ui.theme)
+        {
+            let scheme = if adw::StyleManager::default().is_dark() {
+                &utils::scheme::dark(scheme)
+            } else {
+                scheme
+            };
+            self.accent_style
+                .borrow()
+                .load_from_string(&utils::recolor::generate_css(scheme.clone()));
+        }
         self.tab_view.pages().iter::<TabPage>().for_each(|page| {
             if let Some(buffer) = page.unwrap().child().downcast_ref::<Buffer>() {
                 buffer.configure();
@@ -248,6 +264,12 @@ impl ObjectImpl for EditorWindow {
         self.obj().setup_callbacks();
         self.obj()
             .update_folder(std::env::home_dir().unwrap().to_str().unwrap());
+        self.reload_config();
+        gtk::style_context_add_provider_for_display(
+            &gtk::gdk::Display::default().expect("Could not connect to a display."),
+            &self.accent_style.borrow().clone(),
+            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+        );
     }
 }
 impl WidgetImpl for EditorWindow {}

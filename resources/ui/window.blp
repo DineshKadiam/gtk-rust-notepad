@@ -3,6 +3,8 @@ using Adw 1;
 using Panel 1;
 
 template $EditorWindow: Adw.ApplicationWindow {
+    accent_style: Gtk.CssProvider {};
+
     Adw.Breakpoint {
         condition("max-width: 600sp")
         setters {

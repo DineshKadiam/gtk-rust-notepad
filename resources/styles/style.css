@@ -95,3 +95,17 @@ GtkSourceStyleSchemePreview.selected {
 flowboxchild {
   border-radius: 14px;
 }
+
+/* Styling headerbars to look like GNOME Builder's */
+toolbarview .top-bar {
+	background: @window_bg_color;
+	--headerbar-darker-shade-color: @sidebar_border_color;
+}
+
+.sidebar-pane .top-bar { /* GTK doesn't have :not(parent child) yet :'( */
+	background: unset;
+}
+
+:root {
+    --overview-bg-color: @window_bg_color;
+}
