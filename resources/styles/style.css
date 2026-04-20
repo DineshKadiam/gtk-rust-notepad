@@ -96,14 +96,18 @@ flowboxchild {
   border-radius: 14px;
 }
 
-/* Styling headerbars to look like GNOME Builder's */
+/* Styling headerbars to look like GNOME Builder's (libpanel header) */
 toolbarview .top-bar {
 	background: @window_bg_color;
-	--headerbar-darker-shade-color: @sidebar_border_color;
+	--headerbar-darker-shade-color: color-mix(in srgb, var(--border-color) 60%, transparent);
 }
 
 .sidebar-pane .top-bar { /* GTK doesn't have :not(parent child) yet :'( */
 	background: unset;
+}
+
+separator {
+	background-color: color-mix(in srgb, var(--border-color) 60%, transparent);
 }
 
 :root {
