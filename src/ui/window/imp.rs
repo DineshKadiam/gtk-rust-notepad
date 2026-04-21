@@ -52,8 +52,16 @@ impl EditorWindow {
     }
 
     pub fn reload_config(&self) {
+        let cfg = Config::get_or_default();
+        // Set theme variant
+        adw::StyleManager::default().set_color_scheme(match cfg.ui.theme_variant {
+            crate::config::ThemeVariant::System => adw::ColorScheme::Default,
+            crate::config::ThemeVariant::Light => adw::ColorScheme::ForceLight,
+            crate::config::ThemeVariant::Dark => adw::ColorScheme::ForceDark,
+        });
+        // Set theme
         if let Some(ref scheme) =
-            StyleSchemeManager::new().scheme(&Config::get_or_default().ui.theme)
+            StyleSchemeManager::new().scheme(&cfg.ui.theme)
         {
             let scheme = if adw::StyleManager::default().is_dark() {
                 &utils::scheme::dark(scheme)

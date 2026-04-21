@@ -18,6 +18,8 @@ mod imp {
         #[template_child]
         pub colorschemes: TemplateChild<gtk::FlowBox>,
         #[template_child]
+        pub theme_variant: TemplateChild<adw::ComboRow>,
+        #[template_child]
         pub line_hl: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub minimap: TemplateChild<adw::SwitchRow>,
@@ -83,6 +85,22 @@ impl PreferencesDialog {
         connect_switch!(self.imp().line_hl, config.ui.hl_line);
         connect_switch!(self.imp().minimap, config.ui.show_minimap);
         connect_switch!(self.imp().grid_bg, config.ui.grid_bg);
+        // NOTE position of the strings in the blueprint file matters for this one lmao
+        self.imp().theme_variant.set_selected(match config.ui.theme_variant {
+            crate::config::ThemeVariant::System => 0,
+            crate::config::ThemeVariant::Light => 1,
+            crate::config::ThemeVariant::Dark => 2,
+        });
+        self.imp().theme_variant.connect_selected_notify(|theme_variant| {
+            let mut config = Config::get_or_default();
+            config.ui.theme_variant = match theme_variant.selected() {
+                1 => crate::config::ThemeVariant::Light,
+                2 => crate::config::ThemeVariant::Dark,
+                _ => crate::config::ThemeVariant::System,
+            };
+            config.write();
+            theme_variant.activate_action("win.reload_config", None).unwrap();
+        });
         // Present
         AdwDialogExt::present(self, Some(window));
     }

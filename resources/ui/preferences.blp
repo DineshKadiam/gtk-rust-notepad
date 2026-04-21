@@ -23,16 +23,27 @@ template $PreferencesDialog : Adw.PreferencesDialog {
         Adw.PreferencesGroup {
             title: _("Appearance");
 
+            Adw.ComboRow theme_variant {
+                title: _("Theme variant");
+                model: Gtk.StringList {
+                    strings [
+                        _("System"),
+                        _("Light"),
+                        _("Dark"),
+                    ]
+                };
+            }
+
             Adw.SwitchRow line_hl {
-                title: "Highlight current line";
+                title: _("Highlight current line");
             }
 
             Adw.SwitchRow minimap {
-                title: "Show minimap";
+                title: _("Show minimap");
             }
 
             Adw.SwitchRow grid_bg {
-                title: "Use grid background";
+                title: _("Use grid background");
             }
         }
     }

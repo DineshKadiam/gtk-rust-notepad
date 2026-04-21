@@ -1,4 +1,4 @@
-use std::fs::{self};
+use std::{fs::{self}};
 
 use serde::{Deserialize, Serialize};
 
@@ -12,9 +12,15 @@ pub struct Config {
 #[serde(default)]
 pub struct UI {
     pub theme: String,
+    pub theme_variant: ThemeVariant,
     pub show_minimap: bool,
     pub hl_line: bool,
     pub grid_bg: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum ThemeVariant {
+    System, Light, Dark
 }
 
 impl Default for Config {
@@ -27,6 +33,7 @@ impl Default for UI {
     fn default() -> Self {
         Self {
             theme: "Adwaita".to_string(),
+            theme_variant: ThemeVariant::System,
             show_minimap: true,
             hl_line: true,
             grid_bg: false,
