@@ -188,8 +188,10 @@ impl Buffer {
             }
         };
         if let Some(text_iter) = text_iter {
+            let mut start = text_iter.0.clone();
             buffer.place_cursor(&text_iter.0);
             buffer.select_range(&text_iter.0, &text_iter.1);
+            self.imp().source_view.scroll_to_iter(&mut start, 0.0, true, 0.5, 0.0);
             Ok(())
         } else {
             Err(std::io::Error::new(
