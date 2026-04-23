@@ -2,11 +2,13 @@ use std::fs;
 use std::hash::{BuildHasherDefault, DefaultHasher};
 use std::ops::ControlFlow;
 use std::process::Stdio;
-use std::sync::{LazyLock, OnceLock};
-use std::time::Duration;
+use std::sync::LazyLock;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{collections::HashMap, sync::RwLock};
 
 use async_channel::{Receiver, Sender};
+use async_lsp::LanguageServer;
+use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
 use async_lsp::lsp_types::{
@@ -18,11 +20,9 @@ use async_lsp::lsp_types::{
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
 use async_lsp::tracing::TracingLayer;
-use async_lsp::{Error, ErrorCode, LanguageServer};
-use async_lsp::{ServerSocket, tracing};
-use futures::TryFutureExt;
-use futures::executor::block_on;
 use tokio::runtime::Runtime;
+use tokio::sync::watch;
+use tokio_stream::{StreamExt, wrappers::WatchStream};
 use tower::ServiceBuilder;
 
 /// Stores language servers globally. There are different language servers per workspace
@@ -35,19 +35,56 @@ static SERVERS: RwLock<
     HashMap<String, HashMap<String, ServerSocket>, BuildHasherDefault<DefaultHasher>>,
 > = RwLock::new(HashMap::with_hasher(BuildHasherDefault::new()));
 
-/// Notifies to windows if all files are indexed. Single global channel (for obvious reasons)
-static INDEXED_CHANNEL: RwLock<Option<(Sender<bool>, Receiver<bool>)>> = RwLock::new(None);
-
-///
+/// Tokio runtime for async tasks
 static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 
-/// 0. Get INDEXED_CHANNEL receiver to listen for when all servers load/a new file is added and they have to load again
-pub fn get_indexed_listener() -> Receiver<bool> {
-    if let Some((_, ref rx)) = *INDEXED_CHANNEL.read().unwrap() {
-        rx.clone()
-    } else {
-        *INDEXED_CHANNEL.write().unwrap() = Some(async_channel::unbounded());
-        get_indexed_listener()
+/// Keeps track of how many files are loading/being indexed.
+pub mod loading {
+    use std::sync::{
+        RwLock,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    use async_channel::{Receiver, Sender};
+
+    /// AtomicUsize that counts how many files are currently being indexed/loaded.
+    static COUNT: AtomicUsize = AtomicUsize::new(0);
+
+    static SENDERS: RwLock<Vec<Sender<()>>> = RwLock::new(vec![]);
+
+    /// Get number of files that are being indexed by any language server.
+    pub fn get() -> usize {
+        COUNT.load(Ordering::Relaxed)
+    }
+
+    /// Returns true if there are files loading.
+    pub fn is_loading() -> bool {
+        get() > 0
+    }
+
+    /// New listener on if INDEXING_COUNT changes
+    pub fn listen() -> Receiver<()> {
+        let (tx, rx) = async_channel::bounded(1);
+        SENDERS.write().unwrap().push(tx);
+        rx
+    }
+
+    fn notify() {
+        SENDERS.read().unwrap().iter().for_each(|sender| {
+            sender.send_blocking(()).unwrap();
+        });
+    }
+
+    /// Mutate INDEXING_COUNT
+    pub fn add(amt: usize) {
+        COUNT.fetch_add(amt, Ordering::Relaxed);
+        notify();
+    }
+
+    /// Mutate INDEXING_COUNT
+    pub fn sub(amt: usize) {
+        COUNT.fetch_sub(amt, Ordering::Relaxed);
+        notify();
     }
 }
 
@@ -75,8 +112,6 @@ pub fn open_file(uri: &str, workspace_uri: &str) {
     // Add file FIXME
     let file_uri = Url::from_file_path(uri).unwrap();
     let text = fs::read_to_string(uri).unwrap();
-    let (tx, _) = INDEXED_CHANNEL.read().unwrap().clone().unwrap();
-    tx.send_blocking(true).unwrap(); // New file loading...
     server
         .did_open(DidOpenTextDocumentParams {
             text_document: TextDocumentItem {
@@ -90,28 +125,20 @@ pub fn open_file(uri: &str, workspace_uri: &str) {
 }
 
 /// 2a. Create LSP server
-struct ClientState {
-    indexed_tx: Option<Sender<bool>>,
-}
-
+struct ClientState;
 struct Stop;
 
+/// Creates a new language server instance (e.g. spawns a command and main loop) and returns a socket to that instance.
+/// Most of the code here is taken from the async_lsp example; I should probably clean it up a bit...
 async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
-    let (tx, _) = INDEXED_CHANNEL.read().unwrap().clone().unwrap();
     let (mainloop, mut server) = async_lsp::MainLoop::new_client(|_server| {
-        let mut router = Router::new(ClientState {
-            indexed_tx: Some(tx),
-        });
+        let mut router = Router::new(ClientState);
         router
-            .notification::<Progress>(|this, prog| {
-                println!("{:?} {:?}", prog.token, prog.value);
-                if matches!(
-                    prog.value,
-                    ProgressParamsValue::WorkDone(WorkDoneProgress::End(_))
-                ) {
-                    if let Some(tx) = this.indexed_tx.take() {
-                        tx.send_blocking(false).unwrap();
-                    }
+            .notification::<Progress>(|_this, prog| {
+                match prog.value {
+                    ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => loading::add(1),
+                    ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => loading::sub(1),
+                    _ => (),
                 }
                 ControlFlow::Continue(())
             })

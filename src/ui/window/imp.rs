@@ -35,6 +35,8 @@ pub struct EditorWindow {
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
+    #[template_child]
+    pub lsp_load: TemplateChild<gtk::Box>,
     #[property(get, set)]
     pub accent_style: RefCell<CssProvider>,
     #[property(get, set)]
@@ -283,7 +285,13 @@ impl ObjectImpl for EditorWindow {
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
         // FIXME do something with this
-        let _listener = lsp::get_indexed_listener();
+        let listener = lsp::loading::listen();
+        let lsp_load = self.lsp_load.clone();
+        glib::spawn_future_local(async move {
+            while let Ok(_) = listener.recv().await {
+                lsp_load.set_visible(lsp::loading::is_loading());
+            }
+        });
     }
 }
 impl WidgetImpl for EditorWindow {}

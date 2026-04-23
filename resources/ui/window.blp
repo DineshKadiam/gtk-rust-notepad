@@ -272,6 +272,21 @@ template $EditorWindow: Adw.ApplicationWindow {
                                 orientation: vertical;
                             }
 
+                            Box lsp_load {
+                                orientation: horizontal;
+                                spacing: 8;
+                                visible: false;
+
+                                Adw.Spinner {
+
+                                }
+
+                                Label {
+                                    label: _("LSP loading...");
+                                }
+
+                            }
+
                         }
 
                         [end]
