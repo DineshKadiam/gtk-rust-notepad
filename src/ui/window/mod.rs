@@ -8,6 +8,7 @@ use gtk::glib::{self, Properties, VariantTy, clone};
 use gtk::{CompositeTemplate, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
+use crate::lsp;
 use crate::ui::file_tree;
 use crate::ui::preferences::PreferencesDialog;
 
@@ -309,5 +310,9 @@ impl EditorWindow {
         file_tree::update(&self.imp().file_tree.clone(), dir_path);
 
         self.imp().terminal_view.setup(dir_path);
+
+        self.set_property("workspace_uri", dir_path.to_string());
+
+        lsp::open_workspace(dir_path);
     }
 }

@@ -1,6 +1,9 @@
+use std::fs;
 use std::hash::{BuildHasherDefault, DefaultHasher};
 use std::ops::ControlFlow;
 use std::process::Stdio;
+use std::sync::{LazyLock, OnceLock};
+use std::time::Duration;
 use std::{collections::HashMap, sync::RwLock};
 
 use async_channel::{Receiver, Sender};
@@ -17,6 +20,9 @@ use async_lsp::router::Router;
 use async_lsp::tracing::TracingLayer;
 use async_lsp::{Error, ErrorCode, LanguageServer};
 use async_lsp::{ServerSocket, tracing};
+use futures::TryFutureExt;
+use futures::executor::block_on;
+use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
 /// Stores language servers globally. There are different language servers per workspace
@@ -32,9 +38,11 @@ static SERVERS: RwLock<
 /// Notifies to windows if all files are indexed. Single global channel (for obvious reasons)
 static INDEXED_CHANNEL: RwLock<Option<(Sender<bool>, Receiver<bool>)>> = RwLock::new(None);
 
+///
+static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
+
 /// 0. Get INDEXED_CHANNEL receiver to listen for when all servers load/a new file is added and they have to load again
-#[tokio::main(flavor = "current_thread")]
-pub async fn get_indexed_listener() -> Receiver<bool> {
+pub fn get_indexed_listener() -> Receiver<bool> {
     if let Some((_, ref rx)) = *INDEXED_CHANNEL.read().unwrap() {
         rx.clone()
     } else {
@@ -54,7 +62,31 @@ pub fn open_workspace(uri: &str) {
 /// 2. Add files to a workspace. Creates an language server for the file's language if it
 /// doesn't exist.
 pub fn open_file(uri: &str, workspace_uri: &str) {
-    todo!();
+    // FIXME terribly hacky, use a better lookup table (somewhere in Config)
+    let lsp_command = "rust-analyzer";
+    let language_id = "rust";
+    // Get or create LSP
+    let mut a = SERVERS.write().unwrap();
+    let server = a
+        .get_mut(workspace_uri)
+        .unwrap()
+        .entry(lsp_command.to_string())
+        .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, lsp_command)));
+    // Add file FIXME
+    let file_uri = Url::from_file_path(uri).unwrap();
+    let text = fs::read_to_string(uri).unwrap();
+    let (tx, _) = INDEXED_CHANNEL.read().unwrap().clone().unwrap();
+    tx.send_blocking(true).unwrap(); // New file loading...
+    server
+        .did_open(DidOpenTextDocumentParams {
+            text_document: TextDocumentItem {
+                uri: file_uri.clone(),
+                language_id: language_id.into(),
+                version: 0,
+                text: text.into(),
+            },
+        })
+        .unwrap();
 }
 
 /// 2a. Create LSP server
@@ -64,9 +96,8 @@ struct ClientState {
 
 struct Stop;
 
-#[tokio::main(flavor = "current_thread")]
-async fn new_lsp(workspace_uri: &str, command: &str) -> Receiver<bool> {
-    let (tx, rx) = INDEXED_CHANNEL.read().unwrap().clone().unwrap();
+async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
+    let (tx, _) = INDEXED_CHANNEL.read().unwrap().clone().unwrap();
     let (mainloop, mut server) = async_lsp::MainLoop::new_client(|_server| {
         let mut router = Router::new(ClientState {
             indexed_tx: Some(tx),
@@ -103,13 +134,13 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> Receiver<bool> {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .kill_on_drop(true)
         .spawn()
         .expect(&format!("Failed to run language server {}", command));
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
 
-    let mainloop_fut = tokio::spawn(async move {
+    // Spawn main loop
+    tokio::spawn(async move {
         mainloop.run_buffered(stdout, stdin).await.unwrap();
     });
 
@@ -133,26 +164,21 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> Receiver<bool> {
         .unwrap();
     server.initialized(InitializedParams {}).unwrap();
 
-    // Start main loop
-    tokio::spawn(async move {
-        mainloop_fut.await.unwrap();
-    });
-
-    rx
+    server
 }
 
-/// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
-/// This is literally the worst template of all lmaooo
-pub fn request_thing(uri: &str, workspace_uri: &str, thing: todo!()) -> todo!() {
-    todo!();
-}
+// /// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
+// /// This is literally the worst template of all lmaooo
+// pub fn request_thing(uri: &str, workspace_uri: &str, thing: todo!()) -> todo!() {
+//     todo!();
+// }
 
-/// 4. Tell an LSP to stop caring about a file
-pub fn close_file(uri: &str, workspace_uri: &str) {
-    todo!();
-}
+// /// 4. Tell an LSP to stop caring about a file
+// pub fn close_file(uri: &str, workspace_uri: &str) {
+//     todo!();
+// }
 
-/// 5. Close LSP workspace
-pub fn close_workspace(uri: &str) {
-    todo!();
-}
+// /// 5. Close LSP workspace
+// pub fn close_workspace(uri: &str) {
+//     todo!();
+// }

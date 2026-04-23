@@ -37,6 +37,8 @@ pub struct EditorWindow {
     pub terminal_view: TemplateChild<TerminalView>,
     #[property(get, set)]
     pub accent_style: RefCell<CssProvider>,
+    #[property(get, set)]
+    pub workspace_uri: RefCell<String>,
 }
 
 impl EditorWindow {
@@ -60,9 +62,7 @@ impl EditorWindow {
             crate::config::ThemeVariant::Dark => adw::ColorScheme::ForceDark,
         });
         // Set theme
-        if let Some(ref scheme) =
-            StyleSchemeManager::new().scheme(&cfg.ui.theme)
-        {
+        if let Some(ref scheme) = StyleSchemeManager::new().scheme(&cfg.ui.theme) {
             let scheme = if adw::StyleManager::default().is_dark() {
                 &utils::scheme::dark(scheme)
             } else {
@@ -116,6 +116,10 @@ impl EditorWindow {
             {
                 buffer.set_language(Some(language));
             }
+        }
+        // LSP servers
+        if let Some(path) = path {
+            lsp::open_file(path, self.workspace_uri.borrow().as_str());
         }
         // Add tab
         page.set_title(&EditorWindow::tab_name(&path.unwrap_or_default(), false));
@@ -278,6 +282,8 @@ impl ObjectImpl for EditorWindow {
             &self.accent_style.borrow().clone(),
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
+        // FIXME do something with this
+        let _listener = lsp::get_indexed_listener();
     }
 }
 impl WidgetImpl for EditorWindow {}
