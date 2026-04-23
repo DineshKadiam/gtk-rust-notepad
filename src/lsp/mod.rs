@@ -3,10 +3,8 @@ use std::hash::{BuildHasherDefault, DefaultHasher};
 use std::ops::ControlFlow;
 use std::process::Stdio;
 use std::sync::LazyLock;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{collections::HashMap, sync::RwLock};
 
-use async_channel::{Receiver, Sender};
 use async_lsp::LanguageServer;
 use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
@@ -21,8 +19,6 @@ use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
 use async_lsp::tracing::TracingLayer;
 use tokio::runtime::Runtime;
-use tokio::sync::watch;
-use tokio_stream::{StreamExt, wrappers::WatchStream};
 use tower::ServiceBuilder;
 
 /// Stores language servers globally. There are different language servers per workspace

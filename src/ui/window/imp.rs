@@ -35,8 +35,10 @@ pub struct EditorWindow {
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
+    /* Status bar labels */
     #[template_child]
-    pub lsp_load: TemplateChild<gtk::Box>,
+    pub status_lsp_load: TemplateChild<gtk::Box>,
+    /* Properties */
     #[property(get, set)]
     pub accent_style: RefCell<CssProvider>,
     #[property(get, set)]
@@ -286,7 +288,7 @@ impl ObjectImpl for EditorWindow {
         );
         // FIXME do something with this
         let listener = lsp::loading::listen();
-        let lsp_load = self.lsp_load.clone();
+        let lsp_load = self.status_lsp_load.clone();
         glib::spawn_future_local(async move {
             while let Ok(_) = listener.recv().await {
                 lsp_load.set_visible(lsp::loading::is_loading());

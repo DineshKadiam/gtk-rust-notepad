@@ -250,13 +250,15 @@ template $EditorWindow: Adw.ApplicationWindow {
                                     "monospace"
                                 ]
                                 label: "NORMAL";
+                                visible: false;
                             }
 
                             Separator {
                                 orientation: vertical;
+                                visible: false;
                             }
 
-                            Label {
+                            Label status_file_path {
                                 label: "full/path/to/file";
                             }
 
@@ -264,7 +266,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                                 orientation: vertical;
                             }
 
-                            Label {
+                            Label status_lang {
                                 label: "lang";
                             }
 
@@ -272,7 +274,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                                 orientation: vertical;
                             }
 
-                            Box lsp_load {
+                            Box status_lsp_load {
                                 orientation: horizontal;
                                 spacing: 8;
                                 visible: false;
