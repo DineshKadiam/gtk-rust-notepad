@@ -133,6 +133,7 @@ impl EditorWindow {
         page.set_title(&EditorWindow::tab_name(path.unwrap_or_default(), false));
         if page.is_selected() {
             self.window_title.set_title(&page.title());
+            buffer_ui.set_status();
         }
         // Connect modified
         //buffer_ui.imp().source_view.connect_paste_clipboard(f)
