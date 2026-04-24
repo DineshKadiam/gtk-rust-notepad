@@ -157,6 +157,8 @@ impl EditorWindow {
             && let Some(buffer) = page.child().downcast_ref::<Buffer>()
         {
             if buffer.file_path() == "" || save_as {
+                let old_path = buffer.file_path();
+                let workspace_uri = self.workspace_uri.borrow().clone();
                 gtk::FileDialog::new().save(
                     Some::<&gtk::Window>(&self.obj().clone().into()),
                     Some(&Cancellable::new()),
@@ -183,18 +185,23 @@ impl EditorWindow {
                                         .unwrap()
                                         .set_language(Some(language));
                                 }
+                                // Set buffer path
+                                buffer.set_file_path(file_name.clone());
                                 // Set window/tab title
                                 page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
                                 if page.is_selected() {
                                     // TODO clearly i should be able to simplify this right
                                     window.window_title.set_title(&page.title());
                                 }
-                                // Set buffer path and save
-                                buffer.set_file_path(file_name);
+                                // Save
                                 glib::spawn_future_local(async move {
                                     EditorWindow::save_buffer(&buffer).await;
-                                    // FIXME file close/open
-                                    // TODO: diagnostics
+                                    if !old_path.is_empty() {
+                                        lsp::file::close(&old_path, &workspace_uri);
+                                    }
+                                    lsp::file::open(&file_name, &workspace_uri);
+                                    lsp::file::change(&file_name, &workspace_uri);
+                                    lsp::file::save(&file_name, &workspace_uri);
                                 });
                             }
                         }
@@ -213,7 +220,7 @@ impl EditorWindow {
                     // Save, and then...
                     EditorWindow::save_buffer(&buffer).await;
                     // Tell LSP file was modified
-                    lsp::file::change(&buffer.file_path(), &workspace_uri); // FIXME gonna have to do this after every change too maybe
+                    lsp::file::change(&buffer.file_path(), &workspace_uri); // TODO call this before things like code actions
                     lsp::file::save(&buffer.file_path(), &workspace_uri);
                 });
             }
@@ -335,7 +342,7 @@ impl ObjectImpl for EditorWindow {
             &self.accent_style.borrow().clone(),
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
-        // FIXME do something with this
+        // Set up LSP loading spinner
         let listener = lsp::loading::listen();
         let lsp_load = self.status_lsp_load.clone();
         glib::spawn_future_local(async move {

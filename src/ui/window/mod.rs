@@ -103,7 +103,12 @@ impl EditorWindow {
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _param| {
                     if let Some(page) = window.imp().tab_view.selected_page() {
-                        // FIXME hook up lsp file close
+                        // LSP file close
+                        if let Some(buffer) = page.child().downcast_ref::<super::buffer::Buffer>() {
+                            if !buffer.file_path().is_empty() {
+                                lsp::file::close(&buffer.file_path(), &window.workspace_uri());
+                            }
+                        }
                         window.imp().tab_view.close_page(&page);
                     }
                 })
