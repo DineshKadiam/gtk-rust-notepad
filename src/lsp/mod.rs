@@ -5,17 +5,15 @@ use std::process::Stdio;
 use std::sync::LazyLock;
 use std::{collections::HashMap, sync::RwLock};
 
+use async_channel::{Receiver, Sender};
 use async_lsp::LanguageServer;
 use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
 use async_lsp::lsp_types::{
-    ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-    DidSaveTextDocumentParams, HoverContents, HoverParams, InitializeParams, InitializedParams,
-    MarkupContent, MessageActionItemCapabilities, NumberOrString, Position, ProgressParamsValue,
-    ShowDocumentClientCapabilities, ShowMessageRequestClientCapabilities, TextDocumentIdentifier,
-    TextDocumentItem, TextDocumentPositionParams, Url, WindowClientCapabilities, WorkDoneProgress,
-    WorkDoneProgressParams, WorkspaceFolder,
+    ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams, InitializeParams,
+    InitializedParams, ProgressParamsValue, PublishDiagnosticsParams, TextDocumentIdentifier,
+    TextDocumentItem, Url, WindowClientCapabilities, WorkDoneProgress, WorkspaceFolder,
 };
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
@@ -27,6 +25,7 @@ use tower::ServiceBuilder;
 /// > [!NOTE]
 /// > Security doesn't actually matter because we're just building a convenient lookup table
 /// > so it's fine to use a non-random hasher
+/// >
 static SERVERS: RwLock<HashMap<String, ServerSocket, BuildHasherDefault<DefaultHasher>>> =
     RwLock::new(HashMap::with_hasher(BuildHasherDefault::new()));
 
@@ -36,64 +35,23 @@ static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 /// Keeps track of how many files are loading/being indexed.
 pub mod loading;
 
-pub mod file {
-    use async_lsp::lsp_types::{
-        DidChangeTextDocumentParams, Range, TextDocumentContentChangeEvent,
-        VersionedTextDocumentIdentifier,
-    };
+/// Senders for diagnostics.
+type Senders<T> = RwLock<Vec<Sender<T>>>;
+pub static DIAG_SENDERS: Senders<PublishDiagnosticsParams> = RwLock::new(Vec::new());
 
-    use super::*;
-
-    /// Add files to a workspace.
-    pub fn open(uri: &str, workspace_uri: &str) {
-        let (_, language_id) = lookup_lsp(uri);
-        let mut server = get_server(uri, workspace_uri);
-        server
-            .did_open(DidOpenTextDocumentParams {
-                text_document: TextDocumentItem {
-                    uri: Url::from_file_path(uri).unwrap(),
-                    language_id: language_id.into(),
-                    version: 0,
-                    text: fs::read_to_string(uri).unwrap().into(),
-                },
-            })
-            .unwrap();
-    }
-
-    /// Tell an LSP a file was modified
-    pub fn change(uri: &str, workspace_uri: &str) {
-        let mut server = get_server(uri, workspace_uri);
-        server
-            .did_change(DidChangeTextDocumentParams {
-                text_document: VersionedTextDocumentIdentifier {
-                    uri: Url::from_file_path(uri).unwrap(),
-                    version: 0,
-                },
-                content_changes: vec![TextDocumentContentChangeEvent {
-                    range: None,
-                    range_length: None,
-                    text: fs::read_to_string(uri).unwrap().into(),
-                }],
-            })
-            .unwrap();
-    }
-
-    /// Tell an LSP to stop caring about a file
-    pub fn close(uri: &str, workspace_uri: &str) {
-        let mut server = get_server(uri, workspace_uri);
-        server
-            .did_close(DidCloseTextDocumentParams {
-                text_document: TextDocumentIdentifier {
-                    uri: Url::from_file_path(uri).unwrap(),
-                },
-            })
-            .unwrap();
-    }
-}
+/// File ops (fops 🦊)
+pub mod file;
 
 /// 2a. Create LSP server
 struct ClientState;
 struct Stop;
+
+/// Create listener/sender pair for diagnostics
+pub fn listen_diagnostics() -> Receiver<PublishDiagnosticsParams> {
+    let (tx, rx) = async_channel::unbounded();
+    DIAG_SENDERS.write().unwrap().push(tx);
+    rx
+}
 
 /// Creates a new language server instance (e.g. spawns a command and main loop) and returns a socket to that instance.
 /// Most of the code here is taken from the async_lsp example; I should probably clean it up a bit...
@@ -102,6 +60,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
         let mut router = Router::new(ClientState);
         router
             .notification::<Progress>(|_this, prog| {
+                // println!("{:?} {:?}", prog.token, prog.value);
                 match prog.value {
                     ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => loading::add(1),
                     ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => loading::sub(1),
@@ -109,7 +68,12 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
                 }
                 ControlFlow::Continue(())
             })
-            .notification::<PublishDiagnostics>(|_, _| ControlFlow::Continue(()))
+            .notification::<PublishDiagnostics>(|_, prog| {
+                DIAG_SENDERS.write().unwrap().iter_mut().for_each(|sender| {
+                    sender.send_blocking(prog.clone()).unwrap();
+                });
+                ControlFlow::Continue(())
+            })
             .notification::<ShowMessage>(|_, params| {
                 println!("Message {:?}: {}", params.typ, params.message);
                 ControlFlow::Continue(())
@@ -129,7 +93,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
-        .expect(&format!("Failed to run language server {}", command));
+        .unwrap_or_else(|_| panic!("Failed to run language server {}", command));
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
 

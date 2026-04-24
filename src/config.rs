@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
+#[derive(Default)]
 pub struct Config {
     pub ui: UI,
 }
@@ -23,11 +24,6 @@ pub enum ThemeVariant {
     System, Light, Dark
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self { ui: UI::default() }
-    }
-}
 
 impl Default for UI {
     fn default() -> Self {

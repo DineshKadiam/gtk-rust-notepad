@@ -1,6 +1,6 @@
-use std::{cell::RefCell, sync::RwLock};
+use std::cell::RefCell;
 
-use async_lsp::lsp_types::{DiagnosticSeverity, DocumentDiagnosticReport};
+use async_lsp::lsp_types::DiagnosticSeverity;
 use gtk::{CssProvider, SearchBar, SearchEntry};
 use sourceview5::StyleSchemeManager;
 
@@ -49,7 +49,7 @@ pub struct EditorWindow {
 impl EditorWindow {
     fn tab_name(full_path: &str, modified: bool) -> String {
         let modified_string = if modified { " [+]" } else { "" };
-        let path_string = if full_path != "" {
+        let path_string = if !full_path.is_empty() {
             full_path.split("/").last().unwrap()
         } else {
             "scratch"
@@ -127,7 +127,7 @@ impl EditorWindow {
             lsp::file::open(path, self.workspace_uri.borrow().as_str());
         }
         // Add tab
-        page.set_title(&EditorWindow::tab_name(&path.unwrap_or_default(), false));
+        page.set_title(&EditorWindow::tab_name(path.unwrap_or_default(), false));
         if page.is_selected() {
             self.window_title.set_title(&page.title());
         }
@@ -206,7 +206,6 @@ impl EditorWindow {
                     self.window_title.set_title(&page.title());
                 }
                 // Save
-                let uri = buffer.file_path();
                 let workspace_uri = self.workspace_uri.borrow().clone();
                 let buffer = buffer.clone();
                 glib::spawn_future_local(async move {
@@ -214,34 +213,7 @@ impl EditorWindow {
                     EditorWindow::save_buffer(&buffer).await;
                     // Tell LSP file was modified
                     lsp::file::change(&buffer.file_path(), &workspace_uri); // FIXME gonna have to do this after every change too maybe
-
-                    // Diagnostics
-                    let diag_result = lsp::request::diagnostic(&uri, &workspace_uri).await;
-                    buffer.clear_diagnostics();
-                    println!("{:?}", diag_result);
-                    match diag_result {
-                        DocumentDiagnosticReport::Full(report) => {
-                            let mut start_lines = vec![];
-                            report
-                                .full_document_diagnostic_report
-                                .items
-                                .iter()
-                                .for_each(|item| {
-                                    buffer.highlight_diagnostic(
-                                        &item.range,
-                                        item.message.clone(),
-                                        item.severity.unwrap_or(DiagnosticSeverity::INFORMATION),
-                                        !start_lines.contains(&item.range.start.line),
-                                    );
-                                    if !start_lines.contains(&item.range.start.line) {
-                                        start_lines.push(item.range.start.line);
-                                    }
-                                });
-                        }
-                        // FIXME handle other cases
-                        _ => (),
-                    }
-                    // FIXME diagnostics whenever a file is opened with the lsp, not just saved...
+                    lsp::file::save(&buffer.file_path(), &workspace_uri);
                 });
             }
         }
@@ -260,6 +232,37 @@ impl EditorWindow {
             &file,
         );
         save.save_future(glib::Priority::default()).0.await.unwrap();
+    }
+
+    /// Set up displaying diagnostics for files
+    fn setup_diagnostics(&self) {
+        let rx = lsp::listen_diagnostics();
+        let tab_view = self.tab_view.clone();
+        glib::spawn_future_local(async move {
+            while let Ok(diagnostics) = rx.recv().await {
+                let uri = diagnostics.uri.path();
+                // Look for a buffer with corresponding uri
+                tab_view.pages().iter::<TabPage>().for_each(|page| {
+                    if let Some(buffer) = page.unwrap().child().downcast_ref::<Buffer>()
+                        && buffer.file_path() == uri
+                    {
+                        buffer.clear_diagnostics();
+                        let mut start_lines = vec![];
+                        diagnostics.diagnostics.iter().for_each(|diag| {
+                            buffer.highlight_diagnostic(
+                                &diag.range,
+                                diag.message.clone(),
+                                diag.severity.unwrap_or(DiagnosticSeverity::INFORMATION),
+                                !start_lines.contains(&diag.range.start.line),
+                            );
+                            if !start_lines.contains(&diag.range.start.line) {
+                                start_lines.push(diag.range.start.line);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     fn connect_tree(&self) {
@@ -324,6 +327,8 @@ impl ObjectImpl for EditorWindow {
         self.obj()
             .update_folder(std::env::home_dir().unwrap().to_str().unwrap());
         self.reload_config();
+        self.setup_diagnostics();
+        // Style
         gtk::style_context_add_provider_for_display(
             &gtk::gdk::Display::default().expect("Could not connect to a display."),
             &self.accent_style.borrow().clone(),

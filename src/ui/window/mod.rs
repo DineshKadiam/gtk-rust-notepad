@@ -2,7 +2,7 @@ use std::any::Any;
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{OverlaySplitView, StatusPage, TabOverview, TabPage, TabView, WindowTitle};
+use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, VariantTy, clone};
 use gtk::{CompositeTemplate, ListView, TreeListRow, gio};

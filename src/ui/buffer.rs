@@ -3,7 +3,6 @@ use async_lsp::lsp_types::DiagnosticSeverity;
 use async_lsp::lsp_types::Range;
 use glib::Properties;
 use gtk::CompositeTemplate;
-use gtk::TextMark;
 use gtk::TextSearchFlags;
 use gtk::gio::Icon;
 use gtk::glib;
@@ -22,7 +21,7 @@ use crate::utils;
 
 mod imp {
 
-    use gtk::{Button, EventControllerMotion, Revealer, glib::clone};
+    use gtk::{EventControllerMotion, Revealer, glib::clone};
 
     use super::*;
 
@@ -131,7 +130,17 @@ impl Buffer {
             .unwrap()
             .clone();
         let bounds = buffer.bounds();
-        buffer.remove_tag_by_name("diag_error", &bounds.0, &bounds.1);
+        {
+            let mut exists = false;
+            buffer.tag_table().foreach(|t| {
+                if t.name().is_some_and(|n| n == "diag_error") {
+                    exists = true;
+                }
+            });
+            if exists {
+                buffer.remove_tag_by_name("diag_error", &bounds.0, &bounds.1);
+            }
+        }
     }
 
     /// Highlight diaganostic
@@ -176,7 +185,7 @@ impl Buffer {
         if let Some(start) =
             buffer.iter_at_line_offset(range.start.line as i32, range.start.character as i32)
             && let Some(end) =
-                buffer.iter_at_line_offset(range.end.line as i32, range.end.character as i32 + 1)
+                buffer.iter_at_line_offset(range.end.line as i32, range.end.character as i32)
         {
             let mut exists = false;
             buffer.tag_table().foreach(|t| {
@@ -230,7 +239,7 @@ impl Buffer {
             .unwrap()
             .clone();
         let bounds = buffer.bounds();
-        let mut cursor_pos = bounds.0.clone();
+        let mut cursor_pos = bounds.0;
         cursor_pos.forward_chars(match direction {
             SearchDirection::Forward => buffer.cursor_position() + 1,
             SearchDirection::Back => buffer.cursor_position(),
@@ -282,7 +291,7 @@ impl Buffer {
             }
         };
         if let Some(text_iter) = text_iter {
-            let mut start = text_iter.0.clone();
+            let mut start = text_iter.0;
             buffer.place_cursor(&text_iter.0);
             buffer.select_range(&text_iter.0, &text_iter.1);
             self.imp()
@@ -290,10 +299,7 @@ impl Buffer {
                 .scroll_to_iter(&mut start, 0.0, true, 0.5, 0.0);
             Ok(())
         } else {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "String not found",
-            ))
+            Err(std::io::Error::other("String not found"))
         }
     }
 }
