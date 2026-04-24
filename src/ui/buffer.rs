@@ -6,6 +6,7 @@ use gtk::CompositeTemplate;
 use gtk::TextSearchFlags;
 use gtk::gio::Icon;
 use gtk::glib;
+use gtk::glib::Variant;
 use gtk::glib::property::PropertyGet;
 use gtk::pango::Underline;
 use sourceview5::Annotation;
@@ -21,7 +22,10 @@ use crate::utils;
 
 mod imp {
 
-    use gtk::{EventControllerMotion, Revealer, glib::clone};
+    use gtk::{
+        EventControllerMotion, Revealer,
+        glib::{Variant, clone},
+    };
 
     use super::*;
 
@@ -198,6 +202,34 @@ impl Buffer {
             }
             buffer.apply_tag_by_name("diag_error", &start, &end);
         }
+    }
+
+    /// Sets information in the statusbar
+    pub fn set_status(&self) {
+        let buffer = self
+            .imp()
+            .source_view
+            .buffer()
+            .downcast_ref::<sourceview5::Buffer>()
+            .unwrap()
+            .clone();
+        let path = if self.file_path().is_empty() {
+            "[scratch]".to_string()
+        } else {
+            self.file_path()
+        };
+        let lang = if let Some(lang) = buffer.language() {
+            lang.name().to_string()
+        } else {
+            "text".to_string()
+        };
+        let variant = Variant::tuple_from_iter(vec![
+            path.to_variant(),
+            lang.to_variant(),
+            true.to_variant(),
+        ]);
+        self.activate_action("win.status.set_file", Some(&variant))
+            .unwrap();
     }
 
     /// Update self based on config file

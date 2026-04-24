@@ -4,13 +4,13 @@ use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
-use gtk::glib::{self, Properties, VariantTy, clone};
-use gtk::{CompositeTemplate, ListView, TreeListRow, gio};
+use gtk::glib::{self, Properties, Variant, VariantTy, clone};
+use gtk::{CompositeTemplate, Label, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
-use crate::lsp;
 use crate::ui::file_tree;
 use crate::ui::preferences::PreferencesDialog;
+use crate::{lsp, utils};
 
 mod imp;
 mod tabs;
@@ -182,6 +182,29 @@ impl EditorWindow {
                     window.imp().reload_config();
                 })
                 .build(),
+            // Set statusbar files segment
+            ActionEntry::builder("status.set_file")
+                .parameter_type(Some(VariantTy::TUPLE))
+                .activate(move |window: &Self, _, param| {
+                    let param = param.unwrap();
+                    let file_path = glib::Variant::get::<String>(&param.child_value(0)).unwrap();
+                    let file_type = glib::Variant::get::<String>(&param.child_value(1)).unwrap();
+                    let is_shown: bool = param.child_value(2).get::<bool>().unwrap();
+                    utils::ui::get_child_by_name::<Label>(
+                        window.imp().status_files.get(),
+                        "status_file_path",
+                    )
+                    .unwrap()
+                    .set_label(&file_path);
+                    utils::ui::get_child_by_name::<Label>(
+                        window.imp().status_files.get(),
+                        "status_lang",
+                    )
+                    .unwrap()
+                    .set_label(&file_type);
+                    window.imp().status_files.set_visible(is_shown);
+                })
+                .build(),
         ]);
     }
 
@@ -199,6 +222,15 @@ impl EditorWindow {
             move |tab_view| {
                 if tab_view.n_pages() == 0 {
                     stack.set_visible_child_name("empty");
+                    // Hide file status
+                    let variant = Variant::tuple_from_iter(vec![
+                        "".to_variant(),
+                        "".to_variant(),
+                        false.to_variant(),
+                    ]);
+                    tab_view
+                        .activate_action("win.status.set_file", Some(&variant))
+                        .unwrap();
                 }
             }
         ));
@@ -219,6 +251,12 @@ impl EditorWindow {
                         tab_view.activate_action("win.search.toggle", None).unwrap();
                     }
                     window_title.upgrade().unwrap().set_title(subtitle);
+                    // For buffers
+                    if let Some(page) = tab_view.selected_page()
+                        && let Some(buffer) = page.child().downcast_ref::<super::buffer::Buffer>()
+                    {
+                        buffer.set_status();
+                    }
                 }
             }
         ));

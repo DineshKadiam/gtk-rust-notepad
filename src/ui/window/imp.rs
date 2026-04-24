@@ -42,6 +42,8 @@ pub struct EditorWindow {
     /* Status bar labels */
     #[template_child]
     pub status_lsp_load: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub status_files: TemplateChild<gtk::Box>,
     /* Properties */
     #[property(get, set)]
     pub accent_style: RefCell<CssProvider>,
@@ -192,6 +194,7 @@ impl EditorWindow {
                                 if page.is_selected() {
                                     // TODO clearly i should be able to simplify this right
                                     window.window_title.set_title(&page.title());
+                                    buffer.set_status();
                                 }
                                 // Save
                                 glib::spawn_future_local(async move {
@@ -212,6 +215,7 @@ impl EditorWindow {
                 page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
                 if page.is_selected() {
                     self.window_title.set_title(&page.title());
+                    buffer.set_status();
                 }
                 // Save
                 let workspace_uri = self.workspace_uri.borrow().clone();

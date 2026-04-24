@@ -286,7 +286,8 @@ template $EditorWindow: Adw.ApplicationWindow {
                                 visible: false;
                                 spacing: 8;
 
-                                Label status_file_path {
+                                Label {
+                                    name: "status_file_path";
                                     label: "full/path/to/file";
                                 }
 
@@ -294,7 +295,8 @@ template $EditorWindow: Adw.ApplicationWindow {
                                     orientation: vertical;
                                 }
 
-                                Label status_lang {
+                                Label {
+                                    name: "status_lang";
                                     label: "lang";
                                 }
 

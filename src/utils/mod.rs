@@ -1,5 +1,21 @@
 pub mod recolor;
 
+pub(crate) mod ui {
+    use gtk::{Widget, prelude::*};
+
+    pub fn get_child_by_name<T: IsA<Widget>>(widget: impl IsA<Widget>, name: &str) -> Option<T> {
+        // Search through all children (gross but it's GTK what other option do we have)
+        let mut opt_child = widget.first_child();
+        while let Some(ref child) = opt_child {
+            if child.widget_name() == name {
+                return Some(child.clone().downcast::<T>().unwrap());
+            }
+            opt_child = child.next_sibling();
+        }
+        None
+    }
+}
+
 pub(crate) mod scheme {
     use sourceview5::{StyleScheme, StyleSchemeManager};
 
