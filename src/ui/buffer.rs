@@ -205,7 +205,7 @@ impl Buffer {
     }
 
     /// Sets information in the statusbar
-    pub fn set_status(&self) {
+    pub fn set_status(&self, workspace_dir: &str) {
         let buffer = self
             .imp()
             .source_view
@@ -217,6 +217,9 @@ impl Buffer {
             "[scratch]".to_string()
         } else {
             self.file_path()
+                .replace(workspace_dir, "")
+                .trim_start_matches("/")
+                .to_string()
         };
         let lang = if let Some(lang) = buffer.language() {
             lang.name().to_string()

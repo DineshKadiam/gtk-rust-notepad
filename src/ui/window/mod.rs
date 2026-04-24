@@ -255,7 +255,7 @@ impl EditorWindow {
                     if let Some(page) = tab_view.selected_page()
                         && let Some(buffer) = page.child().downcast_ref::<super::buffer::Buffer>()
                     {
-                        buffer.set_status();
+                        buffer.set_status(&window.workspace_uri.borrow());
                     }
                 }
             }

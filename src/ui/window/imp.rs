@@ -133,7 +133,7 @@ impl EditorWindow {
         page.set_title(&EditorWindow::tab_name(path.unwrap_or_default(), false));
         if page.is_selected() {
             self.window_title.set_title(&page.title());
-            buffer_ui.set_status();
+            buffer_ui.set_status(&self.workspace_uri.borrow());
         }
         // Connect modified
         //buffer_ui.imp().source_view.connect_paste_clipboard(f)
@@ -195,7 +195,7 @@ impl EditorWindow {
                                 if page.is_selected() {
                                     // TODO clearly i should be able to simplify this right
                                     window.window_title.set_title(&page.title());
-                                    buffer.set_status();
+                                    buffer.set_status(&window.workspace_uri.borrow());
                                 }
                                 // Save
                                 glib::spawn_future_local(async move {
@@ -216,7 +216,7 @@ impl EditorWindow {
                 page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
                 if page.is_selected() {
                     self.window_title.set_title(&page.title());
-                    buffer.set_status();
+                    buffer.set_status(&self.workspace_uri.borrow());
                 }
                 // Save
                 let workspace_uri = self.workspace_uri.borrow().clone();
