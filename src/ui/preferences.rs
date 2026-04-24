@@ -120,7 +120,7 @@ impl PreferencesDialog {
             {
                 let flow_child = gtk::FlowBoxChild::new();
                 let widget = sourceview5::StyleSchemePreview::new(scheme);
-                if utils::scheme::light(&scheme).id() == config.ui.theme {
+                if utils::scheme::light(scheme).id() == config.ui.theme {
                     widget.set_selected(true);
                 }
                 widget.add_css_class("card");

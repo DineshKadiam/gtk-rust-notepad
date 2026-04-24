@@ -1,11 +1,13 @@
-use std::{fs::{self}};
+use std::fs::{self};
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
+#[derive(Default)]
 pub struct Config {
     pub ui: UI,
+    pub lsp: LSP,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -20,12 +22,33 @@ pub struct UI {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ThemeVariant {
-    System, Light, Dark
+    System,
+    Light,
+    Dark,
 }
 
-impl Default for Config {
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(default)]
+pub struct LSP {
+    pub lang_servers: Vec<LanguageServer>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct LanguageServer {
+    pub file_extension: String,
+    pub command: String,
+    pub language: String,
+}
+
+impl Default for LSP {
     fn default() -> Self {
-        Self { ui: UI::default() }
+        Self {
+            lang_servers: vec![LanguageServer {
+                file_extension: ".rs".into(),
+                command: "rust-analyzer".into(),
+                language: "rust".into(),
+            }],
+        }
     }
 }
 

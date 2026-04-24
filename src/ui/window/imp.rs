@@ -1,6 +1,8 @@
-use std::{cell::RefCell, sync::RwLock};
+use std::cell::RefCell;
 
-use gtk::{CssProvider, SearchBar, SearchEntry};
+use async_lsp::lsp_types::DiagnosticSeverity;
+use gtk::{CssProvider, SearchBar, SearchEntry, Stack, StackPage};
+use libpanel::prelude::DockExt;
 use sourceview5::StyleSchemeManager;
 
 use crate::{
@@ -35,14 +37,24 @@ pub struct EditorWindow {
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
+    #[template_child]
+    pub stack: TemplateChild<Stack>,
+    /* Status bar labels */
+    #[template_child]
+    pub status_lsp_load: TemplateChild<gtk::Box>,
+    #[template_child]
+    pub status_files: TemplateChild<gtk::Box>,
+    /* Properties */
     #[property(get, set)]
     pub accent_style: RefCell<CssProvider>,
+    #[property(get, set)]
+    pub workspace_uri: RefCell<String>,
 }
 
 impl EditorWindow {
     fn tab_name(full_path: &str, modified: bool) -> String {
         let modified_string = if modified { " [+]" } else { "" };
-        let path_string = if full_path != "" {
+        let path_string = if !full_path.is_empty() {
             full_path.split("/").last().unwrap()
         } else {
             "scratch"
@@ -60,9 +72,7 @@ impl EditorWindow {
             crate::config::ThemeVariant::Dark => adw::ColorScheme::ForceDark,
         });
         // Set theme
-        if let Some(ref scheme) =
-            StyleSchemeManager::new().scheme(&cfg.ui.theme)
-        {
+        if let Some(ref scheme) = StyleSchemeManager::new().scheme(&cfg.ui.theme) {
             let scheme = if adw::StyleManager::default().is_dark() {
                 &utils::scheme::dark(scheme)
             } else {
@@ -87,15 +97,13 @@ impl EditorWindow {
         if page.is_selected() {
             self.window_title.set_title(&page.title());
         }
+        self.stack.set_visible_child_name("tabs");
         page
     }
 
     pub fn new_tab(&self, path: Option<&str>) -> TabPage {
         // Get rid of welcome page
-        if self.startpage.parent().is_some() {
-            let page = self.tab_view.page(&self.startpage.get());
-            self.tab_view.close_page(&page);
-        }
+        self.stack.set_visible_child_name("tabs");
         // Buffer
         let buffer = sourceview5::Buffer::new(None);
         buffer.set_highlight_syntax(true);
@@ -117,10 +125,15 @@ impl EditorWindow {
                 buffer.set_language(Some(language));
             }
         }
+        // LSP servers
+        if let Some(path) = path {
+            lsp::file::open(path, self.workspace_uri.borrow().as_str());
+        }
         // Add tab
-        page.set_title(&EditorWindow::tab_name(&path.unwrap_or_default(), false));
+        page.set_title(&EditorWindow::tab_name(path.unwrap_or_default(), false));
         if page.is_selected() {
             self.window_title.set_title(&page.title());
+            buffer_ui.set_status(&self.workspace_uri.borrow());
         }
         // Connect modified
         //buffer_ui.imp().source_view.connect_paste_clipboard(f)
@@ -147,6 +160,8 @@ impl EditorWindow {
             && let Some(buffer) = page.child().downcast_ref::<Buffer>()
         {
             if buffer.file_path() == "" || save_as {
+                let old_path = buffer.file_path();
+                let workspace_uri = self.workspace_uri.borrow().clone();
                 gtk::FileDialog::new().save(
                     Some::<&gtk::Window>(&self.obj().clone().into()),
                     Some(&Cancellable::new()),
@@ -173,30 +188,51 @@ impl EditorWindow {
                                         .unwrap()
                                         .set_language(Some(language));
                                 }
+                                // Set buffer path
+                                buffer.set_file_path(file_name.clone());
                                 // Set window/tab title
                                 page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
                                 if page.is_selected() {
                                     // TODO clearly i should be able to simplify this right
                                     window.window_title.set_title(&page.title());
+                                    buffer.set_status(&window.workspace_uri.borrow());
                                 }
-                                // Set buffer path and save
-                                buffer.set_file_path(file_name);
-                                EditorWindow::save_buffer(&buffer);
+                                // Save
+                                glib::spawn_future_local(async move {
+                                    EditorWindow::save_buffer(&buffer).await;
+                                    if !old_path.is_empty() {
+                                        lsp::file::close(&old_path, &workspace_uri);
+                                    }
+                                    lsp::file::open(&file_name, &workspace_uri);
+                                    lsp::file::change(&file_name, &workspace_uri);
+                                    lsp::file::save(&file_name, &workspace_uri);
+                                });
                             }
                         }
                     ),
                 );
             } else {
-                EditorWindow::save_buffer(buffer);
+                // UI stuff
                 page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
                 if page.is_selected() {
                     self.window_title.set_title(&page.title());
+                    buffer.set_status(&self.workspace_uri.borrow());
                 }
+                // Save
+                let workspace_uri = self.workspace_uri.borrow().clone();
+                let buffer = buffer.clone();
+                glib::spawn_future_local(async move {
+                    // Save, and then...
+                    EditorWindow::save_buffer(&buffer).await;
+                    // Tell LSP file was modified
+                    lsp::file::change(&buffer.file_path(), &workspace_uri); // TODO call this before things like code actions
+                    lsp::file::save(&buffer.file_path(), &workspace_uri);
+                });
             }
         }
     }
 
-    fn save_buffer(buffer: &Buffer) {
+    async fn save_buffer(buffer: &Buffer) {
         let file = gio::File::for_path(buffer.file_path());
         let file = sourceview5::File::builder().location(&file).build();
         let save = sourceview5::FileSaver::new(
@@ -208,7 +244,38 @@ impl EditorWindow {
                 .unwrap(),
             &file,
         );
-        save.save_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
+        save.save_future(glib::Priority::default()).0.await.unwrap();
+    }
+
+    /// Set up displaying diagnostics for files
+    fn setup_diagnostics(&self) {
+        let rx = lsp::listen_diagnostics();
+        let tab_view = self.tab_view.clone();
+        glib::spawn_future_local(async move {
+            while let Ok(diagnostics) = rx.recv().await {
+                let uri = diagnostics.uri.path();
+                // Look for a buffer with corresponding uri
+                tab_view.pages().iter::<TabPage>().for_each(|page| {
+                    if let Some(buffer) = page.unwrap().child().downcast_ref::<Buffer>()
+                        && buffer.file_path() == uri
+                    {
+                        buffer.clear_diagnostics();
+                        let mut start_lines = vec![];
+                        diagnostics.diagnostics.iter().for_each(|diag| {
+                            buffer.highlight_diagnostic(
+                                &diag.range,
+                                diag.message.clone(),
+                                diag.severity.unwrap_or(DiagnosticSeverity::INFORMATION),
+                                !start_lines.contains(&diag.range.start.line),
+                            );
+                            if !start_lines.contains(&diag.range.start.line) {
+                                start_lines.push(diag.range.start.line);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     fn connect_tree(&self) {
@@ -273,11 +340,21 @@ impl ObjectImpl for EditorWindow {
         self.obj()
             .update_folder(std::env::home_dir().unwrap().to_str().unwrap());
         self.reload_config();
+        self.setup_diagnostics();
+        // Style
         gtk::style_context_add_provider_for_display(
             &gtk::gdk::Display::default().expect("Could not connect to a display."),
             &self.accent_style.borrow().clone(),
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
+        // Set up LSP loading spinner
+        let listener = lsp::loading::listen();
+        let lsp_load = self.status_lsp_load.clone();
+        glib::spawn_future_local(async move {
+            while let Ok(_) = listener.recv().await {
+                lsp_load.set_visible(lsp::loading::is_loading());
+            }
+        });
     }
 }
 impl WidgetImpl for EditorWindow {}

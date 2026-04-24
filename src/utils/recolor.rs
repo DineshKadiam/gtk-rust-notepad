@@ -1,4 +1,3 @@
-use gtk::gdk::RGBA;
 use sourceview5::StyleScheme;
 
 use crate::utils;
