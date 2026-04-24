@@ -10,11 +10,11 @@ use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
 use async_lsp::lsp_types::{
-    ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams, HoverContents,
-    HoverParams, InitializeParams, InitializedParams, MarkupContent, MessageActionItemCapabilities,
-    NumberOrString, Position, ProgressParamsValue, ShowDocumentClientCapabilities,
-    ShowMessageRequestClientCapabilities, TextDocumentIdentifier, TextDocumentItem,
-    TextDocumentPositionParams, Url, WindowClientCapabilities, WorkDoneProgress,
+    ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+    DidSaveTextDocumentParams, HoverContents, HoverParams, InitializeParams, InitializedParams,
+    MarkupContent, MessageActionItemCapabilities, NumberOrString, Position, ProgressParamsValue,
+    ShowDocumentClientCapabilities, ShowMessageRequestClientCapabilities, TextDocumentIdentifier,
+    TextDocumentItem, TextDocumentPositionParams, Url, WindowClientCapabilities, WorkDoneProgress,
     WorkDoneProgressParams, WorkspaceFolder,
 };
 use async_lsp::panic::CatchUnwindLayer;
@@ -47,21 +47,59 @@ pub fn open_workspace(uri: &str) {
         .insert(uri.to_string(), HashMap::new());
 }
 
-/// 2. Add files to a workspace. Creates an language server for the file's language if it
-/// doesn't exist.
-pub fn open_file(uri: &str, workspace_uri: &str) {
-    let (_, language_id) = lookup_lsp(uri);
-    let mut server = get_server(uri, workspace_uri);
-    server
-        .did_open(DidOpenTextDocumentParams {
-            text_document: TextDocumentItem {
-                uri: Url::from_file_path(uri).unwrap(),
-                language_id: language_id.into(),
-                version: 0,
-                text: fs::read_to_string(uri).unwrap().into(),
-            },
-        })
-        .unwrap();
+pub mod file {
+    use async_lsp::lsp_types::{
+        DidChangeTextDocumentParams, Range, TextDocumentContentChangeEvent,
+        VersionedTextDocumentIdentifier,
+    };
+
+    use super::*;
+
+    /// Add files to a workspace.
+    pub fn open(uri: &str, workspace_uri: &str) {
+        let (_, language_id) = lookup_lsp(uri);
+        let mut server = get_server(uri, workspace_uri);
+        server
+            .did_open(DidOpenTextDocumentParams {
+                text_document: TextDocumentItem {
+                    uri: Url::from_file_path(uri).unwrap(),
+                    language_id: language_id.into(),
+                    version: 0,
+                    text: fs::read_to_string(uri).unwrap().into(),
+                },
+            })
+            .unwrap();
+    }
+
+    /// Tell an LSP a file was modified
+    pub fn change(uri: &str, workspace_uri: &str) {
+        let mut server = get_server(uri, workspace_uri);
+        server
+            .did_change(DidChangeTextDocumentParams {
+                text_document: VersionedTextDocumentIdentifier {
+                    uri: Url::from_file_path(uri).unwrap(),
+                    version: 0,
+                },
+                content_changes: vec![TextDocumentContentChangeEvent {
+                    range: None,
+                    range_length: None,
+                    text: fs::read_to_string(uri).unwrap().into(),
+                }],
+            })
+            .unwrap();
+    }
+
+    /// Tell an LSP to stop caring about a file
+    pub fn close(uri: &str, workspace_uri: &str) {
+        let mut server = get_server(uri, workspace_uri);
+        server
+            .did_close(DidCloseTextDocumentParams {
+                text_document: TextDocumentIdentifier {
+                    uri: Url::from_file_path(uri).unwrap(),
+                },
+            })
+            .unwrap();
+    }
 }
 
 /// 2a. Create LSP server
@@ -137,18 +175,6 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
 /// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
 pub mod request;
 
-/// 4. Tell an LSP to stop caring about a file
-pub fn close_file(uri: &str, workspace_uri: &str) {
-    let mut server = get_server(uri, workspace_uri);
-    server
-        .did_close(DidCloseTextDocumentParams {
-            text_document: TextDocumentIdentifier {
-                uri: Url::from_file_path(uri).unwrap(),
-            },
-        })
-        .unwrap();
-}
-
 // /// 5. Close LSP workspace
 // pub fn close_workspace(uri: &str) {
 //     todo!();
@@ -157,7 +183,13 @@ pub fn close_file(uri: &str, workspace_uri: &str) {
 
 // FIXME ! !!!! !
 pub fn lookup_lsp(uri: &str) -> (&str, &str) {
-    ("rust-analyzer", "rust")
+    if uri.contains("rs") {
+        ("rust-analyzer", "rust")
+    } else if uri.contains("Cargo.toml") {
+        ("rust-analyzer", "toml")
+    } else {
+        ("rust-analyzer", "rust")
+    }
 }
 
 pub fn get_server(uri: &str, workspace_uri: &str) -> ServerSocket {

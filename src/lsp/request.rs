@@ -4,14 +4,21 @@ use async_lsp::{
     LanguageServer,
     lsp_types::{
         DocumentDiagnosticParams, DocumentDiagnosticReport, DocumentDiagnosticReportResult,
-        DocumentFilter, PartialResultParams, TextDocumentIdentifier, Url, WorkDoneProgressParams,
-        WorkspaceDiagnosticParams,
+        PartialResultParams, TextDocumentIdentifier, Url, WorkDoneProgressParams,
     },
 };
 
 pub async fn diagnostic(uri: &str, workspace_uri: &str) -> DocumentDiagnosticReport {
     let mut server = super::get_server(uri, workspace_uri);
     let file_uri = Url::from_file_path(uri).unwrap();
+    // Wait to finish loading FIXME
+    // if super::loading::is_loading() {
+    //     let listener = super::loading::listen();
+    //     while let Ok(_) = listener.recv().await
+    //         && super::loading::is_loading()
+    //     {}
+    // }
+    // Query
     let result = server
         .document_diagnostic(DocumentDiagnosticParams {
             text_document: TextDocumentIdentifier {

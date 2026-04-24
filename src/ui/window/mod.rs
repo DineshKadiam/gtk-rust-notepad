@@ -103,6 +103,7 @@ impl EditorWindow {
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _param| {
                     if let Some(page) = window.imp().tab_view.selected_page() {
+                        // FIXME hook up lsp file close
                         window.imp().tab_view.close_page(&page);
                     }
                 })

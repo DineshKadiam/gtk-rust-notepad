@@ -124,7 +124,7 @@ impl EditorWindow {
         }
         // LSP servers
         if let Some(path) = path {
-            lsp::open_file(path, self.workspace_uri.borrow().as_str());
+            lsp::file::open(path, self.workspace_uri.borrow().as_str());
         }
         // Add tab
         page.set_title(&EditorWindow::tab_name(&path.unwrap_or_default(), false));
@@ -191,11 +191,8 @@ impl EditorWindow {
                                 // Set buffer path and save
                                 buffer.set_file_path(file_name);
                                 glib::spawn_future_local(async move {
-                                    EditorWindow::save_buffer_async(
-                                        &buffer,
-                                        window.workspace_uri.borrow().as_str(),
-                                    )
-                                    .await;
+                                    EditorWindow::save_buffer(&buffer).await;
+                                    // FIXME file close/open
                                     // TODO: diagnostics
                                 });
                             }
@@ -214,7 +211,9 @@ impl EditorWindow {
                 let buffer = buffer.clone();
                 glib::spawn_future_local(async move {
                     // Save, and then...
-                    EditorWindow::save_buffer_async(&buffer, &workspace_uri).await;
+                    EditorWindow::save_buffer(&buffer).await;
+                    // Tell LSP file was modified
+                    lsp::file::change(&buffer.file_path(), &workspace_uri); // FIXME gonna have to do this after every change too maybe
 
                     // Diagnostics
                     let diag_result = lsp::request::diagnostic(&uri, &workspace_uri).await;
@@ -248,7 +247,7 @@ impl EditorWindow {
         }
     }
 
-    async fn save_buffer_async(buffer: &Buffer, workspace_uri: &str) {
+    async fn save_buffer(buffer: &Buffer) {
         let file = gio::File::for_path(buffer.file_path());
         let file = sourceview5::File::builder().location(&file).build();
         let save = sourceview5::FileSaver::new(
@@ -261,24 +260,6 @@ impl EditorWindow {
             &file,
         );
         save.save_future(glib::Priority::default()).0.await.unwrap();
-        // Reopen file with LSP
-        lsp::close_file(&buffer.file_path(), &workspace_uri);
-        lsp::open_file(&buffer.file_path(), &workspace_uri);
-    }
-
-    fn save_buffer(buffer: &Buffer) {
-        let file = gio::File::for_path(buffer.file_path());
-        let file = sourceview5::File::builder().location(&file).build();
-        let save = sourceview5::FileSaver::new(
-            buffer
-                .imp()
-                .source_view
-                .buffer()
-                .downcast_ref::<sourceview5::Buffer>()
-                .unwrap(),
-            &file,
-        );
-        save.save_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
     }
 
     fn connect_tree(&self) {
