@@ -188,6 +188,15 @@ impl EditorWindow {
             window,
             move |_| window.upgrade().unwrap().new_tab(None)
         ));
+        self.imp().tab_view.connect_n_pages_notify(clone!(
+            #[strong(rename_to=stack)]
+            self.imp().stack,
+            move |tab_view| {
+                if tab_view.n_pages() == 0 {
+                    stack.set_visible_child_name("empty");
+                }
+            }
+        ));
         self.imp().tab_view.connect_selected_page_notify(clone!(
             #[strong]
             window_title,
@@ -222,10 +231,7 @@ impl EditorWindow {
                     .clone();
                 let new_window = Self::new(&app);
                 // Get rid of welcome page
-                new_window
-                    .imp()
-                    .tab_view
-                    .close_page(&new_window.imp().tab_view.selected_page().unwrap());
+                new_window.imp().stack.set_visible_child_name("tabs");
                 new_window.present();
                 new_window
                     .imp()

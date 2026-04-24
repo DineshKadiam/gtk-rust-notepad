@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 
 use async_lsp::lsp_types::DiagnosticSeverity;
-use gtk::{CssProvider, SearchBar, SearchEntry};
+use gtk::{CssProvider, SearchBar, SearchEntry, Stack, StackPage};
+use libpanel::prelude::DockExt;
 use sourceview5::StyleSchemeManager;
 
 use crate::{
@@ -36,6 +37,8 @@ pub struct EditorWindow {
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
+    #[template_child]
+    pub stack: TemplateChild<Stack>,
     /* Status bar labels */
     #[template_child]
     pub status_lsp_load: TemplateChild<gtk::Box>,
@@ -92,15 +95,13 @@ impl EditorWindow {
         if page.is_selected() {
             self.window_title.set_title(&page.title());
         }
+        self.stack.set_visible_child_name("tabs");
         page
     }
 
     pub fn new_tab(&self, path: Option<&str>) -> TabPage {
         // Get rid of welcome page
-        if self.startpage.parent().is_some() {
-            let page = self.tab_view.page(&self.startpage.get());
-            self.tab_view.close_page(&page);
-        }
+        self.stack.set_visible_child_name("tabs");
         // Buffer
         let buffer = sourceview5::Buffer::new(None);
         buffer.set_highlight_syntax(true);

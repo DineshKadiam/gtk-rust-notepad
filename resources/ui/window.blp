@@ -108,6 +108,16 @@ template $EditorWindow: Adw.ApplicationWindow {
             view: tab_view;
             enable-new-tab: true;
             enable-search: true;
+            secondary-menu: menu {
+                item {
+                    label: _("Open a file");
+                    action: "win.open.file";
+                }
+                item {
+                    label: _("Open a folder");
+                    action: "win.open.folder";
+                }
+            };
 
             Adw.ToolbarView {
                 top-bar-style: raised_border;
@@ -162,61 +172,72 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                     Panel.Dock dock {
                         vexpand: true;
+                        reveal-start: true;
 
                         [content]
-                        Adw.TabView tab_view {
+                        Stack stack {
                             vexpand: true;
-                            menu-model: menu {
-                                section {
-                                    item {
-                                        label: _("Pin tab");
-                                        action: "tab_context.pin";
-                                        hidden-when: 'action-disabled';
-                                    }
-                                    item {
-                                        label: _("Unpin tab");
-                                        action: "tab_context.unpin";
-                                        hidden-when: 'action-disabled';
-                                    }
-                                }
-                                section {
-                                    item {
-                                        label: _("Move left");
-                                        action: "tab_context.move_left";
-                                    }
-                                    item {
-                                        label: _("Move right");
-                                        action: "tab_context.move_right";
-                                    }
-                                    item {
-                                        label: _("Move to new window");
-                                        action: "tab_context.move_new";
-                                    }
-                                }
-                                section {
-                                    item {
-                                        label: _("Close tab");
-                                        action: "tab_context.close";
-                                    }
-                                    item {
-                                        label: _("Close tabs to the left");
-                                        action: "tab_context.close_left";
-                                    }
-                                    item {
-                                        label: _("Close tabs to the right");
-                                        action: "tab_context.close_left";
-                                    }
-                                    item {
-                                        label: _("Close other tabs");
-                                        action: "tab_context.close_other";
-                                    }
-                                }
-                            };
 
-                            Adw.TabPage {
-                                title: _("Welcome");
+                            StackPage {
+                                name: "empty";
+                                child: $WelcomeScreen startpage {
+                                    vexpand: true;
+                                    width-request: 400;
+                                };
+                            }
 
-                                child: $WelcomeScreen startpage {};
+                            StackPage {
+                                name: "tabs";
+                                child: Adw.TabView tab_view {
+                                    vexpand: true;
+                                    menu-model: menu {
+                                        section {
+                                            item {
+                                                label: _("Pin tab");
+                                                action: "tab_context.pin";
+                                                hidden-when: 'action-disabled';
+                                            }
+                                            item {
+                                                label: _("Unpin tab");
+                                                action: "tab_context.unpin";
+                                                hidden-when: 'action-disabled';
+                                            }
+                                        }
+                                        section {
+                                            item {
+                                                label: _("Move left");
+                                                action: "tab_context.move_left";
+                                            }
+                                            item {
+                                                label: _("Move right");
+                                                action: "tab_context.move_right";
+                                            }
+                                            item {
+                                                label: _("Move to new window");
+                                                action: "tab_context.move_new";
+                                            }
+                                        }
+                                        section {
+                                            item {
+                                                label: _("Close tab");
+                                                action: "tab_context.close";
+                                            }
+                                            item {
+                                                label: _("Close tabs to the left");
+                                                action: "tab_context.close_left";
+                                            }
+                                            item {
+                                                label: _("Close tabs to the right");
+                                                action: "tab_context.close_left";
+                                            }
+                                            item {
+                                                label: _("Close other tabs");
+                                                action: "tab_context.close_other";
+                                            }
+                                        }
+                                    };
+
+                                };
                             }
                         }
 
@@ -245,33 +266,41 @@ template $EditorWindow: Adw.ApplicationWindow {
                             spacing: 8;
 
                             /* TODO these are placeholders!! */
-                            Label {
-                                styles[
-                                    "monospace"
-                                ]
-                                label: "NORMAL";
+                            Box status_mode {
+                                spacing: 8;
                                 visible: false;
+
+                                Label {
+                                    styles[
+                                        "monospace"
+                                    ]
+                                    label: "NORMAL";
+                                }
+
+                                Separator {
+                                    orientation: vertical;
+                                }
                             }
 
-                            Separator {
-                                orientation: vertical;
+                            Box status_files {
                                 visible: false;
-                            }
+                                spacing: 8;
 
-                            Label status_file_path {
-                                label: "full/path/to/file";
-                            }
+                                Label status_file_path {
+                                    label: "full/path/to/file";
+                                }
 
-                            Separator {
-                                orientation: vertical;
-                            }
+                                Separator {
+                                    orientation: vertical;
+                                }
 
-                            Label status_lang {
-                                label: "lang";
-                            }
+                                Label status_lang {
+                                    label: "lang";
+                                }
 
-                            Separator {
-                                orientation: vertical;
+                                Separator {
+                                    orientation: vertical;
+                                }
                             }
 
                             Box status_lsp_load {
