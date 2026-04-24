@@ -245,7 +245,7 @@ impl EditorWindow {
                     let subtitle = if let Some(page) = tab_view.selected_page() {
                         &page.title()
                     } else {
-                        "spikedit"
+                        "Kyanite"
                     };
                     if window.search_bar.is_search_mode() {
                         tab_view.activate_action("win.search.toggle", None).unwrap();

@@ -9,7 +9,7 @@ use gtk::{CssProvider, gdk::Display};
 use crate::ui::window::EditorWindow;
 
 fn main() {
-    let application = adw::Application::new(Some("ca.potatoe.spikedit"), Default::default());
+    let application = adw::Application::new(Some("ca.potatoe.Kyanite"), Default::default());
     application.connect_startup(load_css);
     application.connect_activate(build_ui);
     // Set up accels

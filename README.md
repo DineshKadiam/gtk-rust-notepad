@@ -1,4 +1,4 @@
-# spikedit
+# Kyanite
 
 ![](resources/screenshots/code.png)
 
@@ -45,6 +45,9 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
   - also terminal uis suck
 - gnome builder: WONDERFUL but it's designed to be a *gnome* thing so much that i can't use it as a general purpose IDE :(
 - kate: i'm trying it out. it could be nice? it breaks in fascinating ways on niri
+
+### Where does the name come from?
+[CHECK OUT THIS COOL ROCK](https://en.wikipedia.org/wiki/Kyanite)
 
 ## TODO
 
