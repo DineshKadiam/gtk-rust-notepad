@@ -11,9 +11,10 @@ use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
 use async_lsp::lsp_types::{
-    ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams, InitializeParams,
-    InitializedParams, ProgressParamsValue, PublishDiagnosticsParams, TextDocumentIdentifier,
-    TextDocumentItem, Url, WindowClientCapabilities, WorkDoneProgress, WorkspaceFolder,
+    ClientCapabilities, DidChangeWorkspaceFoldersParams, DidCloseTextDocumentParams,
+    DidOpenTextDocumentParams, InitializeParams, InitializedParams, ProgressParamsValue,
+    PublishDiagnosticsParams, TextDocumentIdentifier, TextDocumentItem, Url,
+    WindowClientCapabilities, WorkDoneProgress, WorkspaceFolder, WorkspaceFoldersChangeEvent,
 };
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
@@ -149,8 +150,21 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> ServerSocket {
     let (lsp_command, _) = lookup_lsp(uri);
     // Get or create LSP
     let mut a = SERVERS.write().unwrap();
-    // FIXME: if server exists but different workspace, add workspace to lsp
-    a.entry(lsp_command.to_string())
+    let mut server = a
+        .entry(lsp_command.to_string())
         .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, lsp_command)))
-        .clone()
+        .clone();
+    // If server exists but different workspace, add workspace to lsp
+    server
+        .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
+            event: WorkspaceFoldersChangeEvent {
+                added: vec![WorkspaceFolder {
+                    uri: Url::from_file_path(workspace_uri).unwrap(),
+                    name: "root".into(),
+                }],
+                removed: vec![],
+            },
+        })
+        .unwrap();
+    server
 }
