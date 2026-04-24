@@ -22,6 +22,8 @@ use async_lsp::tracing::TracingLayer;
 use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
+use crate::config::Config;
+
 /// Stores language servers globally, and marks their names along with a socket.
 /// > [!NOTE]
 /// > Security doesn't actually matter because we're just building a convenient lookup table
@@ -129,42 +131,46 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
 /// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
 pub mod request;
 
+// TODO?
 // /// 5. Close LSP workspace
 // pub fn close_workspace(uri: &str) {
 //     todo!();
 // }
 //
 
-// FIXME ! !!!! !
-pub fn lookup_lsp(uri: &str) -> (&str, &str) {
-    if uri.contains("rs") {
-        ("rust-analyzer", "rust")
-    } else if uri.contains("Cargo.toml") {
-        ("rust-analyzer", "toml")
-    } else {
-        ("rust-analyzer", "rust")
+pub fn lookup_lsp(uri: &str) -> (String, String) {
+    let config = Config::get_or_default();
+    for server in config.lsp.lang_servers {
+        if uri.ends_with(&server.file_extension) {
+            return (server.command.clone(), server.language.clone());
+        }
     }
+    return (String::new(), String::new());
 }
 
-pub fn get_server(uri: &str, workspace_uri: &str) -> ServerSocket {
+pub fn get_server(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {
     let (lsp_command, _) = lookup_lsp(uri);
-    // Get or create LSP
-    let mut a = SERVERS.write().unwrap();
-    let mut server = a
-        .entry(lsp_command.to_string())
-        .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, lsp_command)))
-        .clone();
-    // If server exists but different workspace, add workspace to lsp
-    server
-        .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
-            event: WorkspaceFoldersChangeEvent {
-                added: vec![WorkspaceFolder {
-                    uri: Url::from_file_path(workspace_uri).unwrap(),
-                    name: "root".into(),
-                }],
-                removed: vec![],
-            },
-        })
-        .unwrap();
-    server
+    if !lsp_command.is_empty() {
+        // Get or create LSP
+        let mut a = SERVERS.write().unwrap();
+        let mut server = a
+            .entry(lsp_command.to_string())
+            .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, &lsp_command)))
+            .clone();
+        // If server exists but different workspace, add workspace to lsp
+        server
+            .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
+                event: WorkspaceFoldersChangeEvent {
+                    added: vec![WorkspaceFolder {
+                        uri: Url::from_file_path(workspace_uri).unwrap(),
+                        name: "root".into(),
+                    }],
+                    removed: vec![],
+                },
+            })
+            .unwrap();
+        Some(server)
+    } else {
+        None
+    }
 }
