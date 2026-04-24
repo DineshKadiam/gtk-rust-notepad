@@ -1,5 +1,6 @@
 use std::{cell::RefCell, sync::RwLock};
 
+use async_lsp::lsp_types::{DiagnosticSeverity, DocumentDiagnosticReport};
 use gtk::{CssProvider, SearchBar, SearchEntry};
 use sourceview5::StyleSchemeManager;
 
@@ -189,19 +190,80 @@ impl EditorWindow {
                                 }
                                 // Set buffer path and save
                                 buffer.set_file_path(file_name);
-                                EditorWindow::save_buffer(&buffer);
+                                glib::spawn_future_local(async move {
+                                    EditorWindow::save_buffer_async(
+                                        &buffer,
+                                        window.workspace_uri.borrow().as_str(),
+                                    )
+                                    .await;
+                                    // TODO: diagnostics
+                                });
                             }
                         }
                     ),
                 );
             } else {
-                EditorWindow::save_buffer(buffer);
+                // UI stuff
                 page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
                 if page.is_selected() {
                     self.window_title.set_title(&page.title());
                 }
+                // Save
+                let uri = buffer.file_path();
+                let workspace_uri = self.workspace_uri.borrow().clone();
+                let buffer = buffer.clone();
+                glib::spawn_future_local(async move {
+                    // Save, and then...
+                    EditorWindow::save_buffer_async(&buffer, &workspace_uri).await;
+
+                    // Diagnostics
+                    let diag_result = lsp::request::diagnostic(&uri, &workspace_uri).await;
+                    buffer.clear_diagnostics();
+                    println!("{:?}", diag_result);
+                    match diag_result {
+                        DocumentDiagnosticReport::Full(report) => {
+                            let mut start_lines = vec![];
+                            report
+                                .full_document_diagnostic_report
+                                .items
+                                .iter()
+                                .for_each(|item| {
+                                    buffer.highlight_diagnostic(
+                                        &item.range,
+                                        item.message.clone(),
+                                        item.severity.unwrap_or(DiagnosticSeverity::INFORMATION),
+                                        !start_lines.contains(&item.range.start.line),
+                                    );
+                                    if !start_lines.contains(&item.range.start.line) {
+                                        start_lines.push(item.range.start.line);
+                                    }
+                                });
+                        }
+                        // FIXME handle other cases
+                        _ => (),
+                    }
+                    // FIXME diagnostics whenever a file is opened with the lsp, not just saved...
+                });
             }
         }
+    }
+
+    async fn save_buffer_async(buffer: &Buffer, workspace_uri: &str) {
+        let file = gio::File::for_path(buffer.file_path());
+        let file = sourceview5::File::builder().location(&file).build();
+        let save = sourceview5::FileSaver::new(
+            buffer
+                .imp()
+                .source_view
+                .buffer()
+                .downcast_ref::<sourceview5::Buffer>()
+                .unwrap(),
+            &file,
+        );
+        save.save_future(glib::Priority::default()).0.await.unwrap();
+        // Reopen file with LSP
+        lsp::close_file(&buffer.file_path(), &workspace_uri);
+        lsp::open_file(&buffer.file_path(), &workspace_uri);
     }
 
     fn save_buffer(buffer: &Buffer) {

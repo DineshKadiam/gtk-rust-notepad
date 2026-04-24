@@ -10,10 +10,12 @@ use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
 use async_lsp::lsp_types::{
-    ClientCapabilities, DidOpenTextDocumentParams, HoverContents, HoverParams, InitializeParams,
-    InitializedParams, MarkupContent, NumberOrString, Position, ProgressParamsValue,
-    TextDocumentIdentifier, TextDocumentItem, TextDocumentPositionParams, Url,
-    WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressParams, WorkspaceFolder,
+    ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams, HoverContents,
+    HoverParams, InitializeParams, InitializedParams, MarkupContent, MessageActionItemCapabilities,
+    NumberOrString, Position, ProgressParamsValue, ShowDocumentClientCapabilities,
+    ShowMessageRequestClientCapabilities, TextDocumentIdentifier, TextDocumentItem,
+    TextDocumentPositionParams, Url, WindowClientCapabilities, WorkDoneProgress,
+    WorkDoneProgressParams, WorkspaceFolder,
 };
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
@@ -35,54 +37,7 @@ static SERVERS: RwLock<
 static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 
 /// Keeps track of how many files are loading/being indexed.
-pub mod loading {
-    use std::sync::{
-        RwLock,
-        atomic::{AtomicUsize, Ordering},
-    };
-
-    use async_channel::{Receiver, Sender};
-
-    /// AtomicUsize that counts how many files are currently being indexed/loaded.
-    static COUNT: AtomicUsize = AtomicUsize::new(0);
-
-    static SENDERS: RwLock<Vec<Sender<()>>> = RwLock::new(vec![]);
-
-    /// Get number of files that are being indexed by any language server.
-    pub fn get() -> usize {
-        COUNT.load(Ordering::Relaxed)
-    }
-
-    /// Returns true if there are files loading.
-    pub fn is_loading() -> bool {
-        get() > 0
-    }
-
-    /// New listener on if INDEXING_COUNT changes
-    pub fn listen() -> Receiver<()> {
-        let (tx, rx) = async_channel::bounded(1);
-        SENDERS.write().unwrap().push(tx);
-        rx
-    }
-
-    fn notify() {
-        SENDERS.read().unwrap().iter().for_each(|sender| {
-            sender.send_blocking(()).unwrap();
-        });
-    }
-
-    /// Mutate INDEXING_COUNT
-    pub fn add(amt: usize) {
-        COUNT.fetch_add(amt, Ordering::Relaxed);
-        notify();
-    }
-
-    /// Mutate INDEXING_COUNT
-    pub fn sub(amt: usize) {
-        COUNT.fetch_sub(amt, Ordering::Relaxed);
-        notify();
-    }
-}
+pub mod loading;
 
 /// 1. Initialise LSP workspace if it isn't already
 pub fn open_workspace(uri: &str) {
@@ -95,26 +50,15 @@ pub fn open_workspace(uri: &str) {
 /// 2. Add files to a workspace. Creates an language server for the file's language if it
 /// doesn't exist.
 pub fn open_file(uri: &str, workspace_uri: &str) {
-    // FIXME terribly hacky, use a better lookup table (somewhere in Config)
-    let lsp_command = "rust-analyzer";
-    let language_id = "rust";
-    // Get or create LSP
-    let mut a = SERVERS.write().unwrap();
-    let server = a
-        .get_mut(workspace_uri)
-        .unwrap()
-        .entry(lsp_command.to_string())
-        .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, lsp_command)));
-    // Add file FIXME
-    let file_uri = Url::from_file_path(uri).unwrap();
-    let text = fs::read_to_string(uri).unwrap();
+    let (_, language_id) = lookup_lsp(uri);
+    let mut server = get_server(uri, workspace_uri);
     server
         .did_open(DidOpenTextDocumentParams {
             text_document: TextDocumentItem {
-                uri: file_uri.clone(),
+                uri: Url::from_file_path(uri).unwrap(),
                 language_id: language_id.into(),
                 version: 0,
-                text: text.into(),
+                text: fs::read_to_string(uri).unwrap().into(),
             },
         })
         .unwrap();
@@ -190,18 +134,39 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
     server
 }
 
-// /// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
-// /// This is literally the worst template of all lmaooo
-// pub fn request_thing(uri: &str, workspace_uri: &str, thing: todo!()) -> todo!() {
-//     todo!();
-// }
+/// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
+pub mod request;
 
-// /// 4. Tell an LSP to stop caring about a file
-// pub fn close_file(uri: &str, workspace_uri: &str) {
-//     todo!();
-// }
+/// 4. Tell an LSP to stop caring about a file
+pub fn close_file(uri: &str, workspace_uri: &str) {
+    let mut server = get_server(uri, workspace_uri);
+    server
+        .did_close(DidCloseTextDocumentParams {
+            text_document: TextDocumentIdentifier {
+                uri: Url::from_file_path(uri).unwrap(),
+            },
+        })
+        .unwrap();
+}
 
 // /// 5. Close LSP workspace
 // pub fn close_workspace(uri: &str) {
 //     todo!();
 // }
+//
+
+// FIXME ! !!!! !
+pub fn lookup_lsp(uri: &str) -> (&str, &str) {
+    ("rust-analyzer", "rust")
+}
+
+pub fn get_server(uri: &str, workspace_uri: &str) -> ServerSocket {
+    let (lsp_command, _) = lookup_lsp(uri);
+    // Get or create LSP
+    let mut a = SERVERS.write().unwrap();
+    a.get_mut(workspace_uri)
+        .unwrap()
+        .entry(lsp_command.to_string())
+        .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, lsp_command)))
+        .clone()
+}

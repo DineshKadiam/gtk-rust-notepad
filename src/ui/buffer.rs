@@ -1,8 +1,16 @@
 use adw::subclass::prelude::*;
+use async_lsp::lsp_types::DiagnosticSeverity;
+use async_lsp::lsp_types::Range;
 use glib::Properties;
 use gtk::CompositeTemplate;
+use gtk::TextMark;
 use gtk::TextSearchFlags;
+use gtk::gio::Icon;
 use gtk::glib;
+use gtk::glib::property::PropertyGet;
+use gtk::pango::Underline;
+use sourceview5::Annotation;
+use sourceview5::AnnotationProvider;
 use sourceview5::BackgroundPatternType;
 use sourceview5::StyleSchemeManager;
 use sourceview5::prelude::*;
@@ -30,6 +38,8 @@ mod imp {
         pub map_revealer: TemplateChild<Revealer>,
         #[property(get, set)]
         pub file_path: RefCell<String>,
+        #[property(get, set)]
+        pub diagnostic_provider: RefCell<AnnotationProvider>,
     }
 
     #[glib::object_subclass]
@@ -88,7 +98,13 @@ pub enum SearchDirection {
 
 impl Buffer {
     pub fn new() -> Self {
-        glib::Object::builder::<Self>().build()
+        let widget = glib::Object::builder::<Self>().build();
+        widget
+            .imp()
+            .source_view
+            .annotations()
+            .add_provider(&widget.imp().diagnostic_provider.borrow().clone());
+        widget
     }
 
     /// Creates a buffer ui/tab thingy with a SourceView Buffer object
@@ -96,8 +112,86 @@ impl Buffer {
         let widget = glib::Object::builder::<Self>().build();
         widget.imp().source_view.set_buffer(Some(&buf));
         widget
+            .imp()
+            .source_view
+            .annotations()
+            .add_provider(&widget.imp().diagnostic_provider.borrow().clone());
+        widget
     }
 
+    /// Clear diagnostics
+    pub fn clear_diagnostics(&self) {
+        self.imp().diagnostic_provider.borrow().remove_all();
+        // Clear tags
+        let buffer = self
+            .imp()
+            .source_view
+            .buffer()
+            .downcast_ref::<sourceview5::Buffer>()
+            .unwrap()
+            .clone();
+        let bounds = buffer.bounds();
+        buffer.remove_tag_by_name("diag_error", &bounds.0, &bounds.1);
+    }
+
+    /// Highlight diaganostic
+    pub fn highlight_diagnostic(
+        &self,
+        range: &Range,
+        message: String,
+        severity: DiagnosticSeverity,
+        create_annotation: bool,
+    ) {
+        // Add annotation
+        if create_annotation {
+            self.imp()
+                .diagnostic_provider
+                .borrow()
+                .add_annotation(&Annotation::new(
+                    Some(&message),
+                    Some(
+                        Icon::for_string(match severity {
+                            DiagnosticSeverity::ERROR => "dialog-error-symbolic",
+                            DiagnosticSeverity::WARNING => "dialog-warning-symbolic",
+                            _ => "dialog-information-symbolic",
+                        })
+                        .unwrap(),
+                    ),
+                    range.start.line as i32,
+                    match severity {
+                        DiagnosticSeverity::ERROR => sourceview5::AnnotationStyle::Error,
+                        DiagnosticSeverity::WARNING => sourceview5::AnnotationStyle::Warning,
+                        _ => sourceview5::AnnotationStyle::Accent,
+                    },
+                ));
+        }
+        // Add tag
+        let buffer = self
+            .imp()
+            .source_view
+            .buffer()
+            .downcast_ref::<sourceview5::Buffer>()
+            .unwrap()
+            .clone();
+        if let Some(start) =
+            buffer.iter_at_line_offset(range.start.line as i32, range.start.character as i32)
+            && let Some(end) =
+                buffer.iter_at_line_offset(range.end.line as i32, range.end.character as i32 + 1)
+        {
+            let mut exists = false;
+            buffer.tag_table().foreach(|t| {
+                if t.name().is_some_and(|n| n == "diag_error") {
+                    exists = true;
+                }
+            });
+            if !exists {
+                buffer.create_tag(Some("diag_error"), &[("underline", &Underline::Error)]);
+            }
+            buffer.apply_tag_by_name("diag_error", &start, &end);
+        }
+    }
+
+    /// Update self based on config file
     pub fn configure(&self) {
         let config = Config::get_or_default();
         let buffer = self
@@ -191,7 +285,9 @@ impl Buffer {
             let mut start = text_iter.0.clone();
             buffer.place_cursor(&text_iter.0);
             buffer.select_range(&text_iter.0, &text_iter.1);
-            self.imp().source_view.scroll_to_iter(&mut start, 0.0, true, 0.5, 0.0);
+            self.imp()
+                .source_view
+                .scroll_to_iter(&mut start, 0.0, true, 0.5, 0.0);
             Ok(())
         } else {
             Err(std::io::Error::new(

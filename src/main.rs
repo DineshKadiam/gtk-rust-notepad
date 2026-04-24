@@ -1,6 +1,6 @@
 mod config;
-mod ui;
 mod lsp;
+mod ui;
 mod utils;
 
 use adw::{Application, prelude::*};
