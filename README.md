@@ -19,6 +19,14 @@ A lightweight, graphical text editor.
     - Window recoloring to match themes (like GNOME Builder)!
 - Adaptive UI (aka works on phones)!
 
+## Build/run
+`cargo run --release`! You need:
+  - gtksourceview5 >= 5.18
+  - libadwaita >= 1.8
+  - gtk4 >= 4.20
+  - libpanel
+  - vte4 >= 0.78
+
 ## Contribute
 This is a huge work-in-progress and I'm still working together core features.
 That being said, I'll still try to review PRs to the best I can! Anything that helps refine the editor and make it stronger is welcome.
