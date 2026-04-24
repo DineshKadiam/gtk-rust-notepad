@@ -23,29 +23,18 @@ use async_lsp::tracing::TracingLayer;
 use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
-/// Stores language servers globally. There are different language servers per workspace
-/// (aka project root aka folder) and language, so we're going to store them in a nested HashMap
-/// where we can search the workspace first, and then language.
+/// Stores language servers globally, and marks their names along with a socket.
 /// > [!NOTE]
 /// > Security doesn't actually matter because we're just building a convenient lookup table
 /// > so it's fine to use a non-random hasher
-static SERVERS: RwLock<
-    HashMap<String, HashMap<String, ServerSocket>, BuildHasherDefault<DefaultHasher>>,
-> = RwLock::new(HashMap::with_hasher(BuildHasherDefault::new()));
+static SERVERS: RwLock<HashMap<String, ServerSocket, BuildHasherDefault<DefaultHasher>>> =
+    RwLock::new(HashMap::with_hasher(BuildHasherDefault::new()));
 
 /// Tokio runtime for async tasks
 static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 
 /// Keeps track of how many files are loading/being indexed.
 pub mod loading;
-
-/// 1. Initialise LSP workspace if it isn't already
-pub fn open_workspace(uri: &str) {
-    SERVERS
-        .write()
-        .unwrap()
-        .insert(uri.to_string(), HashMap::new());
-}
 
 pub mod file {
     use async_lsp::lsp_types::{
@@ -196,9 +185,8 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> ServerSocket {
     let (lsp_command, _) = lookup_lsp(uri);
     // Get or create LSP
     let mut a = SERVERS.write().unwrap();
-    a.get_mut(workspace_uri)
-        .unwrap()
-        .entry(lsp_command.to_string())
+    // FIXME: if server exists but different workspace, add workspace to lsp
+    a.entry(lsp_command.to_string())
         .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, lsp_command)))
         .clone()
 }

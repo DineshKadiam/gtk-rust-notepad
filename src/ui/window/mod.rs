@@ -313,7 +313,5 @@ impl EditorWindow {
         self.imp().terminal_view.setup(dir_path);
 
         self.set_property("workspace_uri", dir_path.to_string());
-
-        lsp::open_workspace(dir_path);
     }
 }
