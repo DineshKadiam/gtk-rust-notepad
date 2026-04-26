@@ -277,30 +277,6 @@ impl EditorWindow {
             }
         });
     }
-
-    fn connect_tree(&self) {
-        self.file_tree.connect_activate(|list, idx| {
-            if let Some(model) = list.model()
-                && let Some(item_obj) = model.item(idx)
-                && let Some(item) = item_obj.downcast_ref::<TreeListRow>()
-            {
-                if item.is_expandable() {
-                    // it's a folder
-                    item.set_expanded(!item.is_expanded());
-                } else if let Some(file_info) = item.item().and_downcast::<FileInfo>() {
-                    // it's a file
-                    let file = file_info
-                        .attribute_object("standard::file")
-                        .and_downcast_ref::<gio::File>()
-                        .unwrap()
-                        .clone();
-                    let file_name = file.path().unwrap().to_str().unwrap().to_string().clone();
-                    list.activate_action("win.tab.new", Some(&file_name.into()))
-                        .unwrap();
-                }
-            };
-        });
-    }
 }
 
 impl From<EditorWindow> for gtk::Window {
@@ -334,7 +310,6 @@ impl ObjectSubclass for EditorWindow {
 impl ObjectImpl for EditorWindow {
     fn constructed(&self) {
         self.parent_constructed();
-        self.connect_tree();
         self.obj().setup_actions();
         self.obj().setup_callbacks();
         self.obj()

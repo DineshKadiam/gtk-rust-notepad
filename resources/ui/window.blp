@@ -252,77 +252,67 @@ template $EditorWindow: Adw.ApplicationWindow {
                     }
 
                     /* Status bar */
-                    CenterBox {
-                        styles[
-                            "status-bar"
-                        ]
-
-                        orientation: horizontal;
+                    Panel.Statusbar {
                         margin-start: 8;
-                        // margin-end: 8;
 
-                        [start]
-                        Box {
+                        [prefix]
+                        Box status_mode {
+                            spacing: 8;
+                            visible: false;
+
+                            Label {
+                                styles[
+                                    "monospace"
+                                ]
+                                label: "NORMAL";
+                            }
+
+                            Separator {
+                                orientation: vertical;
+                            }
+                        }
+
+                        [prefix]
+                        Box status_files {
+                            visible: false;
                             spacing: 8;
 
-                            /* TODO these are placeholders!! */
-                            Box status_mode {
-                                spacing: 8;
-                                visible: false;
-
-                                Label {
-                                    styles[
-                                        "monospace"
-                                    ]
-                                    label: "NORMAL";
-                                }
-
-                                Separator {
-                                    orientation: vertical;
-                                }
+                            Label {
+                                name: "status_file_path";
+                                label: "full/path/to/file";
                             }
 
-                            Box status_files {
-                                visible: false;
-                                spacing: 8;
-
-                                Label {
-                                    name: "status_file_path";
-                                    label: "full/path/to/file";
-                                }
-
-                                Separator {
-                                    orientation: vertical;
-                                }
-
-                                Label {
-                                    name: "status_lang";
-                                    label: "lang";
-                                }
-
-                                Separator {
-                                    orientation: vertical;
-                                }
+                            Separator {
+                                orientation: vertical;
                             }
 
-                            Box status_lsp_load {
-                                orientation: horizontal;
-                                spacing: 8;
-                                visible: false;
+                            Label {
+                                name: "status_lang";
+                                label: "lang";
+                            }
 
-                                Adw.Spinner {
+                            Separator {
+                                orientation: vertical;
+                            }
+                        }
 
-                                }
+                        [prefix]
+                        Box status_lsp_load {
+                            orientation: horizontal;
+                            spacing: 8;
+                            visible: false;
 
-                                Label {
-                                    label: _("LSP loading...");
-                                }
+                            Adw.Spinner {
 
+                            }
+
+                            Label {
+                                label: _("LSP loading...");
                             }
 
                         }
 
-                        [end]
+                        [suffix]
                         Box {
                             Separator {
                                 orientation: vertical;

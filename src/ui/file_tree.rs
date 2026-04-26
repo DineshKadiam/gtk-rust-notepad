@@ -1,13 +1,17 @@
 use gtk::{
-    CustomSorter, DirectoryList, Image, Label, ListItem, ListView, SignalListItemFactory,
-    SingleSelection, SortListModel, TreeExpander, TreeListModel, TreeListRow,
-    gio::{self, FileInfo},
+    Button, CustomSorter, DirectoryList, GestureClick, Image, Label, ListItem, ListView, Popover,
+    PopoverMenu, SignalListItemFactory, SingleSelection, SortListModel, TreeExpander,
+    TreeListModel, TreeListRow,
+    cairo::Rectangle,
+    gio::{self, FileInfo, Menu, MenuModel},
+    glib::clone,
 };
 use sourceview5::prelude::*;
 
 /// credit to https://codeberg.org/Cyncrovee/Datolite/src/branch/main/src/util.rs which i used as a reference
 /// idk how the fuck to do this and the wiki doesn't really help
 pub fn update(tree: &ListView, dir_path: &str) {
+    // Scan for files
     let file_sorter = CustomSorter::new(|a, b| {
         let a = a.downcast_ref::<FileInfo>().unwrap();
         let b = b.downcast_ref::<FileInfo>().unwrap();
@@ -75,6 +79,16 @@ pub fn update(tree: &ListView, dir_path: &str) {
             ));
     });
 
+    let folder_popover = {
+        let menu = Menu::new();
+        let popover = PopoverMenu::builder()
+            .menu_model(&menu)
+            .has_arrow(false)
+            .build();
+        menu.append(Some("Change workspace"), Some("win.tab.new_scratch")); // TODO uh
+        popover
+    };
+
     factory.connect_bind(move |_, list_item| {
         let list_item = list_item.downcast_ref::<ListItem>().unwrap();
         if let Some(row) = list_item.item().and_downcast::<TreeListRow>()
@@ -99,6 +113,27 @@ pub fn update(tree: &ListView, dir_path: &str) {
                         "folder-symbolic"
                     }))
                 });
+                // Context menus
+                let tree_click = GestureClick::new();
+                tree_click.set_button(3);
+                tree_click.connect_pressed(clone!(
+                    #[strong]
+                    container,
+                    #[strong]
+                    folder_popover,
+                    move |gesture, _, x, y| {
+                        gesture.set_state(gtk::EventSequenceState::Claimed);
+                        folder_popover.set_pointing_to(Some(&gtk::gdk::Rectangle::new(
+                            x as i32, y as i32, 1, 1,
+                        )));
+                        folder_popover.unparent();
+                        folder_popover.set_parent(&container);
+                        // TODO set status in file tree somewhere that the window can also look,
+                        // or use an action with passing data or whatever, or use a channel
+                        folder_popover.popup();
+                    }
+                ));
+                container.parent().unwrap().add_controller(tree_click);
             } else {
                 label.set_text(&file_info.display_name());
                 if let Some(icon) = file_info.symbolic_icon() {

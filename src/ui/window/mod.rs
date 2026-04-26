@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, Label, ListView, TreeListRow, gio};
+use gtk::{CompositeTemplate, GestureClick, Label, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -339,6 +339,28 @@ impl EditorWindow {
                 }
             }
         ));
+        // File tree
+        self.imp().file_tree.connect_activate(|list, idx| {
+            if let Some(model) = list.model()
+                && let Some(item_obj) = model.item(idx)
+                && let Some(item) = item_obj.downcast_ref::<TreeListRow>()
+            {
+                if item.is_expandable() {
+                    // it's a folder
+                    item.set_expanded(!item.is_expanded());
+                } else if let Some(file_info) = item.item().and_downcast::<FileInfo>() {
+                    // it's a file
+                    let file = file_info
+                        .attribute_object("standard::file")
+                        .and_downcast_ref::<gio::File>()
+                        .unwrap()
+                        .clone();
+                    let file_name = file.path().unwrap().to_str().unwrap().to_string().clone();
+                    list.activate_action("win.tab.new", Some(&file_name.into()))
+                        .unwrap();
+                }
+            };
+        });
         // Switching to/from dark theme
         let style_man = adw::StyleManager::default();
         style_man.connect_dark_notify(clone!(
