@@ -116,7 +116,6 @@ pub fn update(tree: &ListView, dir_path: &str) {
                     });
                     // Context menus
                     let tree_click = GestureClick::new();
-                    let pos = list_item.position();
                     tree_click.set_button(3);
                     tree_click.connect_pressed(clone!(
                         #[strong]
@@ -125,6 +124,8 @@ pub fn update(tree: &ListView, dir_path: &str) {
                         folder_popover,
                         #[strong]
                         list_view,
+                        #[strong]
+                        list_item,
                         move |gesture, _, _, _| {
                             // Pop up
                             let row_widget = container.parent().unwrap();
@@ -144,7 +145,7 @@ pub fn update(tree: &ListView, dir_path: &str) {
                                 .unwrap()
                                 .downcast_ref::<SingleSelection>()
                                 .unwrap()
-                                .set_selected(pos);
+                                .set_selected(list_item.position());
                         }
                     ));
                     container.parent().unwrap().add_controller(tree_click);
