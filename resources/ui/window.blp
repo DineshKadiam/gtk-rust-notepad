@@ -87,18 +87,35 @@ template $EditorWindow: Adw.ApplicationWindow {
 
             }
 
-            ScrolledWindow {
-                hscrollbar-policy: external;
+            Box {
+                vexpand: true;
+                orientation: vertical;
 
-                Adw.ClampScrollable {
-                    [child]
-                    ListView file_tree {
-                        styles[
-                            "navigation-sidebar"
-                        ]
+                ScrolledWindow {
+                    hscrollbar-policy: external;
+                    vexpand: true;
 
+                    Adw.ClampScrollable {
+                        [child]
+                        ListView file_tree {
+                            styles[
+                                "navigation-sidebar"
+                            ]
+
+                        }
                     }
                 }
+
+                Separator {
+                    orientation: horizontal;
+                }
+
+                    SearchEntry file_search {
+                        styles[
+                            "statusbar",
+                        ]
+                        placeholder-text: "Filter...";
+                    }
             }
 
         }
