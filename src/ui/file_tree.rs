@@ -185,6 +185,8 @@ pub fn update(tree: &ListView, dir_path: &str) {
     let filter_model = FilterListModel::new(Some(tree_model.clone()), Some(filter));
     filter_model.set_incremental(true);
 
+    // TODO: search brings up an entirely different listview or model
+
     // let filter = CustomFilter::new(|object| {
     //     if let Some(row) = object.downcast_ref::<TreeListRow>()
     //         && let Some(file_info) = row.item().and_downcast::<FileInfo>()
