@@ -1,11 +1,10 @@
 use gtk::{
-    Button, ClosureExpression, ConstantExpression, CustomFilter, CustomSorter, DirectoryList,
-    Expression, Filter, FilterListModel, GestureClick, Image, Label, ListItem, ListView,
-    Orientation, Popover, PopoverMenu, PropertyExpression, SignalListItemFactory, SingleSelection,
-    SortListModel, StringFilter, TreeExpander, TreeListModel, TreeListRow, TreeModelFilter,
-    cairo::Rectangle,
-    gio::{self, FileInfo, Menu, MenuModel},
-    glib::{self, RustClosure, Type, Value, clone, closure},
+    ClosureExpression, CustomSorter, DirectoryList,
+    Expression, FilterListModel, GestureClick, Image, Label, ListItem, ListView,
+    Orientation, PopoverMenu, SignalListItemFactory, SingleSelection,
+    SortListModel, StringFilter, TreeExpander, TreeListModel, TreeListRow,
+    gio::{self, FileInfo, Menu},
+    glib::{self, clone, closure},
 };
 use sourceview5::prelude::*;
 

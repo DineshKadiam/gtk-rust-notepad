@@ -1,8 +1,7 @@
 use std::cell::RefCell;
 
 use async_lsp::lsp_types::DiagnosticSeverity;
-use gtk::{CssProvider, SearchBar, SearchEntry, Stack, StackPage};
-use libpanel::prelude::DockExt;
+use gtk::{CssProvider, SearchBar, SearchEntry, Stack};
 use sourceview5::StyleSchemeManager;
 
 use crate::{
@@ -328,7 +327,7 @@ impl ObjectImpl for EditorWindow {
         let listener = lsp::loading::listen();
         let lsp_load = self.status_lsp_load.clone();
         glib::spawn_future_local(async move {
-            while let Ok(_) = listener.recv().await {
+            while listener.recv().await.is_ok() {
                 lsp_load.set_visible(lsp::loading::is_loading());
             }
         });

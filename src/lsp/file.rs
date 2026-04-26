@@ -13,7 +13,7 @@ pub fn open(uri: &str, workspace_uri: &str) {
             .did_open(DidOpenTextDocumentParams {
                 text_document: TextDocumentItem {
                     uri: Url::from_file_path(uri).unwrap(),
-                    language_id: language_id.into(),
+                    language_id,
                     version: 0,
                     text: fs::read_to_string(uri).unwrap(),
                 },

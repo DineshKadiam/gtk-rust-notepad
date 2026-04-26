@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default)]
 pub struct Config {
     pub ui: UI,
-    pub lsp: LSP,
+    pub lsp: Lsp,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -29,7 +29,7 @@ pub enum ThemeVariant {
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
-pub struct LSP {
+pub struct Lsp {
     pub lang_servers: Vec<LanguageServer>,
 }
 
@@ -40,7 +40,7 @@ pub struct LanguageServer {
     pub language: String,
 }
 
-impl Default for LSP {
+impl Default for Lsp {
     fn default() -> Self {
         Self {
             lang_servers: vec![

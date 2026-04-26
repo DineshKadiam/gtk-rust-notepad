@@ -91,7 +91,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
     });
 
     let mut command = command.split(" ").collect::<Vec<&str>>();
-    let child = async_process::Command::new(&command[0])
+    let child = async_process::Command::new(command[0])
         .current_dir(workspace_uri)
         .args(command.split_off(1))
         .stdin(Stdio::piped())
@@ -147,7 +147,7 @@ pub fn lookup_lsp(uri: &str) -> (String, String) {
             return (server.command.clone(), server.language.clone());
         }
     }
-    return (String::new(), String::new());
+    (String::new(), String::new())
 }
 
 pub fn get_server(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {

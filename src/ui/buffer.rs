@@ -7,7 +7,6 @@ use gtk::TextSearchFlags;
 use gtk::gio::Icon;
 use gtk::glib;
 use gtk::glib::Variant;
-use gtk::glib::property::PropertyGet;
 use gtk::pango::Underline;
 use sourceview5::Annotation;
 use sourceview5::AnnotationProvider;
@@ -22,10 +21,7 @@ use crate::utils;
 
 mod imp {
 
-    use gtk::{
-        EventControllerMotion, Revealer,
-        glib::{Variant, clone},
-    };
+    use gtk::{EventControllerMotion, Revealer, glib::clone};
 
     use super::*;
 
