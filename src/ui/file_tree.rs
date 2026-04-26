@@ -1,10 +1,11 @@
 use gtk::{
-    Button, CustomSorter, DirectoryList, GestureClick, Image, Label, ListItem, ListView,
-    Orientation, Popover, PopoverMenu, SignalListItemFactory, SingleSelection, SortListModel,
-    TreeExpander, TreeListModel, TreeListRow,
+    Button, ClosureExpression, ConstantExpression, CustomFilter, CustomSorter, DirectoryList,
+    Expression, Filter, FilterListModel, GestureClick, Image, Label, ListItem, ListView,
+    Orientation, Popover, PopoverMenu, PropertyExpression, SignalListItemFactory, SingleSelection,
+    SortListModel, StringFilter, TreeExpander, TreeListModel, TreeListRow, TreeModelFilter,
     cairo::Rectangle,
     gio::{self, FileInfo, Menu, MenuModel},
-    glib::clone,
+    glib::{self, RustClosure, Type, Value, clone, closure},
 };
 use sourceview5::prelude::*;
 
@@ -162,7 +163,51 @@ pub fn update(tree: &ListView, dir_path: &str) {
         }
     ));
 
+    // Filter stuff
+    // This took an absurdly long time to figure out. Thanks, no documentation! Also fuck you :)
+
+    // ↓ Only searches whatever is open?
+    let params: [Expression; 0] = [];
+    let expression = ClosureExpression::new::<String>(
+        params,
+        closure!(|object: glib::Object| {
+            if let Some(row) = object.downcast_ref::<TreeListRow>()
+                && let Some(file_info) = row.item().and_downcast::<FileInfo>()
+            {
+                let name = file_info.name().to_str().unwrap().to_string().clone();
+                Some(name)
+            } else {
+                Some(String::new())
+            }
+        }),
+    );
+    let filter = StringFilter::new(Some(expression));
+    let filter_model = FilterListModel::new(Some(tree_model.clone()), Some(filter));
+    filter_model.set_incremental(true);
+
+    // let filter = CustomFilter::new(|object| {
+    //     if let Some(row) = object.downcast_ref::<TreeListRow>()
+    //         && let Some(file_info) = row.item().and_downcast::<FileInfo>()
+    //     {
+    //         let name = file_info.name().to_str().unwrap().to_string().clone();
+    //         println!("{name}");
+    //         if row.is_expandable() {
+    //             let old_expanded = row.is_expanded();
+    //             row.set_expanded(true);
+    //             if let Some(child_row) = row.child_row(0) {
+    //                 println!("{:?} <--- ", child_row);
+    //             }
+    //             row.set_expanded(old_expanded);
+    //         };
+    //         name.contains(".rs")
+    //     } else {
+    //         false
+    //     }
+    // });
+    // let filter_model = FilterListModel::new(Some(tree_model.clone()), Some(filter));
+    // filter_model.set_incremental(true);
+
     // Hook things up
-    tree.set_model(Some(&SingleSelection::new(Some(tree_model.clone()))));
+    tree.set_model(Some(&SingleSelection::new(Some(filter_model))));
     tree.set_factory(Some(&factory));
 }

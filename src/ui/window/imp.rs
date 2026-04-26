@@ -36,6 +36,8 @@ pub struct EditorWindow {
     #[template_child]
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
+    pub file_search: TemplateChild<SearchEntry>,
+    #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
     #[template_child]
     pub stack: TemplateChild<Stack>,

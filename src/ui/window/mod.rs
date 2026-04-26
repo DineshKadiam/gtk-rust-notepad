@@ -5,7 +5,9 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, GestureClick, Label, ListItem, ListView, TreeListRow, gio};
+use gtk::{
+    CompositeTemplate, FilterListModel, GestureClick, Label, ListItem, ListView, TreeListRow, gio,
+};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -213,8 +215,7 @@ impl EditorWindow {
                         .imp()
                         .file_tree
                         .model()
-                        .unwrap()
-                        .downcast_ref::<gtk::SingleSelection>()
+                        .and_downcast_ref::<gtk::SingleSelection>()
                         .unwrap()
                         .selected_item()
                         && let Some(row) = selected.downcast_ref::<TreeListRow>()
@@ -238,8 +239,7 @@ impl EditorWindow {
                         .imp()
                         .file_tree
                         .model()
-                        .unwrap()
-                        .downcast_ref::<gtk::SingleSelection>()
+                        .and_downcast_ref::<gtk::SingleSelection>()
                         .unwrap()
                         .selected_item()
                         && let Some(row) = selected.downcast_ref::<TreeListRow>()
@@ -312,8 +312,7 @@ impl EditorWindow {
                 let app = window
                     .obj()
                     .application()
-                    .unwrap()
-                    .downcast_ref::<adw::Application>()
+                    .and_downcast_ref::<adw::Application>()
                     .unwrap()
                     .clone();
                 let new_window = Self::new(&app);
@@ -405,6 +404,27 @@ impl EditorWindow {
                 }
             };
         });
+        // File search
+        self.imp().file_search.connect_search_changed(clone!(
+            #[strong]
+            window,
+            move |search| {
+                let window = window.upgrade().unwrap();
+                // Holy fuck
+                window
+                    .file_tree
+                    .model()
+                    .and_downcast_ref::<gtk::SingleSelection>()
+                    .unwrap()
+                    .model()
+                    .and_downcast_ref::<gtk::FilterListModel>()
+                    .unwrap()
+                    .filter()
+                    .and_downcast_ref::<gtk::StringFilter>()
+                    .unwrap()
+                    .set_search(Some(&search.text()));
+            }
+        ));
         // Switching to/from dark theme
         let style_man = adw::StyleManager::default();
         style_man.connect_dark_notify(clone!(
