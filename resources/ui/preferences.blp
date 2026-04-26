@@ -1,7 +1,7 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $PreferencesDialog : Adw.PreferencesDialog {
+template $PreferencesDialog: Adw.PreferencesDialog {
     height-request: 600;
     width-request: 200;
 
@@ -25,6 +25,7 @@ template $PreferencesDialog : Adw.PreferencesDialog {
 
             Adw.ComboRow theme_variant {
                 title: _("Theme variant");
+
                 model: Gtk.StringList {
                     strings [
                         _("System"),

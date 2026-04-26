@@ -4,12 +4,14 @@ using Panel 1;
 
 template $EditorWindow: Adw.ApplicationWindow {
     accent_style: Gtk.CssProvider {};
+
     workspace_uri: "";
 
     Adw.Breakpoint {
-        condition("max-width: 600sp")
+        condition ("max-width: 600sp")
+
         setters {
-          split_view.collapsed: true;
+            split_view.collapsed: true;
         }
     }
 
@@ -21,62 +23,73 @@ template $EditorWindow: Adw.ApplicationWindow {
 
         [sidebar]
         Adw.ToolbarView {
-
             [top]
             Adw.HeaderBar {
                 title-widget: Adw.WindowTitle sidebar_title {
-                  title: _("waf?");
+                    title: _("waf?");
                 };
 
                 [end]
                 MenuButton {
                     icon-name: "open-menu-symbolic";
+
                     menu-model: menu {
                         section {
                             label: _("File");
+
                             item {
-                              label: _("New window");
-                              action: "win.new_window";
+                                label: _("New window");
+                                action: "win.new_window";
                             }
+
                             item {
-                              label: _("New terminal tab");
-                              action: "win.tab.new_terminal";
+                                label: _("New terminal tab");
+                                action: "win.tab.new_terminal";
                             }
+
                             item {
-                              label: _("New scratch buffer");
-                              action: "win.tab.new_scratch";
+                                label: _("New scratch buffer");
+                                action: "win.tab.new_scratch";
                             }
+
                             item {
-                              label: _("Open file");
-                              icon: "document-open-symbolic";
-                              action: "win.open.file";
+                                label: _("Open file");
+                                icon: "document-open-symbolic";
+                                action: "win.open.file";
                             }
+
                             item {
-                              label: _("Open folder");
-                              icon: "folder-open-symbolic";
-                              action: "win.open.folder";
+                                label: _("Open folder");
+                                icon: "folder-open-symbolic";
+                                action: "win.open.folder";
                             }
+
                             item {
-                              label: _("Save");
-                              icon: "document-save-symbolic";
-                              action: "win.save";
+                                label: _("Save");
+                                icon: "document-save-symbolic";
+                                action: "win.save";
                             }
+
                             item {
-                              label: _("Save as...");
-                              icon: "document-save-as-symbolic";
-                              action: "win.save_as";
+                                label: _("Save as...");
+                                icon: "document-save-as-symbolic";
+                                action: "win.save_as";
                             }
                         }
+
                         section {
                             label: _("Edit");
+
                             item {
-                              label: _("Close current tab");
-                              action: "win.tab.close";
+                                label: _("Close current tab");
+                                action: "win.tab.close";
                             }
+
                             item {
-                              label: _("Search for text");
-                              action: "win.search.toggle";
+                                label: _("Search for text");
+                                action: "win.search.toggle";
                             }
+
                             item {
                                 label: _("Preferences");
                                 action: "win.show_prefs";
@@ -84,7 +97,6 @@ template $EditorWindow: Adw.ApplicationWindow {
                         }
                     };
                 }
-
             }
 
             Box {
@@ -98,10 +110,9 @@ template $EditorWindow: Adw.ApplicationWindow {
                     Adw.ClampScrollable {
                         [child]
                         ListView file_tree {
-                            styles[
-                                "navigation-sidebar"
+                            styles [
+                                "navigation-sidebar",
                             ]
-
                         }
                     }
                 }
@@ -110,14 +121,14 @@ template $EditorWindow: Adw.ApplicationWindow {
                     orientation: horizontal;
                 }
 
-                    SearchEntry file_search {
-                        styles[
-                            "statusbar",
-                        ]
-                        placeholder-text: "Filter...";
-                    }
-            }
+                SearchEntry file_search {
+                    styles [
+                        "statusbar",
+                    ]
 
+                    placeholder-text: "Filter...";
+                }
+            }
         }
 
         [content]
@@ -125,11 +136,13 @@ template $EditorWindow: Adw.ApplicationWindow {
             view: tab_view;
             enable-new-tab: true;
             enable-search: true;
+
             secondary-menu: menu {
                 item {
                     label: _("Open a file");
                     action: "win.open.file";
                 }
+
                 item {
                     label: _("Open a folder");
                     action: "win.open.folder";
@@ -153,7 +166,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                     }
 
                     title-widget: Adw.WindowTitle window_title {
-                      title: _("Kyanite");
+                        title: _("Kyanite");
                     };
                 }
 
@@ -168,11 +181,16 @@ template $EditorWindow: Adw.ApplicationWindow {
                         spacing: 8;
                         margin-start: 8;
                         margin-end: 8;
+
                         SearchEntry search_entry {
-                            styles ["flat"]
+                            styles [
+                                "flat",
+                            ]
+
                             hexpand: true;
                             placeholder-text: _("Search");
                         }
+
                         // ToggleButton {
                         //     icon-name: "edit-find-replace-symbolic";
                         // }
@@ -186,7 +204,6 @@ template $EditorWindow: Adw.ApplicationWindow {
                 Box {
                     orientation: vertical;
 
-
                     Panel.Dock dock {
                         vexpand: true;
                         reveal-start: true;
@@ -197,6 +214,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                             StackPage {
                                 name: "empty";
+
                                 child: $WelcomeScreen startpage {
                                     vexpand: true;
                                     width-request: 400;
@@ -205,8 +223,10 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                             StackPage {
                                 name: "tabs";
+
                                 child: Adw.TabView tab_view {
                                     vexpand: true;
+
                                     menu-model: menu {
                                         section {
                                             item {
@@ -214,46 +234,53 @@ template $EditorWindow: Adw.ApplicationWindow {
                                                 action: "tab_context.pin";
                                                 hidden-when: 'action-disabled';
                                             }
+
                                             item {
                                                 label: _("Unpin tab");
                                                 action: "tab_context.unpin";
                                                 hidden-when: 'action-disabled';
                                             }
                                         }
+
                                         section {
                                             item {
                                                 label: _("Move left");
                                                 action: "tab_context.move_left";
                                             }
+
                                             item {
                                                 label: _("Move right");
                                                 action: "tab_context.move_right";
                                             }
+
                                             item {
                                                 label: _("Move to new window");
                                                 action: "tab_context.move_new";
                                             }
                                         }
+
                                         section {
                                             item {
                                                 label: _("Close tab");
                                                 action: "tab_context.close";
                                             }
+
                                             item {
                                                 label: _("Close tabs to the left");
                                                 action: "tab_context.close_left";
                                             }
+
                                             item {
                                                 label: _("Close tabs to the right");
                                                 action: "tab_context.close_left";
                                             }
+
                                             item {
                                                 label: _("Close other tabs");
                                                 action: "tab_context.close_other";
                                             }
                                         }
                                     };
-
                                 };
                             }
                         }
@@ -278,9 +305,10 @@ template $EditorWindow: Adw.ApplicationWindow {
                             visible: false;
 
                             Label {
-                                styles[
-                                    "monospace"
+                                styles [
+                                    "monospace",
                                 ]
+
                                 label: "NORMAL";
                             }
 
@@ -319,14 +347,11 @@ template $EditorWindow: Adw.ApplicationWindow {
                             spacing: 8;
                             visible: false;
 
-                            Adw.Spinner {
-
-                            }
+                            Adw.Spinner {}
 
                             Label {
                                 label: _("LSP loading...");
                             }
-
                         }
 
                         [suffix]
@@ -338,9 +363,10 @@ template $EditorWindow: Adw.ApplicationWindow {
                             Panel.ToggleButton toggle_terminal_button {
                                 dock: dock;
                                 area: bottom;
-                                styles[
+
+                                styles [
                                     "compressed",
-                                    "flat"
+                                    "flat",
                                 ]
                             }
                         }

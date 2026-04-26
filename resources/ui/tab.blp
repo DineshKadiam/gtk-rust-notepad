@@ -4,6 +4,7 @@ using GtkSource 5;
 template $Buffer: Box {
     file_path: "";
     orientation: horizontal;
+
     diagnostic_provider: GtkSource.AnnotationProvider {};
 
     ScrolledWindow {
@@ -24,6 +25,7 @@ template $Buffer: Box {
 
     Revealer map_revealer {
         transition-type: slide_left;
+
         GtkSource.Map source_map {
             halign: end;
             valign: fill;
@@ -32,5 +34,4 @@ template $Buffer: Box {
             vexpand: true;
         }
     }
-
 }
