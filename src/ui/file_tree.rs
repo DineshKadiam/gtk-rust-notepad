@@ -1,7 +1,7 @@
 use gtk::{
-    Button, CustomSorter, DirectoryList, GestureClick, Image, Label, ListItem, ListView, Popover,
-    PopoverMenu, SignalListItemFactory, SingleSelection, SortListModel, TreeExpander,
-    TreeListModel, TreeListRow,
+    Button, CustomSorter, DirectoryList, GestureClick, Image, Label, ListItem, ListView,
+    Orientation, Popover, PopoverMenu, SignalListItemFactory, SingleSelection, SortListModel,
+    TreeExpander, TreeListModel, TreeListRow,
     cairo::Rectangle,
     gio::{self, FileInfo, Menu, MenuModel},
     glib::clone,
@@ -81,70 +81,85 @@ pub fn update(tree: &ListView, dir_path: &str) {
 
     let folder_popover = {
         let menu = Menu::new();
-        let popover = PopoverMenu::builder()
-            .menu_model(&menu)
-            .has_arrow(false)
-            .build();
-        menu.append(Some("Change workspace"), Some("win.tab.new_scratch")); // TODO uh
+        let popover = PopoverMenu::builder().menu_model(&menu).build();
+        menu.append(Some("Open folder"), Some("win.tree.open_folder"));
+        menu.append(Some("Toggle expanded"), Some("win.tree.toggle_expand"));
         popover
     };
 
-    factory.connect_bind(move |_, list_item| {
-        let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-        if let Some(row) = list_item.item().and_downcast::<TreeListRow>()
-            && let Some(file_info) = row.item().and_downcast::<FileInfo>()
-            && let Some(tree) = list_item.child().and_downcast::<TreeExpander>()
-            && let Some(container) = tree.child().and_downcast::<gtk::Box>()
-        {
-            let image = container
-                .first_child()
-                .unwrap()
-                .downcast::<Image>()
-                .unwrap();
-            let label = container.last_child().unwrap().downcast::<Label>().unwrap();
-            if file_info.file_type() == gio::FileType::Directory {
-                label.set_text(&format!("{}/", &file_info.display_name()));
-                // Icons
-                image.set_icon_name(Some("folder-symbolic"));
-                row.connect_expanded_notify(move |row| {
-                    image.set_icon_name(Some(if row.is_expanded() {
-                        "folder-open-symbolic"
-                    } else {
-                        "folder-symbolic"
-                    }))
-                });
-                // Context menus
-                let tree_click = GestureClick::new();
-                tree_click.set_button(3);
-                tree_click.connect_pressed(clone!(
-                    #[strong]
-                    container,
-                    #[strong]
-                    folder_popover,
-                    move |gesture, _, x, y| {
-                        gesture.set_state(gtk::EventSequenceState::Claimed);
-                        folder_popover.set_pointing_to(Some(&gtk::gdk::Rectangle::new(
-                            x as i32, y as i32, 1, 1,
-                        )));
-                        folder_popover.unparent();
-                        folder_popover.set_parent(&container);
-                        // TODO set status in file tree somewhere that the window can also look,
-                        // or use an action with passing data or whatever, or use a channel
-                        folder_popover.popup();
-                    }
-                ));
-                container.parent().unwrap().add_controller(tree_click);
-            } else {
-                label.set_text(&file_info.display_name());
-                if let Some(icon) = file_info.symbolic_icon() {
-                    image.set_from_gicon(&icon);
+    factory.connect_bind(clone!(
+        #[strong(rename_to=list_view)]
+        tree,
+        move |_, list_item| {
+            let list_item = list_item.downcast_ref::<ListItem>().unwrap();
+            if let Some(row) = list_item.item().and_downcast::<TreeListRow>()
+                && let Some(file_info) = row.item().and_downcast::<FileInfo>()
+                && let Some(tree) = list_item.child().and_downcast::<TreeExpander>()
+                && let Some(container) = tree.child().and_downcast::<gtk::Box>()
+            {
+                let image = container
+                    .first_child()
+                    .unwrap()
+                    .downcast::<Image>()
+                    .unwrap();
+                let label = container.last_child().unwrap().downcast::<Label>().unwrap();
+                if file_info.file_type() == gio::FileType::Directory {
+                    label.set_text(&format!("{}/", &file_info.display_name()));
+                    // Icons
+                    image.set_icon_name(Some("folder-symbolic"));
+                    row.connect_expanded_notify(move |row| {
+                        image.set_icon_name(Some(if row.is_expanded() {
+                            "folder-open-symbolic"
+                        } else {
+                            "folder-symbolic"
+                        }))
+                    });
+                    // Context menus
+                    let tree_click = GestureClick::new();
+                    let pos = list_item.position();
+                    tree_click.set_button(3);
+                    tree_click.connect_pressed(clone!(
+                        #[strong]
+                        container,
+                        #[strong]
+                        folder_popover,
+                        #[strong]
+                        list_view,
+                        move |gesture, _, _, _| {
+                            // Pop up
+                            let row_widget = container.parent().unwrap();
+                            gesture.set_state(gtk::EventSequenceState::Claimed);
+                            folder_popover.set_pointing_to(Some(&gtk::gdk::Rectangle::new(
+                                0,
+                                0,
+                                row_widget.size(Orientation::Horizontal),
+                                row_widget.size(Orientation::Vertical),
+                            )));
+                            folder_popover.unparent();
+                            folder_popover.set_parent(&row_widget);
+                            folder_popover.popup();
+                            // Select item
+                            list_view
+                                .model()
+                                .unwrap()
+                                .downcast_ref::<SingleSelection>()
+                                .unwrap()
+                                .set_selected(pos);
+                        }
+                    ));
+                    container.parent().unwrap().add_controller(tree_click);
                 } else {
-                    image.set_icon_name(Some("text-x-generic-symbolic"));
+                    label.set_text(&file_info.display_name());
+                    if let Some(icon) = file_info.symbolic_icon() {
+                        image.set_from_gicon(&icon);
+                    } else {
+                        image.set_icon_name(Some("text-x-generic-symbolic"));
+                    }
                 }
+                tree.set_list_row(Some(&row));
             }
-            tree.set_list_row(Some(&row));
         }
-    });
+    ));
 
     // Hook things up
     tree.set_model(Some(&SingleSelection::new(Some(tree_model.clone()))));

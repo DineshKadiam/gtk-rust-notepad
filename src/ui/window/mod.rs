@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, GestureClick, Label, ListView, TreeListRow, gio};
+use gtk::{CompositeTemplate, GestureClick, Label, ListItem, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -203,6 +203,50 @@ impl EditorWindow {
                     .unwrap()
                     .set_label(&file_type);
                     window.imp().status_files.set_visible(is_shown);
+                })
+                .build(),
+            // CD to folder in tree
+            ActionEntry::builder("tree.open_folder")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    if let Some(selected) = window
+                        .imp()
+                        .file_tree
+                        .model()
+                        .unwrap()
+                        .downcast_ref::<gtk::SingleSelection>()
+                        .unwrap()
+                        .selected_item()
+                        && let Some(row) = selected.downcast_ref::<TreeListRow>()
+                        && let Some(file_info) = row.item().and_downcast::<FileInfo>()
+                        && let Some(file) = file_info
+                            .attribute_object("standard::file")
+                            .and_downcast_ref::<gio::File>()
+                        && let Some(path) = file
+                            .path()
+                            .and_then(|a| Some(a.to_str().unwrap_or_default().to_string()))
+                    {
+                        window.update_folder(&path);
+                    }
+                })
+                .build(),
+            // CD to folder in tree
+            ActionEntry::builder("tree.toggle_expand")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    if let Some(selected) = window
+                        .imp()
+                        .file_tree
+                        .model()
+                        .unwrap()
+                        .downcast_ref::<gtk::SingleSelection>()
+                        .unwrap()
+                        .selected_item()
+                        && let Some(row) = selected.downcast_ref::<TreeListRow>()
+                        && row.is_expandable()
+                    {
+                        row.set_expanded(!row.is_expanded());
+                    }
                 })
                 .build(),
         ]);
