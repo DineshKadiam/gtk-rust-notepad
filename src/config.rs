@@ -43,11 +43,18 @@ pub struct LanguageServer {
 impl Default for LSP {
     fn default() -> Self {
         Self {
-            lang_servers: vec![LanguageServer {
-                file_extension: ".rs".into(),
-                command: "rust-analyzer".into(),
-                language: "rust".into(),
-            }],
+            lang_servers: vec![
+                LanguageServer {
+                    file_extension: ".rs".into(),
+                    command: "rust-analyzer".into(),
+                    language: "rust".into(),
+                },
+                LanguageServer {
+                    file_extension: ".blp".into(),
+                    command: "blueprint-compiler lsp".into(),
+                    language: "blueprint".into(),
+                },
+            ],
         }
     }
 }
@@ -93,6 +100,6 @@ impl Config {
         std::env::var("XDG_CONFIG_HOME").unwrap_or(format!(
             "{}/.config",
             std::env::home_dir().unwrap().to_str().unwrap()
-        )) + "/spikedit"
+        )) + "/kyanite"
     }
 }

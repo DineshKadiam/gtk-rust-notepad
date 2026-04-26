@@ -90,13 +90,15 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
             .service(router)
     });
 
-    let child = async_process::Command::new(command)
+    let mut command = command.split(" ").collect::<Vec<&str>>();
+    let child = async_process::Command::new(&command[0])
         .current_dir(workspace_uri)
+        .args(command.split_off(1))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()
-        .unwrap_or_else(|_| panic!("Failed to run language server {}", command));
+        .unwrap_or_else(|_| panic!("Failed to run language server {}", &command[0]));
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
 
