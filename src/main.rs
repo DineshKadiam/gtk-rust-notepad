@@ -9,12 +9,19 @@ use gtk::{CssProvider, gdk::Display};
 use crate::ui::window::EditorWindow;
 
 fn main() {
-    let application = adw::Application::new(Some("ca.potatoe.Kyanite"), Default::default());
+    // Set id to "*.Devel" if ran with debug profile
+ 	#[cfg(not(debug_assertions))]
+    let id = Some("ca.potatoe.Kyanite");
+    #[cfg(debug_assertions)]
+    let id = Some("ca.potatoe.Kyanite.Debug");
+
+    let application = adw::Application::new(id, Default::default());
     application.connect_startup(load_css);
     application.connect_activate(build_ui);
     // Set up accels
     application.set_accels_for_action("win.tab.close", &["<Ctrl>W"]);
     application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>T"]);
+	application.set_accels_for_action("win.tab.new_terminal", &["<Ctrl><Shift>T"]);
     application.set_accels_for_action("win.new_window", &["<Ctrl>N"]);
     application.set_accels_for_action("win.open.file", &["<Ctrl>O"]);
     application.set_accels_for_action("win.open.folder", &["<Ctrl><Shift>O"]);

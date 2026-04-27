@@ -5,9 +5,7 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{
-    CompositeTemplate, Label, ListView, TreeListRow, gio,
-};
+use gtk::{CompositeTemplate, Label, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -25,9 +23,15 @@ glib::wrapper! {
 
 impl EditorWindow {
     pub fn new(app: &adw::Application) -> Self {
-        glib::Object::builder::<Self>()
+        let win = glib::Object::builder::<Self>()
             .property("application", app)
-            .build()
+            .build();
+        // Do debug things
+        #[cfg(debug_assertions)]
+        {
+            win.add_css_class("devel");
+        }
+        win
     }
 
     fn setup_actions(&self) {
@@ -107,9 +111,10 @@ impl EditorWindow {
                     if let Some(page) = window.imp().tab_view.selected_page() {
                         // LSP file close
                         if let Some(buffer) = page.child().downcast_ref::<super::buffer::Buffer>()
-                            && !buffer.file_path().is_empty() {
-                                lsp::file::close(&buffer.file_path(), &window.workspace_uri());
-                            }
+                            && !buffer.file_path().is_empty()
+                        {
+                            lsp::file::close(&buffer.file_path(), &window.workspace_uri());
+                        }
                         window.imp().tab_view.close_page(&page);
                     }
                 })
@@ -223,7 +228,8 @@ impl EditorWindow {
                             .attribute_object("standard::file")
                             .and_downcast_ref::<gio::File>()
                         && let Some(path) = file
-                            .path().map(|a| a.to_str().unwrap_or_default().to_string())
+                            .path()
+                            .map(|a| a.to_str().unwrap_or_default().to_string())
                     {
                         window.update_folder(&path);
                     }

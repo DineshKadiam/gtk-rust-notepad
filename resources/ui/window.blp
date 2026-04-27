@@ -103,17 +103,37 @@ template $EditorWindow: Adw.ApplicationWindow {
                 vexpand: true;
                 orientation: vertical;
 
-                ScrolledWindow {
-                    hscrollbar-policy: external;
-                    vexpand: true;
+                Stack file_stack {
+                    StackPage tree_page {
+                        child: ScrolledWindow {
+                            hscrollbar-policy: external;
+                            vexpand: true;
 
-                    Adw.ClampScrollable {
-                        [child]
-                        ListView file_tree {
-                            styles [
-                                "navigation-sidebar",
-                            ]
-                        }
+                            Adw.ClampScrollable {
+                                [child]
+                                ListView file_tree {
+                                    styles [
+                                        "navigation-sidebar",
+                                    ]
+                                }
+                            }
+                        };
+                    }
+
+                    StackPage list_page {
+                        child: ScrolledWindow {
+                            hscrollbar-policy: external;
+                            vexpand: true;
+
+                            Adw.ClampScrollable {
+                                [child]
+                                ListView file_list {
+                                    styles [
+                                        "navigation-sidebar",
+                                    ]
+                                }
+                            }
+                        };
                     }
                 }
 
