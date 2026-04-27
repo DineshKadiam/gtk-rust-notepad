@@ -31,11 +31,15 @@ pub struct EditorWindow {
     #[template_child]
     pub file_tree: TemplateChild<ListView>,
     #[template_child]
+    pub file_list: TemplateChild<ListView>,
+    #[template_child]
     pub search_bar: TemplateChild<SearchBar>,
     #[template_child]
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
     pub file_search: TemplateChild<SearchEntry>,
+    #[template_child]
+    pub file_stack: TemplateChild<Stack>,
     #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
     #[template_child]

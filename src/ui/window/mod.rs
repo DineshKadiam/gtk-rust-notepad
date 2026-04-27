@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, Label, ListView, TreeListRow, gio};
+use gtk::{CompositeTemplate, Label, ListView, StackPage, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -408,25 +408,68 @@ impl EditorWindow {
                 }
             };
         });
+        self.imp().file_list.connect_activate(clone!(
+            #[strong]
+            window,
+            move |list, idx| {
+                if let Some(model) = list.model()
+                    && let Some(item_obj) = model.item(idx)
+                    && let Some(item) = item_obj.downcast_ref::<FileInfo>()
+                {
+                    let file = item
+                        .attribute_object("standard::file")
+                        .and_downcast_ref::<gio::File>()
+                        .unwrap()
+                        .clone();
+                    let file_name = file.path().unwrap().to_str().unwrap().to_string().clone();
+                    let window = window.upgrade().unwrap();
+                    window.file_stack.set_visible_child_name("tree_page");
+                    window.file_search.set_text("");
+                    if item.file_type() == gio::FileType::Directory {
+                        window.obj().update_folder(&file_name);
+                    } else {
+                        list.activate_action("win.tab.new", Some(&file_name.into()))
+                            .unwrap();
+                    }
+                };
+            }
+        ));
         // File search
         self.imp().file_search.connect_search_changed(clone!(
             #[strong]
             window,
             move |search| {
                 let window = window.upgrade().unwrap();
-                // Holy fuck
+
                 window
-                    .file_tree
-                    .model()
-                    .and_downcast_ref::<gtk::SingleSelection>()
-                    .unwrap()
-                    .model()
-                    .and_downcast_ref::<gtk::FilterListModel>()
-                    .unwrap()
-                    .filter()
-                    .and_downcast_ref::<gtk::StringFilter>()
-                    .unwrap()
-                    .set_search(Some(&search.text()));
+                    .file_stack
+                    .set_visible_child_name(if search.text().is_empty() {
+                        "tree_page"
+                    } else {
+                        "list_page"
+                    });
+
+                if search.text().is_empty() {
+                    file_tree::clear_search_list(&window.file_list);
+                } else {
+                    file_tree::set_search_list(
+                        &window.file_list,
+                        &window.workspace_uri.borrow().to_string(),
+                    );
+                    // Holy fuck
+                    window
+                        .file_list
+                        .model()
+                        .and_downcast_ref::<gtk::SingleSelection>()
+                        .unwrap()
+                        .model()
+                        .and_downcast_ref::<gtk::FilterListModel>()
+                        .unwrap()
+                        .filter()
+                        .and_downcast_ref::<gtk::StringFilter>()
+                        .unwrap()
+                        .set_search(Some(&search.text()));
+                }
             }
         ));
         // Switching to/from dark theme
@@ -442,12 +485,16 @@ impl EditorWindow {
         tabs::init_tab_menus(self);
     }
 
-    fn update_folder(&self, dir_path: &str) {
+    pub fn update_folder(&self, dir_path: &str) {
         self.imp()
             .sidebar_title
             .set_title(dir_path.split("/").last().unwrap()); // yeah fuck you windows "\" users
 
-        file_tree::update(&self.imp().file_tree.clone(), dir_path);
+        file_tree::update(
+            &self.imp().file_tree.clone(),
+            &self.imp().file_list.clone(),
+            dir_path,
+        );
 
         self.imp().terminal_view.setup(dir_path);
 

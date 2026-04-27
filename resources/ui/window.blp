@@ -104,7 +104,8 @@ template $EditorWindow: Adw.ApplicationWindow {
                 orientation: vertical;
 
                 Stack file_stack {
-                    StackPage tree_page {
+                    StackPage {
+                        name: "tree_page";
                         child: ScrolledWindow {
                             hscrollbar-policy: external;
                             vexpand: true;
@@ -120,7 +121,8 @@ template $EditorWindow: Adw.ApplicationWindow {
                         };
                     }
 
-                    StackPage list_page {
+                    StackPage {
+                        name: "list_page";
                         child: ScrolledWindow {
                             hscrollbar-policy: external;
                             vexpand: true;
