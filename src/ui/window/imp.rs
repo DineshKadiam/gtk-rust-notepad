@@ -19,8 +19,6 @@ pub struct EditorWindow {
     #[template_child]
     pub tab_view: TemplateChild<TabView>,
     #[template_child]
-    pub tab_overview: TemplateChild<TabOverview>,
-    #[template_child]
     pub split_view: TemplateChild<OverlaySplitView>,
     #[template_child]
     pub window_title: TemplateChild<WindowTitle>,

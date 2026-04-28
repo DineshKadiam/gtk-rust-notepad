@@ -52,7 +52,8 @@ entry.flat {
 }
 
 /* Buttons with shorter padding */
-button.compressed, paneltogglebutton.compressed button {
+button.compressed,
+paneltogglebutton.compressed button {
     padding-top: 2px;
     padding-bottom: 2px;
     border-radius: 0;
@@ -70,55 +71,56 @@ panelstatusbar > box > box > *:not(separator) {
 }
 
 .statusbar.search {
-	margin: 0;
-	border-radius: 0;
-	min-height: 0;
-	padding: 6px 8px;
-	font-size: 13px;
+    margin: 0;
+    border-radius: 0;
+    min-height: 0;
+    padding: 6px 8px;
+    font-size: 13px;
 }
 
 /* Terminal padding */
 vte-terminal {
-  padding: 12px;
+    padding: 12px;
 }
 
 /* for reasons unknown this isn't the default */
 GtkSourceStyleSchemePreview image {
-  margin: 4px;
-  padding: 4px;
-  background: @theme_selected_bg_color;
-  color: @theme_selected_fg_color;
-  border-radius: 100%;
+    margin: 4px;
+    padding: 4px;
+    background: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+    border-radius: 100%;
 }
 
 GtkSourceStyleSchemePreview {
-  margin: 3px;
+    margin: 3px;
 }
 
 GtkSourceStyleSchemePreview.selected {
-  border: 3px solid @theme_selected_bg_color;
-  margin: 0;
+    border: 3px solid @theme_selected_bg_color;
+    margin: 0;
 }
 
 /* i hate the stupid overlay when you hover over flowbox children yet i have no choice */
 flowboxchild {
-  border-radius: 14px;
+    border-radius: 14px;
 }
 
 /* Styling headerbars to look like GNOME Builder's (libpanel header) */
 toolbarview .top-bar {
-	background-color: @window_bg_color;
-	--headerbar-darker-shade-color: color-mix(in srgb, var(--border-color) 60%, transparent);
+    background-color: @window_bg_color;
+    --headerbar-darker-shade-color: color-mix(
+        in srgb,
+        var(--border-color) 60%,
+        transparent
+    );
 }
 
-.sidebar-pane .top-bar { /* GTK doesn't have :not(parent child) yet :'( */
-	background: unset;
+.sidebar-pane .top-bar {
+    /* GTK doesn't have :not(parent child) yet :'( */
+    background: unset;
 }
 
 separator {
-	background-color: color-mix(in srgb, var(--border-color) 60%, transparent);
-}
-
-:root {
-    --overview-bg-color: @window_bg_color;
+    background-color: color-mix(in srgb, var(--border-color) 60%, transparent);
 }

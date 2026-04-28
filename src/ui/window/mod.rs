@@ -2,10 +2,10 @@ use std::any::Any;
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{OverlaySplitView, TabOverview, TabPage, TabView, WindowTitle};
+use adw::{OverlaySplitView, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, Label, ListView, StackPage, TreeListRow, gio};
+use gtk::{CompositeTemplate, Label, ListView, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -259,11 +259,6 @@ impl EditorWindow {
     fn setup_callbacks(&self) {
         let window = self.imp().downgrade();
         let window_title = self.imp().window_title.downgrade();
-        self.imp().tab_overview.connect_create_tab(clone!(
-            #[strong]
-            window,
-            move |_| window.upgrade().unwrap().new_tab(None)
-        ));
         self.imp().tab_view.connect_n_pages_notify(clone!(
             #[strong(rename_to=stack)]
             self.imp().stack,

@@ -106,6 +106,7 @@ template $EditorWindow: Adw.ApplicationWindow {
                 Stack file_stack {
                     StackPage {
                         name: "tree_page";
+
                         child: ScrolledWindow {
                             hscrollbar-policy: external;
                             vexpand: true;
@@ -123,6 +124,7 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                     StackPage {
                         name: "list_page";
+
                         child: ScrolledWindow {
                             hscrollbar-policy: external;
                             vexpand: true;
@@ -154,243 +156,225 @@ template $EditorWindow: Adw.ApplicationWindow {
         }
 
         [content]
-        Adw.TabOverview tab_overview {
-            view: tab_view;
-            enable-new-tab: true;
-            enable-search: true;
+        Adw.ToolbarView {
+            top-bar-style: raised_border;
+            bottom-bar-style: raised_border;
 
-            secondary-menu: menu {
-                item {
-                    label: _("Open a file");
-                    action: "win.open.file";
+            [top]
+            Adw.HeaderBar {
+                Button {
+                    icon-name: "sidebar-show-symbolic";
+                    action-name: "win.sidebar.toggle";
                 }
 
-                item {
-                    label: _("Open a folder");
-                    action: "win.open.folder";
-                }
-            };
-
-            Adw.ToolbarView {
-                top-bar-style: raised_border;
-                bottom-bar-style: raised_border;
-
-                [top]
-                Adw.HeaderBar {
-                    Button {
-                        icon-name: "sidebar-show-symbolic";
-                        action-name: "win.sidebar.toggle";
-                    }
-
-                    Adw.TabButton {
-                        view: tab_view;
-                        action-name: "overview.open";
-                    }
-
-                    title-widget: Adw.WindowTitle window_title {
-                        title: _("Kyanite");
-                    };
-                }
-
-                [top]
-                Adw.TabBar {
+                Adw.TabButton {
                     view: tab_view;
+                    action-name: "overview.open";
                 }
 
-                [bottom]
-                SearchBar search_bar {
-                    Box {
-                        spacing: 8;
-                        margin-start: 8;
-                        margin-end: 8;
+                title-widget: Adw.WindowTitle window_title {
+                    title: _("Kyanite");
+                };
+            }
 
-                        SearchEntry search_entry {
+            [top]
+            Adw.TabBar {
+                view: tab_view;
+            }
+
+            [bottom]
+            SearchBar search_bar {
+                Box {
+                    spacing: 8;
+                    margin-start: 8;
+                    margin-end: 8;
+
+                    SearchEntry search_entry {
+                        styles [
+                            "flat",
+                        ]
+
+                        hexpand: true;
+                        placeholder-text: _("Search");
+                    }
+
+                    // ToggleButton {
+                    //     icon-name: "edit-find-replace-symbolic";
+                    // }
+                    Button {
+                        icon-name: "window-close-symbolic";
+                        action-name: "win.search.toggle";
+                    }
+                }
+            }
+
+            Box {
+                orientation: vertical;
+
+                Panel.Dock dock {
+                    vexpand: true;
+                    reveal-start: true;
+
+                    [content]
+                    Stack stack {
+                        vexpand: true;
+
+                        StackPage {
+                            name: "empty";
+
+                            child: $WelcomeScreen startpage {
+                                vexpand: true;
+                                width-request: 400;
+                            };
+                        }
+
+                        StackPage {
+                            name: "tabs";
+
+                            child: Adw.TabView tab_view {
+                                vexpand: true;
+
+                                menu-model: menu {
+                                    section {
+                                        item {
+                                            label: _("Pin tab");
+                                            action: "tab_context.pin";
+                                            hidden-when: 'action-disabled';
+                                        }
+
+                                        item {
+                                            label: _("Unpin tab");
+                                            action: "tab_context.unpin";
+                                            hidden-when: 'action-disabled';
+                                        }
+                                    }
+
+                                    section {
+                                        item {
+                                            label: _("Move left");
+                                            action: "tab_context.move_left";
+                                        }
+
+                                        item {
+                                            label: _("Move right");
+                                            action: "tab_context.move_right";
+                                        }
+
+                                        item {
+                                            label: _("Move to new window");
+                                            action: "tab_context.move_new";
+                                        }
+                                    }
+
+                                    section {
+                                        item {
+                                            label: _("Close tab");
+                                            action: "tab_context.close";
+                                        }
+
+                                        item {
+                                            label: _("Close tabs to the left");
+                                            action: "tab_context.close_left";
+                                        }
+
+                                        item {
+                                            label: _("Close tabs to the right");
+                                            action: "tab_context.close_left";
+                                        }
+
+                                        item {
+                                            label: _("Close other tabs");
+                                            action: "tab_context.close_other";
+                                        }
+                                    }
+                                };
+                            };
+                        }
+                    }
+
+                    [bottom]
+                    $TerminalView terminal_view {
+                        height-request: 200;
+                    }
+                }
+
+                Separator {
+                    orientation: horizontal;
+                }
+
+                /* Status bar */
+                Panel.Statusbar {
+                    margin-start: 8;
+
+                    [prefix]
+                    Box status_mode {
+                        spacing: 8;
+                        visible: false;
+
+                        Label {
                             styles [
-                                "flat",
+                                "monospace",
                             ]
 
-                            hexpand: true;
-                            placeholder-text: _("Search");
+                            label: "NORMAL";
                         }
 
-                        // ToggleButton {
-                        //     icon-name: "edit-find-replace-symbolic";
-                        // }
-                        Button {
-                            icon-name: "window-close-symbolic";
-                            action-name: "win.search.toggle";
-                        }
-                    }
-                }
-
-                Box {
-                    orientation: vertical;
-
-                    Panel.Dock dock {
-                        vexpand: true;
-                        reveal-start: true;
-
-                        [content]
-                        Stack stack {
-                            vexpand: true;
-
-                            StackPage {
-                                name: "empty";
-
-                                child: $WelcomeScreen startpage {
-                                    vexpand: true;
-                                    width-request: 400;
-                                };
-                            }
-
-                            StackPage {
-                                name: "tabs";
-
-                                child: Adw.TabView tab_view {
-                                    vexpand: true;
-
-                                    menu-model: menu {
-                                        section {
-                                            item {
-                                                label: _("Pin tab");
-                                                action: "tab_context.pin";
-                                                hidden-when: 'action-disabled';
-                                            }
-
-                                            item {
-                                                label: _("Unpin tab");
-                                                action: "tab_context.unpin";
-                                                hidden-when: 'action-disabled';
-                                            }
-                                        }
-
-                                        section {
-                                            item {
-                                                label: _("Move left");
-                                                action: "tab_context.move_left";
-                                            }
-
-                                            item {
-                                                label: _("Move right");
-                                                action: "tab_context.move_right";
-                                            }
-
-                                            item {
-                                                label: _("Move to new window");
-                                                action: "tab_context.move_new";
-                                            }
-                                        }
-
-                                        section {
-                                            item {
-                                                label: _("Close tab");
-                                                action: "tab_context.close";
-                                            }
-
-                                            item {
-                                                label: _("Close tabs to the left");
-                                                action: "tab_context.close_left";
-                                            }
-
-                                            item {
-                                                label: _("Close tabs to the right");
-                                                action: "tab_context.close_left";
-                                            }
-
-                                            item {
-                                                label: _("Close other tabs");
-                                                action: "tab_context.close_other";
-                                            }
-                                        }
-                                    };
-                                };
-                            }
-                        }
-
-                        [bottom]
-                        $TerminalView terminal_view {
-                            height-request: 200;
+                        Separator {
+                            orientation: vertical;
                         }
                     }
 
-                    Separator {
+                    [prefix]
+                    Box status_files {
+                        visible: false;
+                        spacing: 8;
+
+                        Label {
+                            name: "status_file_path";
+                            label: "full/path/to/file";
+                        }
+
+                        Separator {
+                            orientation: vertical;
+                        }
+
+                        Label {
+                            name: "status_lang";
+                            label: "lang";
+                        }
+
+                        Separator {
+                            orientation: vertical;
+                        }
+                    }
+
+                    [prefix]
+                    Box status_lsp_load {
                         orientation: horizontal;
+                        spacing: 8;
+                        visible: false;
+
+                        Adw.Spinner {}
+
+                        Label {
+                            label: _("LSP loading...");
+                        }
                     }
 
-                    /* Status bar */
-                    Panel.Statusbar {
-                        margin-start: 8;
-
-                        [prefix]
-                        Box status_mode {
-                            spacing: 8;
-                            visible: false;
-
-                            Label {
-                                styles [
-                                    "monospace",
-                                ]
-
-                                label: "NORMAL";
-                            }
-
-                            Separator {
-                                orientation: vertical;
-                            }
+                    [suffix]
+                    Box {
+                        Separator {
+                            orientation: vertical;
                         }
 
-                        [prefix]
-                        Box status_files {
-                            visible: false;
-                            spacing: 8;
+                        Panel.ToggleButton toggle_terminal_button {
+                            dock: dock;
+                            area: bottom;
 
-                            Label {
-                                name: "status_file_path";
-                                label: "full/path/to/file";
-                            }
-
-                            Separator {
-                                orientation: vertical;
-                            }
-
-                            Label {
-                                name: "status_lang";
-                                label: "lang";
-                            }
-
-                            Separator {
-                                orientation: vertical;
-                            }
-                        }
-
-                        [prefix]
-                        Box status_lsp_load {
-                            orientation: horizontal;
-                            spacing: 8;
-                            visible: false;
-
-                            Adw.Spinner {}
-
-                            Label {
-                                label: _("LSP loading...");
-                            }
-                        }
-
-                        [suffix]
-                        Box {
-                            Separator {
-                                orientation: vertical;
-                            }
-
-                            Panel.ToggleButton toggle_terminal_button {
-                                dock: dock;
-                                area: bottom;
-
-                                styles [
-                                    "compressed",
-                                    "flat",
-                                ]
-                            }
+                            styles [
+                                "compressed",
+                                "flat",
+                            ]
                         }
                     }
                 }
