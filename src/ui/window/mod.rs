@@ -472,6 +472,13 @@ impl EditorWindow {
                 }
             }
         ));
+        self.imp().file_search.connect_activate(clone!(
+            #[strong]
+            window,
+            move |_| {
+                window.upgrade().unwrap().file_list.grab_focus();
+            }
+        ));
         // Switching to/from dark theme
         let style_man = adw::StyleManager::default();
         style_man.connect_dark_notify(clone!(
