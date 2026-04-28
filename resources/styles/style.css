@@ -64,10 +64,9 @@ paneltogglebutton.compressed button {
 }
 
 /* Status bar */
-panelstatusbar > box > *:not(separator):not(box):not(.compressed),
-panelstatusbar > box > box > *:not(separator) {
-    margin-top: 2px;
-    margin-bottom: 2px;
+panelstatusbar label,
+panelstatusbar image {
+    padding: 2px 8px;
 }
 
 .statusbar.search {

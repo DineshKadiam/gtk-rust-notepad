@@ -3,8 +3,12 @@ mod lsp;
 mod ui;
 mod utils;
 
-use adw::{Application, prelude::*};
-use gtk::{CssProvider, gdk::Display};
+use adw::{Application, prelude::*, subclass::prelude::ObjectSubclassIsExt};
+use gtk::{
+    CssProvider,
+    gdk::Display,
+    gio::{ApplicationFlags, Cancellable, FileQueryInfoFlags},
+};
 
 use crate::ui::window::EditorWindow;
 
@@ -15,9 +19,10 @@ fn main() {
     #[cfg(debug_assertions)]
     let id = Some("ca.potatoe.Kyanite.Debug");
 
-    let application = adw::Application::new(id, Default::default());
+    let application = adw::Application::new(id, ApplicationFlags::HANDLES_OPEN);
     application.connect_startup(load_css);
-    application.connect_activate(build_ui);
+    application.connect_open(open);
+    application.connect_activate(activate);
     // Set up accels
     application.set_accels_for_action("win.tab.close", &["<Ctrl>W"]);
     application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>T"]);
@@ -33,9 +38,31 @@ fn main() {
     application.run();
 }
 
-fn build_ui(app: &Application) {
+fn activate(app: &Application) {
     let window = EditorWindow::new(app);
     window.present();
+}
+
+fn open(app: &Application, files: &[gtk::gio::File], _: &str) {
+    let window = EditorWindow::new(app);
+    window.present();
+    for file in files {
+        if let Ok(info) = file.query_info(
+            "standard::*",
+            FileQueryInfoFlags::empty(),
+            Some(&Cancellable::new()),
+        ) {
+            let file_name = file.path().unwrap().to_str().unwrap().to_string().clone();
+            println!("{}", file_name);
+            if info.file_type() == gtk::gio::FileType::Directory {
+                window.update_folder(&file_name);
+                window.imp().split_view.set_show_sidebar(true);
+            } else {
+                WidgetExt::activate_action(&window, "win.tab.new", Some(&file_name.to_variant()))
+                    .unwrap();
+            }
+        }
+    }
 }
 
 fn load_css(_: &Application) {

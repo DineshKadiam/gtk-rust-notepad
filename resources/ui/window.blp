@@ -88,7 +88,6 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                             child: $WelcomeScreen startpage {
                                 vexpand: true;
-                                width-request: 400;
                             };
                         }
 
@@ -168,11 +167,8 @@ template $EditorWindow: Adw.ApplicationWindow {
 
                 /* Status bar */
                 Panel.Statusbar {
-                    margin-start: 8;
-
                     [prefix]
                     Box status_mode {
-                        spacing: 8;
                         visible: false;
 
                         Label {
@@ -191,7 +187,6 @@ template $EditorWindow: Adw.ApplicationWindow {
                     [prefix]
                     Box status_files {
                         visible: false;
-                        spacing: 8;
 
                         Label {
                             name: "status_file_path";
@@ -215,13 +210,13 @@ template $EditorWindow: Adw.ApplicationWindow {
                     [prefix]
                     Box status_lsp_load {
                         orientation: horizontal;
-                        spacing: 8;
                         visible: false;
 
                         Adw.Spinner {}
 
                         Label {
                             label: _("LSP loading...");
+                            ellipsize: end;
                         }
                     }
 
