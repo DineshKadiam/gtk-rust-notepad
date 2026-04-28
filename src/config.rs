@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default)]
 pub struct Config {
     pub ui: UI,
-    pub lsp: Lsp,
+    pub lang_server: Vec<LanguageServer>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -28,35 +28,25 @@ pub enum ThemeVariant {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-#[serde(default)]
-pub struct Lsp {
-    pub lang_servers: Vec<LanguageServer>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
 pub struct LanguageServer {
     pub file_extension: String,
     pub command: String,
     pub language: String,
 }
 
-impl Default for Lsp {
-    fn default() -> Self {
-        Self {
-            lang_servers: vec![
-                LanguageServer {
-                    file_extension: ".rs".into(),
-                    command: "rust-analyzer".into(),
-                    language: "rust".into(),
-                },
-                LanguageServer {
-                    file_extension: ".blp".into(),
-                    command: "blueprint-compiler lsp".into(),
-                    language: "blueprint".into(),
-                },
-            ],
-        }
-    }
+pub fn default_lang_servers() -> Vec<LanguageServer> {
+    vec![
+        LanguageServer {
+            file_extension: ".rs".into(),
+            command: "rust-analyzer".into(),
+            language: "rust".into(),
+        },
+        LanguageServer {
+            file_extension: ".blp".into(),
+            command: "blueprint-compiler lsp".into(),
+            language: "blueprint".into(),
+        },
+    ]
 }
 
 impl Default for UI {

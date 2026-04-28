@@ -22,7 +22,7 @@ use async_lsp::tracing::TracingLayer;
 use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
-use crate::config::Config;
+use crate::config::{self, Config};
 
 /// Stores language servers globally, and marks their names along with a socket.
 /// > [!NOTE]
@@ -142,7 +142,9 @@ pub mod request;
 
 pub fn lookup_lsp(uri: &str) -> (String, String) {
     let config = Config::get_or_default();
-    for server in config.lsp.lang_servers {
+    let mut servers = config.lang_server;
+    servers.append(&mut config::default_lang_servers());
+    for server in servers {
         if uri.ends_with(&server.file_extension) {
             return (server.command.clone(), server.language.clone());
         }
