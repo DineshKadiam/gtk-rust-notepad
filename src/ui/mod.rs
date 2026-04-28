@@ -1,6 +1,7 @@
 pub mod buffer;
 pub mod file_tree;
 pub mod preferences;
+pub mod sidebar;
 pub mod terminal;
 pub mod welcome;
 pub mod window;

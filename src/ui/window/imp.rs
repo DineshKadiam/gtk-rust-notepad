@@ -6,7 +6,7 @@ use sourceview5::StyleSchemeManager;
 
 use crate::{
     config::Config,
-    ui::{buffer::Buffer, terminal::TerminalView, welcome::WelcomeScreen},
+    ui::{buffer::Buffer, sidebar::Sidebar, terminal::TerminalView, welcome::WelcomeScreen},
     utils,
 };
 
@@ -23,23 +23,15 @@ pub struct EditorWindow {
     #[template_child]
     pub window_title: TemplateChild<WindowTitle>,
     #[template_child]
-    pub sidebar_title: TemplateChild<WindowTitle>,
-    #[template_child]
     pub startpage: TemplateChild<WelcomeScreen>,
-    #[template_child]
-    pub file_tree: TemplateChild<ListView>,
-    #[template_child]
-    pub file_list: TemplateChild<ListView>,
     #[template_child]
     pub search_bar: TemplateChild<SearchBar>,
     #[template_child]
     pub search_entry: TemplateChild<SearchEntry>,
     #[template_child]
-    pub file_search: TemplateChild<SearchEntry>,
-    #[template_child]
-    pub file_stack: TemplateChild<Stack>,
-    #[template_child]
     pub terminal_view: TemplateChild<TerminalView>,
+    #[template_child]
+    pub sidebar: TemplateChild<Sidebar>,
     #[template_child]
     pub stack: TemplateChild<Stack>,
     /* Status bar labels */

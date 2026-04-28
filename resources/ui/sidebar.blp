@@ -1,0 +1,144 @@
+using Gtk 4.0;
+using Adw 1;
+using Panel 1;
+
+template $Sidebar: Adw.Bin {
+Adw.ToolbarView {
+    [top]
+    Adw.HeaderBar {
+        title-widget: Adw.WindowTitle sidebar_title {
+            title: _("waf?");
+        };
+
+        [end]
+        MenuButton {
+            icon-name: "open-menu-symbolic";
+
+            menu-model: menu {
+                section {
+                    label: _("File");
+
+                    item {
+                        label: _("New window");
+                        action: "win.new_window";
+                    }
+
+                    item {
+                        label: _("New terminal tab");
+                        action: "win.tab.new_terminal";
+                    }
+
+                    item {
+                        label: _("New scratch buffer");
+                        action: "win.tab.new_scratch";
+                    }
+
+                    item {
+                        label: _("Open file");
+                        icon: "document-open-symbolic";
+                        action: "win.open.file";
+                    }
+
+                    item {
+                        label: _("Open folder");
+                        icon: "folder-open-symbolic";
+                        action: "win.open.folder";
+                    }
+
+                    item {
+                        label: _("Save");
+                        icon: "document-save-symbolic";
+                        action: "win.save";
+                    }
+
+                    item {
+                        label: _("Save as...");
+                        icon: "document-save-as-symbolic";
+                        action: "win.save_as";
+                    }
+                }
+
+                section {
+                    label: _("Edit");
+
+                    item {
+                        label: _("Close current tab");
+                        action: "win.tab.close";
+                    }
+
+                    item {
+                        label: _("Search for text");
+                        action: "win.search.toggle";
+                    }
+
+                    item {
+                        label: _("Search for files");
+                        action: "win.search.files.toggle";
+                    }
+
+                    item {
+                        label: _("Preferences");
+                        action: "win.show_prefs";
+                    }
+                }
+            };
+        }
+    }
+
+    Box {
+        vexpand: true;
+        orientation: vertical;
+
+        Stack file_stack {
+            StackPage {
+                name: "tree_page";
+
+                child: ScrolledWindow {
+                    hscrollbar-policy: external;
+                    vexpand: true;
+
+                    Adw.ClampScrollable {
+                        [child]
+                        ListView file_tree {
+                            styles [
+                                "navigation-sidebar",
+                            ]
+                        }
+                    }
+                };
+            }
+
+            StackPage {
+                name: "list_page";
+
+                child: ScrolledWindow {
+                    hscrollbar-policy: external;
+                    vexpand: true;
+
+                    Adw.ClampScrollable {
+                        [child]
+                        ListView file_list {
+                            styles [
+                                "navigation-sidebar",
+                            ]
+                        }
+                    }
+                };
+            }
+        }
+
+        Separator {
+            orientation: horizontal;
+        }
+
+        SearchEntry file_search {
+            styles [
+                "statusbar",
+            ]
+
+            placeholder-text: "Filter...";
+        }
+    }
+}
+
+}

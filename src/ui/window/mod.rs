@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable, FileInfo};
 use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, Label, ListView, TreeListRow, gio};
+use gtk::{CompositeTemplate, Label, TreeListRow, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::file_tree;
@@ -164,7 +164,7 @@ impl EditorWindow {
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _| {
                     window.imp().split_view.set_show_sidebar(true);
-                    window.imp().file_search.grab_focus();
+                    window.imp().sidebar.imp().file_search.grab_focus();
                 })
                 .build(), // New window
             ActionEntry::builder("new_window")
@@ -222,22 +222,7 @@ impl EditorWindow {
             ActionEntry::builder("tree.open_folder")
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _| {
-                    if let Some(selected) = window
-                        .imp()
-                        .file_tree
-                        .model()
-                        .and_downcast_ref::<gtk::SingleSelection>()
-                        .unwrap()
-                        .selected_item()
-                        && let Some(row) = selected.downcast_ref::<TreeListRow>()
-                        && let Some(file_info) = row.item().and_downcast::<FileInfo>()
-                        && let Some(file) = file_info
-                            .attribute_object("standard::file")
-                            .and_downcast_ref::<gio::File>()
-                        && let Some(path) = file
-                            .path()
-                            .map(|a| a.to_str().unwrap_or_default().to_string())
-                    {
+                    if let Some(path) = window.imp().sidebar.get_selected_folder() {
                         window.update_folder(&path);
                     }
                 })
@@ -246,18 +231,7 @@ impl EditorWindow {
             ActionEntry::builder("tree.toggle_expand")
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _| {
-                    if let Some(selected) = window
-                        .imp()
-                        .file_tree
-                        .model()
-                        .and_downcast_ref::<gtk::SingleSelection>()
-                        .unwrap()
-                        .selected_item()
-                        && let Some(row) = selected.downcast_ref::<TreeListRow>()
-                        && row.is_expandable()
-                    {
-                        row.set_expanded(!row.is_expanded());
-                    }
+                    window.imp().sidebar.tree_toggle_expand();
                 })
                 .build(),
         ]);
@@ -389,98 +363,7 @@ impl EditorWindow {
             }
         ));
         // File tree
-        self.imp().file_tree.connect_activate(|list, idx| {
-            if let Some(model) = list.model()
-                && let Some(item_obj) = model.item(idx)
-                && let Some(item) = item_obj.downcast_ref::<TreeListRow>()
-            {
-                if item.is_expandable() {
-                    // it's a folder
-                    item.set_expanded(!item.is_expanded());
-                } else if let Some(file_info) = item.item().and_downcast::<FileInfo>() {
-                    // it's a file
-                    let file = file_info
-                        .attribute_object("standard::file")
-                        .and_downcast_ref::<gio::File>()
-                        .unwrap()
-                        .clone();
-                    let file_name = file.path().unwrap().to_str().unwrap().to_string().clone();
-                    list.activate_action("win.tab.new", Some(&file_name.into()))
-                        .unwrap();
-                }
-            };
-        });
-        self.imp().file_list.connect_activate(clone!(
-            #[strong]
-            window,
-            move |list, idx| {
-                if let Some(model) = list.model()
-                    && let Some(item_obj) = model.item(idx)
-                    && let Some(item) = item_obj.downcast_ref::<FileInfo>()
-                {
-                    let file = item
-                        .attribute_object("standard::file")
-                        .and_downcast_ref::<gio::File>()
-                        .unwrap()
-                        .clone();
-                    let file_name = file.path().unwrap().to_str().unwrap().to_string().clone();
-                    let window = window.upgrade().unwrap();
-                    window.file_stack.set_visible_child_name("tree_page");
-                    window.file_search.set_text("");
-                    if item.file_type() == gio::FileType::Directory {
-                        window.obj().update_folder(&file_name);
-                    } else {
-                        list.activate_action("win.tab.new", Some(&file_name.into()))
-                            .unwrap();
-                    }
-                };
-            }
-        ));
-        // File search
-        self.imp().file_search.connect_search_changed(clone!(
-            #[strong]
-            window,
-            move |search| {
-                let window = window.upgrade().unwrap();
-
-                window
-                    .file_stack
-                    .set_visible_child_name(if search.text().is_empty() {
-                        "tree_page"
-                    } else {
-                        "list_page"
-                    });
-
-                if search.text().is_empty() {
-                    file_tree::clear_search_list(&window.file_list);
-                } else {
-                    file_tree::set_search_list(
-                        &window.file_list,
-                        &window.workspace_uri.borrow().to_string(),
-                    );
-                    // Holy fuck
-                    window
-                        .file_list
-                        .model()
-                        .and_downcast_ref::<gtk::SingleSelection>()
-                        .unwrap()
-                        .model()
-                        .and_downcast_ref::<gtk::FilterListModel>()
-                        .unwrap()
-                        .filter()
-                        .and_downcast_ref::<gtk::StringFilter>()
-                        .unwrap()
-                        .set_search(Some(&search.text()));
-                }
-            }
-        ));
-        self.imp().file_search.connect_activate(clone!(
-            #[strong]
-            window,
-            move |_| {
-                window.upgrade().unwrap().file_list.grab_focus();
-            }
-        ));
+        self.imp().sidebar.connect_all(&self.clone());
         // Switching to/from dark theme
         let style_man = adw::StyleManager::default();
         style_man.connect_dark_notify(clone!(
@@ -495,15 +378,7 @@ impl EditorWindow {
     }
 
     pub fn update_folder(&self, dir_path: &str) {
-        self.imp()
-            .sidebar_title
-            .set_title(dir_path.split("/").last().unwrap()); // yeah fuck you windows "\" users
-
-        file_tree::update(
-            &self.imp().file_tree.clone(),
-            &self.imp().file_list.clone(),
-            dir_path,
-        );
+        self.imp().sidebar.update_folder(dir_path);
 
         self.imp().terminal_view.setup(dir_path);
 
