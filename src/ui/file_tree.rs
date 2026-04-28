@@ -1,9 +1,9 @@
 use gtk::{
-    ClosureExpression, CustomSorter, DirectoryList, Expression, FilterListModel, FlattenListModel,
+    ClosureExpression, CustomSorter, DirectoryList, Expression, FilterListModel,
     GestureClick, Image, Label, ListItem, ListView, Orientation, PopoverMenu,
     SignalListItemFactory, SingleSelection, SortListModel, StringFilter, TreeExpander,
     TreeListModel, TreeListRow,
-    gio::{self, FileInfo, ListModel, Menu},
+    gio::{self, FileInfo, Menu},
     glib::{self, clone, closure},
 };
 use sourceview5::prelude::*;
