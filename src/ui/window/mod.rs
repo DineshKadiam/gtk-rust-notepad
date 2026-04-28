@@ -159,7 +159,14 @@ impl EditorWindow {
                     }
                 })
                 .build(),
-            // New window
+            // Show/hide file search bar
+            ActionEntry::builder("search.files.toggle")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    window.imp().split_view.set_show_sidebar(true);
+                    window.imp().file_search.grab_focus();
+                })
+                .build(), // New window
             ActionEntry::builder("new_window")
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _| {

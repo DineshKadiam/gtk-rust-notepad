@@ -10,7 +10,7 @@ use crate::ui::window::EditorWindow;
 
 fn main() {
     // Set id to "*.Devel" if ran with debug profile
- 	#[cfg(not(debug_assertions))]
+    #[cfg(not(debug_assertions))]
     let id = Some("ca.potatoe.Kyanite");
     #[cfg(debug_assertions)]
     let id = Some("ca.potatoe.Kyanite.Debug");
@@ -21,13 +21,14 @@ fn main() {
     // Set up accels
     application.set_accels_for_action("win.tab.close", &["<Ctrl>W"]);
     application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>T"]);
-	application.set_accels_for_action("win.tab.new_terminal", &["<Ctrl><Shift>T"]);
+    application.set_accels_for_action("win.tab.new_terminal", &["<Ctrl><Shift>T"]);
     application.set_accels_for_action("win.new_window", &["<Ctrl>N"]);
     application.set_accels_for_action("win.open.file", &["<Ctrl>O"]);
     application.set_accels_for_action("win.open.folder", &["<Ctrl><Shift>O"]);
     application.set_accels_for_action("win.save", &["<Ctrl>S"]);
     application.set_accels_for_action("win.save_as", &["<Ctrl><Shift>S"]);
     application.set_accels_for_action("win.search.toggle", &["<Ctrl>F"]);
+    application.set_accels_for_action("win.search.files.toggle", &["<Ctrl><Shift>F"]);
     // run
     application.run();
 }

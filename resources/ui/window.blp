@@ -91,6 +91,10 @@ template $EditorWindow: Adw.ApplicationWindow {
                             }
 
                             item {
+                                label: _("Search for files");
+                                action: "win.search.files.toggle";
+                            }
+                            item {
                                 label: _("Preferences");
                                 action: "win.show_prefs";
                             }
