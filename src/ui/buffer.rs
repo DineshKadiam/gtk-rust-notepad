@@ -6,7 +6,6 @@ use gtk::CompositeTemplate;
 use gtk::TextSearchFlags;
 use gtk::gio::Icon;
 use gtk::glib;
-use gtk::glib::Variant;
 use gtk::pango::Underline;
 use sourceview5::Annotation;
 use sourceview5::AnnotationProvider;
@@ -28,7 +27,7 @@ mod imp {
 
     use gtk::{
         EventControllerMotion, Revealer,
-        glib::{ControlFlow, SignalHandlerId, SourceId, clone},
+        glib::{ControlFlow, SourceId, clone},
     };
 
     use super::*;

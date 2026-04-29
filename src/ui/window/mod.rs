@@ -3,12 +3,11 @@ use std::any::Any;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use adw::{OverlaySplitView, TabPage, TabView, WindowTitle};
-use gtk::gio::{ActionEntry, Cancellable, FileInfo};
-use gtk::glib::{self, Properties, Variant, VariantTy, clone};
-use gtk::{CompositeTemplate, Label, TreeListRow, gio};
+use gtk::gio::{ActionEntry, Cancellable};
+use gtk::glib::{self, Properties, VariantTy, clone};
+use gtk::{CompositeTemplate, Label, gio};
 use sourceview5::prelude::*;
 
-use crate::ui::file_tree;
 use crate::ui::preferences::PreferencesDialog;
 use crate::{lsp, utils};
 
