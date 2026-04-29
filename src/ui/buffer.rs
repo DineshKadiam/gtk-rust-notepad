@@ -21,7 +21,15 @@ use crate::utils;
 
 mod imp {
 
-    use gtk::{EventControllerMotion, Revealer, glib::clone};
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    use gtk::{
+        EventControllerMotion, Revealer,
+        glib::{ControlFlow, SignalHandlerId, SourceId, clone},
+    };
 
     use super::*;
 
@@ -39,6 +47,8 @@ mod imp {
         pub file_path: RefCell<String>,
         #[property(get, set)]
         pub diagnostic_provider: RefCell<AnnotationProvider>,
+
+        pub mmap_timer: RefCell<Option<SourceId>>,
     }
 
     #[glib::object_subclass]
@@ -62,11 +72,35 @@ mod imp {
             self.parent_constructed();
             // Show map on mouse motion only
             let motion_controller = EventControllerMotion::new();
-            motion_controller.connect_enter(clone!(
+            let coords = Arc::new((AtomicUsize::new(0), AtomicUsize::new(0)));
+            motion_controller.connect_motion(clone!(
                 #[strong(rename_to=revealer)]
                 self.map_revealer,
-                move |_controller, _, _| {
-                    revealer.set_reveal_child(true);
+                #[strong]
+                coords,
+                #[weak(rename_to=this)]
+                self,
+                move |_controller, x, y| {
+                    if coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
+                        && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
+                        && let Some(old) =
+                            this.mmap_timer
+                                .borrow_mut()
+                                .replace(glib::timeout_add_seconds_local(
+                                    1,
+                                    clone!(
+                                        #[strong]
+                                        revealer,
+                                        move || {
+                                            revealer.set_reveal_child(false);
+                                            ControlFlow::Continue
+                                        }
+                                    ),
+                                ))
+                    {
+                        revealer.set_reveal_child(true);
+                        old.remove();
+                    }
                 }
             ));
             motion_controller.connect_leave(clone!(
@@ -157,7 +191,7 @@ impl Buffer {
                 .diagnostic_provider
                 .borrow()
                 .add_annotation(&Annotation::new(
-                    Some(&message),
+                    Some(&message.replace("\n", " / ")),
                     Some(
                         Icon::for_string(match severity {
                             DiagnosticSeverity::ERROR => "dialog-error-symbolic",

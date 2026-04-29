@@ -67,8 +67,6 @@ i marked optional things with a question mark
     - push
     - switch commits
 
-- filter through sidebar files
-
 - helix keybinds (configurable)
 - mode line
 
@@ -79,4 +77,3 @@ i marked optional things with a question mark
 # Disclaimer
 
 By using or contributing to this software, you agree that *trans rights are human rights*, *ACAB*, and that *hate has no place here*.
-
