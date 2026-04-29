@@ -1,10 +1,91 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16" height="16" enable-background="new" version="1.0" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
- <title>Adwaita Icon Template</title>
- <g transform="translate(-160,-172)">
-  <g transform="matrix(.30381 0 0 .30381 144.77 149.67)" stroke-linecap="square" stroke-width="4">
-   <path d="m62 82v4h6.9883c0.57601 1.9e-5 1 0.42399 1 1v26.008c2e-6 0.57275-0.42334 0.99374-0.99609 0.99219l-4.9863-0.0137-2-6e-3 -0.01172 4 2 6e-3 4.9883 0.0137c2.7383 7e-3 5.0059-2.2538 5.0059-4.9922v-26.008c0-2.7377-2.2623-4.9999-5-5h-4.9883z" enable-background="accumulate" stop-color="#000000"/>
-   <path d="m88.121 81.676-1.4395 1.3887-16.086 15.541 1.3906 3.4375c4.622 9.2e-4 8.0441 1.3358 10.365 3.6465 2.3211 2.3107 3.6602 5.7136 3.6602 10.318v2h4v-2c0-5.4029-1.6548-9.9835-4.8379-13.152-2.2572-2.2471-5.2489-3.6864-8.7129-4.3574l13-12.557 1.4395-1.3887z" enable-background="accumulate" stop-color="#000000"/>
-  </g>
- </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   enable-background="new"
+   version="1.0"
+   viewBox="0 0 16 16"
+   id="svg3"
+   sodipodi:docname="ca.potatoe.Kyanite-symbolic.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect5"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,3,0,1 @ F,0,0,1,0,3,0,1 @ F,0,0,1,0,3,0,1 @ F,0,0,1,0,3,0,1 @ F,0,0,1,0,3,0,1"
+       radius="3"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showguides="true"
+     inkscape:zoom="36.306815"
+     inkscape:cx="6.7205013"
+     inkscape:cy="6.4588424"
+     inkscape:window-width="1646"
+     inkscape:window-height="1060"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3">
+    <sodipodi:guide
+       position="6.6465233,5.5766562"
+       orientation="1,0"
+       id="guide3"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="4.222297,12.807643"
+       orientation="0,-1"
+       id="guide4"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="4.222297,3.1001155"
+       orientation="0,-1"
+       id="guide5"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="11.509659,3.0935845"
+       orientation="1,0"
+       id="guide6"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="5.2922381,2.4931202"
+       orientation="0,-1"
+       id="guide7"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="5.4245307,13.414659"
+       orientation="0,-1"
+       id="guide8"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <title
+     id="title1">Adwaita Icon Template</title>
+  <path
+     d="M 11.509766,2.3339844 11.080078,2.7636719 7.2539062,6.59375 V 4.703125 4.1035156 C 7.2539056,3.272622 6.5672217,2.5859663 5.7363281,2.5859375 H 4.2226562 3.6152344 v 1.2128906 h 0.6074218 1.5136719 c 0.1748198,6.1e-6 0.3027344,0.129868 0.3027344,0.3046875 V 4.703125 9.5136719 11.990234 c 0,0.174806 -0.1279276,0.302735 -0.3027344,0.302735 H 4.2226562 3.6152344 v 1.214844 h 0.6074218 1.5136719 c 0.8308961,0 1.5175782,-0.686684 1.5175781,-1.517579 V 9.5136719 8.6953125 C 8.3539409,8.796525 9.1947667,9.1774824 9.7929688,9.7714844 10.496982,10.470554 10.902344,11.50065 10.902344,12.900391 v 0.607422 h 1.214844 v -0.607422 c 0,-1.641659 -0.502271,-3.0305415 -1.46875,-3.9902347 C 9.9575341,8.2241047 9.0405154,7.7861544 7.9785156,7.5859375 L 11.939453,3.6210938 12.367188,3.1914063 Z"
+     style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;stroke-linecap:square;enable-background:new;stop-color:#000000;stop-opacity:1"
+     id="path9" />
 </svg>
