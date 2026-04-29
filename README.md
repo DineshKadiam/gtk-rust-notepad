@@ -1,5 +1,7 @@
 # Kyanite
 
+![](resources/icons/ca.potatoe.Kyanite.png) 
+
 ![](resources/screenshots/code.png)
 
 (see resources/screenshots for more screenshots)
