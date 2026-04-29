@@ -91,9 +91,12 @@ mod imp {
                                     clone!(
                                         #[strong]
                                         revealer,
+                                        #[strong]
+                                        this,
                                         move || {
                                             revealer.set_reveal_child(false);
-                                            ControlFlow::Continue
+                                            this.mmap_timer.take();
+                                            ControlFlow::Break
                                         }
                                     ),
                                 ))
