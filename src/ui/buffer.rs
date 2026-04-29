@@ -259,13 +259,11 @@ impl Buffer {
         } else {
             "text".to_string()
         };
-        let variant = Variant::tuple_from_iter(vec![
-            path.to_variant(),
-            lang.to_variant(),
-            true.to_variant(),
-        ]);
-        self.activate_action("win.status.set_file", Some(&variant))
-            .unwrap();
+        self.activate_action(
+            "win.status.set_file",
+            Some(&vec![path.to_variant(), lang.to_variant(), "yes".to_variant()].into()),
+        )
+        .unwrap();
     }
 
     /// Update self based on config file

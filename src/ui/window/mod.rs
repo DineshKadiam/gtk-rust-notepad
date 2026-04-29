@@ -197,12 +197,12 @@ impl EditorWindow {
                 .build(),
             // Set statusbar files segment
             ActionEntry::builder("status.set_file")
-                .parameter_type(Some(VariantTy::TUPLE))
+                .parameter_type(Some(VariantTy::STRING_ARRAY))
                 .activate(move |window: &Self, _, param| {
                     let param = param.unwrap();
                     let file_path = glib::Variant::get::<String>(&param.child_value(0)).unwrap();
                     let file_type = glib::Variant::get::<String>(&param.child_value(1)).unwrap();
-                    let is_shown: bool = param.child_value(2).get::<bool>().unwrap();
+                    let is_shown: bool = param.child_value(2).get::<String>().unwrap() == "yes";
                     utils::ui::get_child_by_name::<Label>(
                         window.imp().status_files.get(),
                         "status_file_path",
@@ -247,13 +247,11 @@ impl EditorWindow {
                 if tab_view.n_pages() == 0 {
                     stack.set_visible_child_name("empty");
                     // Hide file status
-                    let variant = Variant::tuple_from_iter(vec![
-                        "".to_variant(),
-                        "".to_variant(),
-                        false.to_variant(),
-                    ]);
                     tab_view
-                        .activate_action("win.status.set_file", Some(&variant))
+                        .activate_action(
+                            "win.status.set_file",
+                            Some(&vec!["".to_variant(), "".to_variant(), "".to_variant()].into()),
+                        )
                         .unwrap();
                 }
             }
