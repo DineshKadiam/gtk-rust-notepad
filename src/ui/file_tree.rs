@@ -1,8 +1,7 @@
 use gtk::{
-    ClosureExpression, CustomSorter, DirectoryList, Expression, FilterListModel,
-    GestureClick, Image, Label, ListItem, ListView, Orientation, PopoverMenu,
-    SignalListItemFactory, SingleSelection, SortListModel, StringFilter, TreeExpander,
-    TreeListModel, TreeListRow,
+    ClosureExpression, CustomSorter, DirectoryList, Expression, FilterListModel, GestureClick,
+    Image, Label, ListItem, ListView, Orientation, PopoverMenu, SignalListItemFactory,
+    SingleSelection, SortListModel, StringFilter, TreeExpander, TreeListModel, TreeListRow,
     gio::{self, FileInfo, Menu},
     glib::{self, clone, closure},
 };
@@ -71,7 +70,7 @@ pub fn update(file_tree_view: &ListView, file_list_view: &ListView, dir_path: &s
             .set_child(Some(
                 &TreeExpander::builder()
                     .child(&container)
-                    .hide_expander(true)
+                    // .hide_expander(true)
                     .build(),
             ));
     });
