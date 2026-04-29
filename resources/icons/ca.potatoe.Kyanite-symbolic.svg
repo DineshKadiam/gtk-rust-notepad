@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" enable-background="new" version="1.0" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+ <title>Adwaita Icon Template</title>
+ <g transform="translate(-160,-172)">
+  <g transform="matrix(.30381 0 0 .30381 144.77 149.67)" stroke-linecap="square" stroke-width="4">
+   <path d="m62 82v4h6.9883c0.57601 1.9e-5 1 0.42399 1 1v26.008c2e-6 0.57275-0.42334 0.99374-0.99609 0.99219l-4.9863-0.0137-2-6e-3 -0.01172 4 2 6e-3 4.9883 0.0137c2.7383 7e-3 5.0059-2.2538 5.0059-4.9922v-26.008c0-2.7377-2.2623-4.9999-5-5h-4.9883z" enable-background="accumulate" stop-color="#000000"/>
+   <path d="m88.121 81.676-1.4395 1.3887-16.086 15.541 1.3906 3.4375c4.622 9.2e-4 8.0441 1.3358 10.365 3.6465 2.3211 2.3107 3.6602 5.7136 3.6602 10.318v2h4v-2c0-5.4029-1.6548-9.9835-4.8379-13.152-2.2572-2.2471-5.2489-3.6864-8.7129-4.3574l13-12.557 1.4395-1.3887z" enable-background="accumulate" stop-color="#000000"/>
+  </g>
+ </g>
+</svg>
