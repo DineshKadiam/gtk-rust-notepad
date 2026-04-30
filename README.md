@@ -1,6 +1,6 @@
 # Kyanite
 
-![](resources/icons/ca.potatoe.Kyanite.png) 
+![](resources/icons/ca.potatoe.Kyanite.svg) 
 
 ![](resources/screenshots/code.png)
 
