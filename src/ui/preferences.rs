@@ -25,6 +25,8 @@ mod imp {
         pub minimap: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub grid_bg: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub word_wrap: TemplateChild<adw::SwitchRow>,
     }
 
     #[glib::object_subclass]
@@ -85,6 +87,7 @@ impl PreferencesDialog {
         connect_switch!(self.imp().line_hl, config.ui.hl_line);
         connect_switch!(self.imp().minimap, config.ui.show_minimap);
         connect_switch!(self.imp().grid_bg, config.ui.grid_bg);
+        connect_switch!(self.imp().word_wrap, config.ui.word_wrap);
         // NOTE position of the strings in the blueprint file matters for this one lmao
         self.imp().theme_variant.set_selected(match config.ui.theme_variant {
             crate::config::ThemeVariant::System => 0,

@@ -286,6 +286,13 @@ impl Buffer {
         self.imp()
             .source_view
             .set_highlight_current_line(config.ui.hl_line);
+		self.imp()
+            .source_view
+            .set_wrap_mode(if config.ui.word_wrap {
+                gtk::WrapMode::Word
+            } else {
+                gtk::WrapMode::None
+			});
         self.imp()
             .source_view
             .set_background_pattern(if config.ui.grid_bg {

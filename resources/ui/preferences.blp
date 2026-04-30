@@ -6,7 +6,7 @@ template $PreferencesDialog: Adw.PreferencesDialog {
     width-request: 200;
 
     Adw.PreferencesPage {
-        title: "UI";
+        title: _("Interface");
 
         Adw.PreferencesGroup {
             title: _("Color scheme");
@@ -45,6 +45,10 @@ template $PreferencesDialog: Adw.PreferencesDialog {
 
             Adw.SwitchRow grid_bg {
                 title: _("Use grid background");
+            }
+
+            Adw.SwitchRow word_wrap {
+                title: _("Use word wrap");
             }
         }
     }
