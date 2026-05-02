@@ -123,3 +123,27 @@ toolbarview .top-bar {
 separator {
     background-color: color-mix(in srgb, var(--border-color) 60%, transparent);
 }
+
+/* Code completion */
+GtkSourceAssistant.completion {
+    min-width: 1px;
+    background: transparent;
+}
+
+GtkSourceAssistant.completion contents {
+    margin: 4px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    border-radius: 8px;
+    background: @view_bg_color;
+}
+
+GtkSourceAssistant.completion box {
+    margin: 2px;
+    border-radius: 8px;
+}
+
+GtkSourceAssistant.completion box > * {
+    border-radius: 8px;
+    padding: 0 2px;
+    margin: 1px;
+}

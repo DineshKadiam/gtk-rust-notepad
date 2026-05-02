@@ -9,11 +9,12 @@ mod imp {
 
     use gtk::{
         MapListModel, StringList,
+        gdk::Key,
         gio::{ListModel, ListStore},
         glib::translate::List,
     };
     use sourceview5::prelude::CompletionProposalExt;
-    use vte4::{Cast, ObjectExt, TextBufferExt};
+    use vte4::{Cast, ObjectExt, TextBufferExt, WidgetExt};
 
     use crate::ui::completion::proposal::LspCompletionProposal;
 
@@ -67,6 +68,21 @@ mod imp {
             }
         }
 
+        fn key_activates(
+            &self,
+            context: &sourceview5::CompletionContext,
+            proposal: &sourceview5::CompletionProposal,
+            keyval: gtk::gdk::Key,
+            state: gtk::gdk::ModifierType,
+        ) -> bool {
+            // TODO: KEYBINDS
+            self.parent_key_activates(context, proposal, keyval, state)
+        }
+
+        fn refilter(&self, context: &sourceview5::CompletionContext, model: &gtk::gio::ListModel) {
+            self.parent_refilter(context, model)
+        }
+
         fn populate_future(
             &self,
             context: &sourceview5::CompletionContext,
@@ -89,9 +105,28 @@ mod imp {
                     p.set_comment(format!("Really fancy description #{}", i).as_str());
                     list.append(&p);
                 }
-                println!("???");
                 Ok(list.upcast::<ListModel>())
             })
+        }
+
+        fn title(&self) -> Option<glib::GString> {
+            self.parent_title()
+        }
+
+        fn priority(&self, context: &sourceview5::CompletionContext) -> i32 {
+            self.parent_priority(context)
+        }
+
+        fn is_trigger(&self, iter: &gtk::TextIter, c: char) -> bool {
+            self.parent_is_trigger(iter, c)
+        }
+
+        fn list_alternates(
+            &self,
+            context: &sourceview5::CompletionContext,
+            proposal: &sourceview5::CompletionProposal,
+        ) -> Vec<sourceview5::CompletionProposal> {
+            self.parent_list_alternates(context, proposal)
         }
     }
 }

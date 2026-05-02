@@ -51,6 +51,8 @@ i marked optional things with a question mark
   - Delete files
   - Rename files
 
+- Pin overview map when word wrap is on
+
 - lsp integration:
   - code actions(?)
   - code completion
