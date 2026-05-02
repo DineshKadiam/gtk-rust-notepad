@@ -49,6 +49,7 @@ mod imp {
         pub diagnostic_provider: RefCell<AnnotationProvider>,
 
         pub mmap_timer: RefCell<Option<SourceId>>,
+        pub pin_mmap: RefCell<bool>,
     }
 
     #[glib::object_subclass]
@@ -81,12 +82,11 @@ mod imp {
                 #[weak(rename_to=this)]
                 self,
                 move |_controller, x, y| {
-                    if coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
-                        && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
-                        && let Some(old) =
-                            this.mmap_timer
-                                .borrow_mut()
-                                .replace(glib::timeout_add_seconds_local(
+                    if !*this.pin_mmap.borrow() {
+                        if coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
+                            && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
+                            && let Some(old) = this.mmap_timer.borrow_mut().replace(
+                                glib::timeout_add_seconds_local(
                                     1,
                                     clone!(
                                         #[strong]
@@ -99,18 +99,24 @@ mod imp {
                                             ControlFlow::Break
                                         }
                                     ),
-                                ))
-                    {
-                        revealer.set_reveal_child(true);
-                        old.remove();
+                                ),
+                            )
+                        {
+                            revealer.set_reveal_child(true);
+                            old.remove();
+                        }
                     }
                 }
             ));
             motion_controller.connect_leave(clone!(
                 #[strong(rename_to=revealer)]
                 self.map_revealer,
+                #[weak(rename_to=this)]
+                self,
                 move |_controller| {
-                    revealer.set_reveal_child(false);
+                    if !*this.pin_mmap.borrow() {
+                        revealer.set_reveal_child(false);
+                    }
                 }
             ));
             self.obj().add_controller(motion_controller);
@@ -280,6 +286,12 @@ impl Buffer {
             }
         }
         self.imp().map_revealer.set_visible(config.ui.show_minimap);
+        if config.ui.word_wrap {
+            self.imp().pin_mmap.replace(true);
+            self.imp()
+                .map_revealer
+                .set_reveal_child(config.ui.show_minimap);
+        }
         self.imp()
             .source_view
             .set_highlight_current_line(config.ui.hl_line);
