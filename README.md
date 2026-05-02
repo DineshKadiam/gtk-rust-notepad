@@ -42,11 +42,18 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 
 i marked optional things with a question mark
 
-- libpanel omnibar(?)
+- Warn when closing about unsafed documents
+
+- Warn when documents change while editing them
+
+- Sidebar:
+  - Create files
+  - Delete files
+  - Rename files
 
 - lsp integration:
   - code actions(?)
-  - code completion(?)
+  - code completion
 
 - git integration:
   - highlight changed (git) lines(?)

@@ -15,20 +15,21 @@ use sourceview5::prelude::*;
 use std::cell::RefCell;
 use std::io::Error;
 
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, Ordering},
+};
+
+use gtk::{
+    EventControllerMotion, Revealer,
+    glib::{ControlFlow, SourceId, clone},
+};
+
 use crate::config::Config;
+use crate::ui::completion::provider::LspCompletionProvider;
 use crate::utils;
 
 mod imp {
-
-    use std::sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering},
-    };
-
-    use gtk::{
-        EventControllerMotion, Revealer,
-        glib::{ControlFlow, SourceId, clone},
-    };
 
     use super::*;
 
@@ -113,6 +114,13 @@ mod imp {
                 }
             ));
             self.obj().add_controller(motion_controller);
+            // Set up source view
+            self.source_view
+                .annotations()
+                .add_provider(&self.diagnostic_provider.borrow().clone());
+            // Set up completion
+            let provider = LspCompletionProvider::new();
+            self.source_view.completion().add_provider(&provider);
         }
     }
     impl WidgetImpl for Buffer {}
@@ -133,24 +141,13 @@ pub enum SearchDirection {
 
 impl Buffer {
     pub fn new() -> Self {
-        let widget = glib::Object::builder::<Self>().build();
-        widget
-            .imp()
-            .source_view
-            .annotations()
-            .add_provider(&widget.imp().diagnostic_provider.borrow().clone());
-        widget
+        glib::Object::builder::<Self>().build()
     }
 
     /// Creates a buffer ui/tab thingy with a SourceView Buffer object
     pub fn with_source(buf: sourceview5::Buffer) -> Self {
         let widget = glib::Object::builder::<Self>().build();
         widget.imp().source_view.set_buffer(Some(&buf));
-        widget
-            .imp()
-            .source_view
-            .annotations()
-            .add_provider(&widget.imp().diagnostic_provider.borrow().clone());
         widget
     }
 
@@ -286,13 +283,13 @@ impl Buffer {
         self.imp()
             .source_view
             .set_highlight_current_line(config.ui.hl_line);
-		self.imp()
+        self.imp()
             .source_view
             .set_wrap_mode(if config.ui.word_wrap {
                 gtk::WrapMode::Word
             } else {
                 gtk::WrapMode::None
-			});
+            });
         self.imp()
             .source_view
             .set_background_pattern(if config.ui.grid_bg {

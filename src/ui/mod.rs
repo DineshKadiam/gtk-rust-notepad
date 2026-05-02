@@ -1,4 +1,5 @@
 pub mod buffer;
+pub mod completion;
 pub mod file_tree;
 pub mod preferences;
 pub mod sidebar;
