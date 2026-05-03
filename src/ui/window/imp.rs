@@ -106,6 +106,10 @@ impl EditorWindow {
         let buffer_ui = Buffer::with_source(buffer.clone());
         let page = self.tab_view.add_page(&buffer_ui, None);
         buffer_ui.set_file_path(path.unwrap_or_default());
+        buffer_ui.update_uri(
+            path.unwrap_or_default(),
+            &self.workspace_uri.borrow().clone(),
+        );
         buffer_ui.configure();
         // Files
         if let Some(path) = path {
@@ -137,11 +141,27 @@ impl EditorWindow {
             page,
             #[strong(rename_to=window_title)]
             self.window_title,
+            #[weak(rename_to=this)]
+            self,
             move |buffer| {
                 if !buffer.is_loading() {
+                    // Set title
                     page.set_title(&EditorWindow::tab_name(&buffer_ui.file_path(), true));
                     if page.is_selected() {
                         window_title.set_title(&page.title());
+                    }
+                    // Update LSP
+                    if !buffer_ui.file_path().is_empty() && !this.workspace_uri.borrow().is_empty()
+                    {
+                        lsp::file::change(
+                            &buffer_ui.file_path(),
+                            &this.workspace_uri.borrow(),
+                            Some(
+                                buffer
+                                    .text(&buffer.bounds().0, &buffer.bounds().1, false)
+                                    .to_string(),
+                            ),
+                        );
                     }
                 }
             }
@@ -198,8 +218,9 @@ impl EditorWindow {
                                     if !old_path.is_empty() {
                                         lsp::file::close(&old_path, &workspace_uri);
                                     }
+                                    buffer.update_uri(&file_name, &workspace_uri);
                                     lsp::file::open(&file_name, &workspace_uri);
-                                    lsp::file::change(&file_name, &workspace_uri);
+                                    lsp::file::change(&file_name, &workspace_uri, None);
                                     lsp::file::save(&file_name, &workspace_uri);
                                 });
                             }
@@ -220,7 +241,7 @@ impl EditorWindow {
                     // Save, and then...
                     EditorWindow::save_buffer(&buffer).await;
                     // Tell LSP file was modified
-                    lsp::file::change(&buffer.file_path(), &workspace_uri); // TODO call this before things like code actions
+                    lsp::file::change(&buffer.file_path(), &workspace_uri, None);
                     lsp::file::save(&buffer.file_path(), &workspace_uri);
                 });
             }

@@ -23,7 +23,7 @@ pub fn open(uri: &str, workspace_uri: &str) {
 }
 
 /// Tell an LSP a file was modified
-pub fn change(uri: &str, workspace_uri: &str) {
+pub fn change(uri: &str, workspace_uri: &str, new: Option<String>) {
     if let Some(mut server) = get_server(uri, workspace_uri) {
         server
             .did_change(DidChangeTextDocumentParams {
@@ -34,7 +34,7 @@ pub fn change(uri: &str, workspace_uri: &str) {
                 content_changes: vec![TextDocumentContentChangeEvent {
                     range: None,
                     range_length: None,
-                    text: fs::read_to_string(uri).unwrap(),
+                    text: new.unwrap_or_else(|| fs::read_to_string(uri).unwrap()),
                 }],
             })
             .unwrap();

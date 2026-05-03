@@ -31,6 +31,8 @@ use crate::utils;
 
 mod imp {
 
+    use crate::lsp;
+
     use super::*;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
@@ -47,6 +49,8 @@ mod imp {
         pub file_path: RefCell<String>,
         #[property(get, set)]
         pub diagnostic_provider: RefCell<AnnotationProvider>,
+
+        pub completion_provider: RefCell<Option<LspCompletionProvider>>,
 
         pub mmap_timer: RefCell<Option<SourceId>>,
         pub pin_mmap: RefCell<bool>,
@@ -125,8 +129,11 @@ mod imp {
                 .annotations()
                 .add_provider(&self.diagnostic_provider.borrow().clone());
             // Set up completion
-            let provider = LspCompletionProvider::new();
-            self.source_view.completion().add_provider(&provider);
+            self.completion_provider
+                .replace(Some(LspCompletionProvider::new()));
+            self.source_view
+                .completion()
+                .add_provider(&self.completion_provider.borrow().clone().unwrap());
         }
     }
     impl WidgetImpl for Buffer {}
@@ -381,6 +388,16 @@ impl Buffer {
             Ok(())
         } else {
             Err(std::io::Error::other("String not found"))
+        }
+    }
+
+    pub fn update_uri(&self, uri: &str, workspace_uri: &str) {
+        if let Some(provider) = self.imp().completion_provider.borrow().clone() {
+            let provider = provider.imp();
+            provider.uri.replace(Some(uri.to_owned()));
+            provider
+                .workspace_uri
+                .replace(Some(workspace_uri.to_owned()));
         }
     }
 }

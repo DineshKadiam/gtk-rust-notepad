@@ -131,6 +131,7 @@ GtkSourceAssistant.completion {
 }
 
 GtkSourceAssistant.completion contents {
+    min-width: 258px;
     margin: 4px;
     border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
     border-radius: 8px;

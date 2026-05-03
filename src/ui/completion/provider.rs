@@ -1,27 +1,34 @@
+use crate::ui::completion::proposal::LspCompletionProposal;
 use adw::subclass::prelude::*;
 use gtk::glib;
+use gtk::prelude::*;
+use gtk::{
+    ClosureExpression, Expression, FilterListModel, StringFilter,
+    gio::{ListModel, ListStore},
+    glib::closure,
+};
 use sourceview5::CompletionProvider;
 use sourceview5::subclass::prelude::*;
+use std::cell::RefCell;
 
 mod imp {
+    use std::{any::Any, time::Duration};
 
-    use std::{cell::RefCell, sync::RwLock};
-
+    use async_lsp::lsp_types::{CompletionItemKind, CompletionResponse, Position};
     use gtk::{
-        MapListModel, StringList,
-        gdk::Key,
-        gio::{ListModel, ListStore},
-        glib::translate::List,
+        SortListModel, StringSorter,
+        pango::{AttrFontDesc, AttrList, Attribute, FontDescription},
     };
-    use sourceview5::prelude::CompletionProposalExt;
-    use vte4::{Cast, ObjectExt, TextBufferExt, WidgetExt};
+    use tokio::time::Sleep;
 
-    use crate::ui::completion::proposal::LspCompletionProposal;
+    use crate::lsp;
 
     use super::*;
+
     #[derive(Debug, Default)]
     pub struct LspCompletionProvider {
-        pub list: RefCell<Option<ListStore>>,
+        pub uri: RefCell<Option<String>>,
+        pub workspace_uri: RefCell<Option<String>>,
     }
 
     #[glib::object_subclass]
@@ -40,24 +47,33 @@ mod imp {
             proposal: &sourceview5::CompletionProposal,
         ) {
             let proposal = proposal.downcast_ref::<LspCompletionProposal>().unwrap();
-            println!("{:?}", proposal.label());
-            context.buffer().unwrap().insert_at_cursor(
-                &proposal
-                    .label()
-                    .unwrap()
-                    .replace(&context.word().to_string(), ""),
-            );
+            let buffer = context.buffer().unwrap();
+            let mut cursor_iter = buffer.bounds().0;
+            // Delete typed words
+            cursor_iter.forward_chars(buffer.cursor_position());
+            for _ in 0..(context.word().len()) {
+                buffer.backspace(&mut cursor_iter, false, true);
+            }
+            // Insert
+            buffer.insert_at_cursor(&proposal.insert_text().unwrap_or(proposal.label().unwrap()));
         }
 
         fn display(
             &self,
-            context: &sourceview5::CompletionContext,
+            _: &sourceview5::CompletionContext,
             proposal: &sourceview5::CompletionProposal,
             cell: &sourceview5::CompletionCell,
         ) {
             let proposal = proposal.downcast_ref::<LspCompletionProposal>().unwrap();
+            // TODO: constant move it out
+            let icon_attrs = AttrList::new();
+            icon_attrs.insert(AttrFontDesc::new(&FontDescription::from_string(
+                "Monospace Bold Italic",
+            )));
             match cell.column() {
-                sourceview5::CompletionColumn::Icon => cell.set_icon_name("neofox_floof"),
+                sourceview5::CompletionColumn::After => {
+                    cell.set_text_with_attributes(&proposal.icon().unwrap(), &icon_attrs);
+                }
                 sourceview5::CompletionColumn::TypedText => {
                     cell.set_text(Some(&proposal.label().unwrap()));
                 }
@@ -80,7 +96,12 @@ mod imp {
         }
 
         fn refilter(&self, context: &sourceview5::CompletionContext, model: &gtk::gio::ListModel) {
-            self.parent_refilter(context, model)
+            let model = model.downcast_ref::<FilterListModel>().unwrap();
+            model
+                .filter()
+                .and_downcast_ref::<gtk::StringFilter>()
+                .unwrap()
+                .set_search(Some(&context.word().to_string()));
         }
 
         fn populate_future(
@@ -88,37 +109,62 @@ mod imp {
             context: &sourceview5::CompletionContext,
         ) -> std::pin::Pin<Box<dyn Future<Output = Result<gtk::gio::ListModel, glib::Error>>>>
         {
-            println!("populate_future");
-            // println!("{:?}", context.word());
-            let list = if let Some(list) = self.list.borrow().clone() {
-                list
-            } else {
-                self.list
-                    .replace(Some(ListStore::new::<LspCompletionProposal>()));
-                self.list.borrow().clone().unwrap()
-            };
+            let uri = self.uri.borrow().clone();
+            let workspace_uri = self.workspace_uri.borrow().clone();
+            let buffer = context.buffer().unwrap();
+            let iter = buffer.iter_at_offset(buffer.cursor_position());
             Box::pin(async move {
-                list.remove_all();
-                for i in 0..5 {
-                    let p = LspCompletionProposal::new();
-                    p.set_label(format!("Propsal test #{}", i).as_str());
-                    p.set_comment(format!("Really fancy description #{}", i).as_str());
-                    list.append(&p);
+                // Create list of proposals
+                let list = ListStore::new::<LspCompletionProposal>();
+                if let Some(uri) = uri
+                    && let Some(workspace_uri) = workspace_uri
+                {
+                    if let Some(CompletionResponse::List(completion)) = lsp::request::completion(
+                        &uri,
+                        &workspace_uri,
+                        Position {
+                            line: iter.line() as u32,
+                            character: iter.line_offset() as u32,
+                        },
+                    )
+                    .await
+                    {
+                        for item in completion.items {
+                            let p = LspCompletionProposal::new();
+                            p.set_label(&item.label);
+                            p.set_comment(&item.detail.unwrap_or(item.label));
+                            p.set_insert_text(item.insert_text);
+                            p.set_icon(&if let Some(kind) = item.kind {
+                                format!("{:?}", kind).to_lowercase()
+                            } else {
+                                String::new()
+                            });
+                            list.append(&p);
+                        }
+                    }
                 }
-                Ok(list.upcast::<ListModel>())
+                // Search list
+                // TODO expression can be brought out
+                let expression = ClosureExpression::new::<String>(
+                    Expression::NONE,
+                    closure!(|object: glib::Object| {
+                        if let Some(proposal) = object.downcast_ref::<LspCompletionProposal>() {
+                            Some(proposal.label().unwrap_or_default())
+                        } else {
+                            Some(String::new())
+                        }
+                    }),
+                );
+
+                let filter = StringFilter::new(Some(expression));
+                filter.set_match_mode(gtk::StringFilterMatchMode::Prefix);
+                let model = FilterListModel::new(Some(list), Some(filter));
+                Ok(model.upcast::<ListModel>())
             })
         }
 
-        fn title(&self) -> Option<glib::GString> {
-            self.parent_title()
-        }
-
-        fn priority(&self, context: &sourceview5::CompletionContext) -> i32 {
-            self.parent_priority(context)
-        }
-
         fn is_trigger(&self, iter: &gtk::TextIter, c: char) -> bool {
-            self.parent_is_trigger(iter, c)
+            self.parent_is_trigger(iter, c) || c == '.'
         }
 
         fn list_alternates(
