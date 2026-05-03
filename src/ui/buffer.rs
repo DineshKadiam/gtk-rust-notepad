@@ -30,9 +30,6 @@ use crate::ui::completion::provider::LspCompletionProvider;
 use crate::utils;
 
 mod imp {
-
-    use crate::lsp;
-
     use super::*;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]

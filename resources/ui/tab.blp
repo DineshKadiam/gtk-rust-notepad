@@ -1,5 +1,6 @@
 using Gtk 4.0;
 using GtkSource 5;
+using Adw 1;
 
 template $Buffer: Box {
     file_path: "";
@@ -9,17 +10,19 @@ template $Buffer: Box {
 
     ScrolledWindow {
         vscrollbar-policy: external;
-
+        
         GtkSource.View source_view {
+            vexpand: true;
+            hexpand: true;
             monospace: true;
             show-line-numbers: true;
             show-line-marks: true;
-            tab-width: 4;
             top-margin: 12;
-            bottom-margin: 4;
+            bottom-margin: 16;
             pixels-below-lines: 4;
+            // Helix-like indentation
             left-margin: 4;
-            hexpand: true;
+            tab-width: 4;
             insert-spaces-instead-of-tabs: true;
             indent-width: 4;
             auto-indent: true;
