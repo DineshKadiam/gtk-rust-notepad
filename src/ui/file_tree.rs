@@ -9,17 +9,16 @@ use sourceview5::prelude::*;
 
 /// credit to https://codeberg.org/Cyncrovee/Datolite/src/branch/main/src/util.rs which i used as a reference
 /// idk how the fuck to do this and the wiki doesn't really help
-pub fn update(file_tree_view: &ListView, file_list_view: &ListView, dir_path: &str) {
+pub fn update(
+    file_tree_view: &ListView,
+    file_list_view: &ListView,
+    dir_path: &str,
+    file_popover: PopoverMenu,
+    folder_popover: PopoverMenu,
+) {
     let file_sorter = create_file_sorter();
     let tree_factory = SignalListItemFactory::new();
     let list_factory = SignalListItemFactory::new();
-    let folder_popover = {
-        let menu = Menu::new();
-        let popover = PopoverMenu::builder().menu_model(&menu).build();
-        menu.append(Some("Open folder"), Some("win.tree.open_folder"));
-        menu.append(Some("Toggle expanded"), Some("win.tree.toggle_expand"));
-        popover
-    };
 
     // Create directory list/tree list model
     let list_model = {
@@ -37,6 +36,8 @@ pub fn update(file_tree_view: &ListView, file_list_view: &ListView, dir_path: &s
             clone!(
                 #[strong]
                 file_sorter,
+                #[strong]
+                file_popover,
                 move |file_object| {
                     if let Some(file_info) = file_object.downcast_ref::<FileInfo>()
                         && file_info.file_type() == gio::FileType::Directory
@@ -137,6 +138,41 @@ pub fn update(file_tree_view: &ListView, file_list_view: &ListView, dir_path: &s
                     if let Some(icon) = file_info.symbolic_icon() {
                         image.set_from_gicon(&icon);
                     }
+                    // Context menus
+                    let tree_click = GestureClick::new();
+                    tree_click.set_button(3);
+                    tree_click.connect_pressed(clone!(
+                        #[strong]
+                        container,
+                        #[strong]
+                        file_popover,
+                        #[strong]
+                        list_view,
+                        #[strong]
+                        list_item,
+                        move |gesture, _, _, _| {
+                            // Pop up
+                            let row_widget = container.parent().unwrap();
+                            file_popover.set_pointing_to(Some(&gtk::gdk::Rectangle::new(
+                                0,
+                                0,
+                                row_widget.size(Orientation::Horizontal),
+                                row_widget.size(Orientation::Vertical),
+                            )));
+                            file_popover.unparent();
+                            file_popover.set_parent(&row_widget);
+                            file_popover.popup();
+                            // Gesture things
+                            gesture.set_state(gtk::EventSequenceState::Claimed);
+                            // Select item
+                            list_view
+                                .model()
+                                .and_downcast_ref::<SingleSelection>()
+                                .unwrap()
+                                .set_selected(list_item.position());
+                        }
+                    ));
+                    container.parent().unwrap().add_controller(tree_click);
                 }
                 tree.set_list_row(Some(&row));
             }

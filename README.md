@@ -43,14 +43,18 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 
 i marked optional things with a question mark
 
-- Warn when closing about unsafed documents
+- Warn when closing about unsaved documents
 
 - Warn when documents change while editing them
 
+- Format on save
+
+- Fix completion replacement text
+
 - Sidebar:
-  - Create files
-  - Delete files
   - Rename files
+
+- New terminal tabs -> in workspace folder
 
 - lsp integration:
   - code actions(?)

@@ -2,142 +2,156 @@ using Gtk 4.0;
 using Adw 1;
 
 template $Sidebar: Adw.Bin {
-Adw.ToolbarView {
-    [top]
-    Adw.HeaderBar {
-        title-widget: Adw.WindowTitle sidebar_title {
-            title: _("waf?");
+    PopoverMenu folder_popover {
+        menu-model: menu {
+            item (_("Open folder"), "win.tree.open_folder")
+            item (_("Toggle expanded"), "win.tree.toggle_expand")
+            item (_("New file"), "win.tree.new_file")
         };
+    }
 
-        [end]
-        MenuButton {
-            icon-name: "open-menu-symbolic";
+    PopoverMenu file_popover {
+        menu-model: menu {
+            item (_("Rename"), "win.tree.rename_file")
+            item (_("Delete"), "win.tree.delete_file")
+        };
+    }
 
-            menu-model: menu {
-                section {
-                    label: _("File");
-
-                    item {
-                        label: _("New window");
-                        action: "win.new_window";
-                    }
-
-                    item {
-                        label: _("New terminal tab");
-                        action: "win.tab.new_terminal";
-                    }
-
-                    item {
-                        label: _("New scratch buffer");
-                        action: "win.tab.new_scratch";
-                    }
-
-                    item {
-                        label: _("Open file");
-                        icon: "document-open-symbolic";
-                        action: "win.open.file";
-                    }
-
-                    item {
-                        label: _("Open folder");
-                        icon: "folder-open-symbolic";
-                        action: "win.open.folder";
-                    }
-
-                    item {
-                        label: _("Save");
-                        icon: "document-save-symbolic";
-                        action: "win.save";
-                    }
-
-                    item {
-                        label: _("Save as...");
-                        icon: "document-save-as-symbolic";
-                        action: "win.save_as";
-                    }
-                }
-
-                section {
-                    label: _("Edit");
-
-                    item {
-                        label: _("Close current tab");
-                        action: "win.tab.close";
-                    }
-
-                    item {
-                        label: _("Search for text");
-                        action: "win.search.toggle";
-                    }
-
-                    item {
-                        label: _("Search for files");
-                        action: "win.search.files.toggle";
-                    }
-
-                    item {
-                        label: _("Preferences");
-                        action: "win.show_prefs";
-                    }
-                }
+    Adw.ToolbarView {
+        [top]
+        Adw.HeaderBar {
+            title-widget: Adw.WindowTitle sidebar_title {
+                title: _("waf?");
             };
-        }
-    }
 
-    Box {
-        vexpand: true;
-        orientation: vertical;
+            [end]
+            MenuButton {
+                icon-name: "open-menu-symbolic";
 
-        Stack file_stack {
-            StackPage {
-                name: "tree_page";
+                menu-model: menu {
+                    section {
+                        label: _("File");
 
-                child: ScrolledWindow {
-                    hscrollbar-policy: external;
-                    vexpand: true;
+                        item {
+                            label: _("New window");
+                            action: "win.new_window";
+                        }
 
-                    Adw.ClampScrollable {
-                        [child]
-                        ListView file_tree {
-                            styles [
-                                "navigation-sidebar",
-                            ]
+                        item {
+                            label: _("New terminal tab");
+                            action: "win.tab.new_terminal";
+                        }
+
+                        item {
+                            label: _("New scratch buffer");
+                            action: "win.tab.new_scratch";
+                        }
+
+                        item {
+                            label: _("Open file");
+                            icon: "document-open-symbolic";
+                            action: "win.open.file";
+                        }
+
+                        item {
+                            label: _("Open folder");
+                            icon: "folder-open-symbolic";
+                            action: "win.open.folder";
+                        }
+
+                        item {
+                            label: _("Save");
+                            icon: "document-save-symbolic";
+                            action: "win.save";
+                        }
+
+                        item {
+                            label: _("Save as...");
+                            icon: "document-save-as-symbolic";
+                            action: "win.save_as";
+                        }
+                    }
+
+                    section {
+                        label: _("Edit");
+
+                        item {
+                            label: _("Close current tab");
+                            action: "win.tab.close";
+                        }
+
+                        item {
+                            label: _("Search for text");
+                            action: "win.search.toggle";
+                        }
+
+                        item {
+                            label: _("Search for files");
+                            action: "win.search.files.toggle";
+                        }
+
+                        item {
+                            label: _("Preferences");
+                            action: "win.show_prefs";
                         }
                     }
                 };
             }
+        }
 
-            StackPage {
-                name: "list_page";
+        Box {
+            vexpand: true;
+            orientation: vertical;
 
-                child: ScrolledWindow {
-                    hscrollbar-policy: external;
-                    vexpand: true;
+            Stack file_stack {
+                StackPage {
+                    name: "tree_page";
 
-                    Adw.ClampScrollable {
-                        [child]
-                        ListView file_list {
-                            styles [
-                                "navigation-sidebar",
-                            ]
+                    child: ScrolledWindow {
+                        hscrollbar-policy: external;
+                        vexpand: true;
+
+                        Adw.ClampScrollable {
+                            [child]
+                            ListView file_tree {
+                                styles [
+                                    "navigation-sidebar",
+                                ]
+                            }
                         }
-                    }
-                };
+                    };
+                }
+
+                StackPage {
+                    name: "list_page";
+
+                    child: ScrolledWindow {
+                        hscrollbar-policy: external;
+                        vexpand: true;
+
+                        Adw.ClampScrollable {
+                            [child]
+                            ListView file_list {
+                                styles [
+                                    "navigation-sidebar",
+                                ]
+                            }
+                        }
+                    };
+                }
+            }
+
+            Separator {
+                orientation: horizontal;
+            }
+
+            SearchEntry file_search {
+                styles [
+                    "statusbar",
+                ]
+
+                placeholder-text: _("Filter…");
             }
         }
-
-        Separator {
-            orientation: horizontal;
-        }
-
-        SearchEntry file_search {
-            styles [
-                "statusbar",
-            ]
-
-            placeholder-text: _("Filter…");
-        }
     }
-}
-
 }

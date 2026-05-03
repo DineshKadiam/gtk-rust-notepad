@@ -6,3 +6,4 @@ pub mod sidebar;
 pub mod terminal;
 pub mod welcome;
 pub mod window;
+pub mod file_name_dialog;

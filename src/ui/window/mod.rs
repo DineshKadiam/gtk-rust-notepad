@@ -2,12 +2,13 @@ use std::any::Any;
 
 use adw::prelude::*;
 use adw::subclass::prelude::*;
-use adw::{OverlaySplitView, TabPage, TabView, WindowTitle};
+use adw::{AlertDialog, OverlaySplitView, ResponseAppearance, TabPage, TabView, WindowTitle};
 use gtk::gio::{ActionEntry, Cancellable};
 use gtk::glib::{self, Properties, VariantTy, clone};
 use gtk::{CompositeTemplate, Label, gio};
 use sourceview5::prelude::*;
 
+use crate::ui::file_name_dialog;
 use crate::ui::preferences::PreferencesDialog;
 use crate::{lsp, utils};
 
@@ -231,6 +232,42 @@ impl EditorWindow {
                 .parameter_type(None)
                 .activate(move |window: &Self, _, _| {
                     window.imp().sidebar.tree_toggle_expand();
+                })
+                .build(),
+            // Create file
+            ActionEntry::builder("tree.new_file")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+                        let dialog = file_name_dialog::FileNameDialog::new();
+                        let window : &gtk::Window = &window.clone().into();
+                        dialog.set_kind(file_name_dialog::Kind::Create);
+                        dialog.set_path(&path);
+                        adw::prelude::AdwDialogExt::present(&dialog, Some(window));
+                    }
+                })
+                .build(),
+            // Delete file
+            ActionEntry::builder("tree.delete_file")
+                .parameter_type(None)
+                .activate(move |window: &Self, _, _| {
+                    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+                        // Unparent popover (if exists)
+                        window.imp().sidebar.imp().folder_popover.unparent();
+                        window.imp().sidebar.imp().file_popover.unparent();
+                        // Create alert dialog
+                        let dialog = AlertDialog::new(Some("Delete file..."), Some(&format!("Do you really want to delete the file at {}? It will be gone forever (a very long time).", path)));
+                        let window : &gtk::Window = &window.clone().into();
+                        dialog.add_responses(&[("cancel", "_Cancel"), ("confirm", "_Delete")]);
+                        dialog.set_response_appearance("confirm", ResponseAppearance::Destructive);
+                        dialog.set_default_response(Some("cancel"));
+                        dialog.set_close_response("cancel");
+                        dialog.connect_response(Some("confirm"), move |_, _| {
+                            std::fs::remove_file(path.clone()).unwrap();
+                            // TODO close all tabs with the file open
+                        });
+                        adw::prelude::AdwDialogExt::present(&dialog, Some(window));
+                    }
                 })
                 .build(),
         ]);

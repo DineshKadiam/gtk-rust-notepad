@@ -1,6 +1,7 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
+use gtk::TreeExpander;
 use gtk::TreeListRow;
 use gtk::gio;
 use gtk::gio::FileInfo;
@@ -14,7 +15,7 @@ use crate::ui::window::EditorWindow;
 mod imp {
 
     use adw::WindowTitle;
-    use gtk::{ListView, SearchEntry, Stack};
+    use gtk::{ListView, PopoverMenu, SearchEntry, Stack};
 
     use super::*;
 
@@ -30,6 +31,10 @@ mod imp {
         pub file_search: TemplateChild<SearchEntry>,
         #[template_child]
         pub file_stack: TemplateChild<Stack>,
+        #[template_child]
+        pub folder_popover: TemplateChild<PopoverMenu>,
+        #[template_child]
+        pub file_popover: TemplateChild<PopoverMenu>,
         #[template_child]
         pub sidebar_title: TemplateChild<WindowTitle>,
     }
@@ -83,6 +88,24 @@ impl Sidebar {
         {
             file.path()
                 .map(|a| a.to_str().unwrap_or_default().to_string())
+        } else {
+            None
+        }
+    }
+
+    /// Returns the selected widget from the TreeView
+    pub fn get_selected_widget(&self) -> Option<gtk::Widget> {
+        if let Some(selected) = self
+            .imp()
+            .file_tree
+            .model()
+            .and_downcast_ref::<gtk::SingleSelection>()
+            .unwrap()
+            .selected_item()
+            .and_downcast_ref::<gtk::ListItem>()
+            && let Some(widget) = selected.child().and_downcast::<TreeExpander>()
+        {
+            Some(widget.clone().into())
         } else {
             None
         }
@@ -208,6 +231,8 @@ impl Sidebar {
             &self.imp().file_tree.clone(),
             &self.imp().file_list.clone(),
             dir_path,
+            self.imp().file_popover.clone(),
+            self.imp().folder_popover.clone(),
         );
     }
 }
