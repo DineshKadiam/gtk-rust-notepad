@@ -15,6 +15,7 @@ A lightweight, graphical text editor.
 - LSP support:
   - Configurable language servers!
   - Inline diagnostics!
+  - Code completion!
 - gtksourceview5 goodies:
   - Syntax highlighting!
   - Themes!
@@ -51,11 +52,8 @@ i marked optional things with a question mark
   - Delete files
   - Rename files
 
-- Pin overview map when word wrap is on
-
 - lsp integration:
   - code actions(?)
-  - code completion
 
 - git integration:
   - highlight changed (git) lines(?)
