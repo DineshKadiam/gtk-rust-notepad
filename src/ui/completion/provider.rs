@@ -96,7 +96,7 @@ mod imp {
                 .filter()
                 .and_downcast_ref::<gtk::StringFilter>()
                 .unwrap()
-                .set_search(Some(&context.word().to_string()));
+                .set_search(Some(context.word().as_ref()));
         }
 
         fn populate_future(
@@ -113,8 +113,7 @@ mod imp {
                 let list = ListStore::new::<LspCompletionProposal>();
                 if let Some(uri) = uri
                     && let Some(workspace_uri) = workspace_uri
-                {
-                    if let Some(CompletionResponse::List(completion)) = lsp::request::completion(
+                    && let Some(CompletionResponse::List(completion)) = lsp::request::completion(
                         &uri,
                         &workspace_uri,
                         Position {
@@ -137,7 +136,6 @@ mod imp {
                             list.append(&p);
                         }
                     }
-                }
                 // Search list
                 // TODO expression can be brought out
                 let expression = ClosureExpression::new::<String>(

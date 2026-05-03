@@ -17,7 +17,7 @@ pub async fn completion(
                     text_document: TextDocumentIdentifier {
                         uri: Url::from_file_path(uri).unwrap(),
                     },
-                    position: position,
+                    position,
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
                 partial_result_params: PartialResultParams::default(),

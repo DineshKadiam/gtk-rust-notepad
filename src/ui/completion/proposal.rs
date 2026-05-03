@@ -59,34 +59,18 @@ impl LspCompletionProposal {
     }
 
     pub fn label(&self) -> Option<String> {
-        if let Some(ref string) = *self.imp().label.read().unwrap() {
-            Some(string.clone())
-        } else {
-            None
-        }
+        (*self.imp().label.read().unwrap()).as_ref().map(|string| string.clone())
     }
 
     pub fn comment(&self) -> Option<String> {
-        if let Some(ref string) = *self.imp().comment.read().unwrap() {
-            Some(string.clone())
-        } else {
-            None
-        }
+        (*self.imp().comment.read().unwrap()).as_ref().map(|string| string.clone())
     }
 
     pub fn insert_text(&self) -> Option<String> {
-        if let Some(ref string) = *self.imp().insert_text.read().unwrap() {
-            Some(string.clone())
-        } else {
-            None
-        }
+        (*self.imp().insert_text.read().unwrap()).as_ref().map(|string| string.clone())
     }
 
     pub fn icon(&self) -> Option<String> {
-        if let Some(ref string) = *self.imp().icon.read().unwrap() {
-            Some(string.clone())
-        } else {
-            None
-        }
+        (*self.imp().icon.read().unwrap()).as_ref().map(|string| string.clone())
     }
 }

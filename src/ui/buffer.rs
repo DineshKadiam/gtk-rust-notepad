@@ -83,8 +83,8 @@ mod imp {
                 #[weak(rename_to=this)]
                 self,
                 move |_controller, x, y| {
-                    if !*this.pin_mmap.borrow() {
-                        if coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
+                    if !*this.pin_mmap.borrow()
+                        && coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
                             && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
                             && let Some(old) = this.mmap_timer.borrow_mut().replace(
                                 glib::timeout_add_seconds_local(
@@ -106,7 +106,6 @@ mod imp {
                             revealer.set_reveal_child(true);
                             old.remove();
                         }
-                    }
                 }
             ));
             motion_controller.connect_leave(clone!(
