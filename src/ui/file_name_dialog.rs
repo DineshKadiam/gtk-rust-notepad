@@ -1,9 +1,9 @@
+use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::glib::{self, clone};
 use std::cell::RefCell;
-use adw::prelude::*;
 
 mod imp {
 
@@ -16,7 +16,7 @@ mod imp {
         #[template_child]
         pub entry: TemplateChild<gtk::Entry>,
         pub kind: RefCell<super::Kind>,
-        pub path: RefCell<Option<String>>
+        pub path: RefCell<Option<String>>,
     }
 
     #[glib::object_subclass]
@@ -47,11 +47,19 @@ mod imp {
                     if !filename.is_empty() {
                         match *this.kind.borrow() {
                             super::Kind::Rename => println!("rename"),
-                            super::Kind::Create => {std::fs::File::create(format!("{}/{}", this.path.borrow().clone().unwrap(), filename)).unwrap();}
+                            super::Kind::Create => {
+                                std::fs::File::create(format!(
+                                    "{}/{}",
+                                    this.path.borrow().clone().unwrap(),
+                                    filename
+                                ))
+                                .unwrap();
+                            }
                         }
                         adw::prelude::AdwDialogExt::close(&this.obj().clone());
                     }
-            }));
+                }
+            ));
         }
     }
     impl WidgetImpl for FileNameDialog {}
@@ -70,18 +78,18 @@ pub struct FileNameDialog(ObjectSubclass<imp::FileNameDialog>)
 pub enum Kind {
     #[default]
     Rename,
-    Create
+    Create,
 }
 
 impl FileNameDialog {
     pub fn new() -> Self {
-            glib::Object::builder::<Self>().build()
+        glib::Object::builder::<Self>().build()
     }
-    
+
     pub fn set_kind(&self, kind: Kind) {
         self.imp().kind.replace(kind);
     }
-    
+
     pub fn set_path(&self, path: &str) {
         self.imp().path.replace(Some(path.to_string()));
     }

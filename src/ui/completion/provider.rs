@@ -12,14 +12,9 @@ use sourceview5::subclass::prelude::*;
 use std::cell::RefCell;
 
 mod imp {
-    use std::{any::Any, time::Duration};
 
-    use async_lsp::lsp_types::{CompletionItemKind, CompletionResponse, Position};
-    use gtk::{
-        SortListModel, StringSorter,
-        pango::{AttrFontDesc, AttrList, Attribute, FontDescription},
-    };
-    use tokio::time::Sleep;
+    use async_lsp::lsp_types::{CompletionResponse, Position};
+    use gtk::pango::{AttrFontDesc, AttrList, FontDescription};
 
     use crate::lsp;
 

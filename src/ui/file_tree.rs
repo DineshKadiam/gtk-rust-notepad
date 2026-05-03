@@ -2,7 +2,7 @@ use gtk::{
     ClosureExpression, CustomSorter, DirectoryList, Expression, FilterListModel, GestureClick,
     Image, Label, ListItem, ListView, Orientation, PopoverMenu, SignalListItemFactory,
     SingleSelection, SortListModel, StringFilter, TreeExpander, TreeListModel, TreeListRow,
-    gio::{self, FileInfo, Menu},
+    gio::{self, FileInfo},
     glib::{self, clone, closure},
 };
 use sourceview5::prelude::*;
@@ -37,7 +37,7 @@ pub fn update(
                 #[strong]
                 file_sorter,
                 #[strong]
-                file_popover,
+                _file_popover,
                 move |file_object| {
                     if let Some(file_info) = file_object.downcast_ref::<FileInfo>()
                         && file_info.file_type() == gio::FileType::Directory

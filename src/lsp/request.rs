@@ -1,6 +1,6 @@
 use async_lsp::lsp_types::{
     CompletionParams, CompletionResponse, PartialResultParams, Position,
-    TextDocumentPositionParams, WorkDoneProgressParams, request::Completion,
+    TextDocumentPositionParams, WorkDoneProgressParams,
 };
 
 use crate::lsp::*;

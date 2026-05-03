@@ -18,7 +18,7 @@ pub struct UI {
     pub show_minimap: bool,
     pub hl_line: bool,
     pub grid_bg: bool,
-	pub word_wrap: bool,
+    pub word_wrap: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
