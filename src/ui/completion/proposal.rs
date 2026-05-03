@@ -1,14 +1,12 @@
 use adw::subclass::prelude::*;
 use gtk::glib;
-use gtk::prelude::*;
-use sourceview5::CompletionProposal;
 use sourceview5::subclass::prelude::*;
 
 mod imp {
 
-    use std::sync::RwLock;
-
     use gtk::glib::Properties;
+    use sourceview5::CompletionProposal;
+    use std::sync::RwLock;
 
     use super::*;
     #[derive(Debug, Default, Properties)]
@@ -59,18 +57,18 @@ impl LspCompletionProposal {
     }
 
     pub fn label(&self) -> Option<String> {
-        (*self.imp().label.read().unwrap()).as_ref().map(|string| string.clone())
+        (*self.imp().label.read().unwrap()).clone()
     }
 
     pub fn comment(&self) -> Option<String> {
-        (*self.imp().comment.read().unwrap()).as_ref().map(|string| string.clone())
+        (*self.imp().comment.read().unwrap()).clone()
     }
 
     pub fn insert_text(&self) -> Option<String> {
-        (*self.imp().insert_text.read().unwrap()).as_ref().map(|string| string.clone())
+        (*self.imp().insert_text.read().unwrap()).clone()
     }
 
     pub fn icon(&self) -> Option<String> {
-        (*self.imp().icon.read().unwrap()).as_ref().map(|string| string.clone())
+        (*self.imp().icon.read().unwrap()).clone()
     }
 }
