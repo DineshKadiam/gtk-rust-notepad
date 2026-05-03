@@ -36,8 +36,6 @@ pub fn update(
             clone!(
                 #[strong]
                 file_sorter,
-                #[strong]
-                _file_popover,
                 move |file_object| {
                     if let Some(file_info) = file_object.downcast_ref::<FileInfo>()
                         && file_info.file_type() == gio::FileType::Directory
