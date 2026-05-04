@@ -49,8 +49,6 @@ i marked optional things with a question mark
 
 - Format on save
 
-- Fix completion replacement text
-
 - Sidebar:
   - Rename files
 

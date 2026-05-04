@@ -14,6 +14,7 @@ mod imp {
     pub struct LspCompletionProposal {
         pub label: RwLock<Option<String>>,
         pub comment: RwLock<Option<String>>,
+        pub comment_details: RwLock<Option<String>>,
         pub insert_text: RwLock<Option<String>>,
         pub icon: RwLock<Option<String>>,
     }
@@ -48,6 +49,10 @@ impl LspCompletionProposal {
         *self.imp().comment.write().unwrap() = Some(label.to_string())
     }
 
+    pub fn set_comment_details(&self, label: &str) {
+        *self.imp().comment_details.write().unwrap() = Some(label.to_string())
+    }
+
     pub fn set_insert_text(&self, insert_text: Option<String>) {
         *self.imp().insert_text.write().unwrap() = insert_text;
     }
@@ -62,6 +67,10 @@ impl LspCompletionProposal {
 
     pub fn comment(&self) -> Option<String> {
         (*self.imp().comment.read().unwrap()).clone()
+    }
+
+    pub fn comment_details(&self) -> Option<String> {
+        (*self.imp().comment_details.read().unwrap()).clone()
     }
 
     pub fn insert_text(&self) -> Option<String> {

@@ -13,8 +13,14 @@ use std::cell::RefCell;
 
 mod imp {
 
-    use async_lsp::lsp_types::{CompletionResponse, Position};
-    use gtk::pango::{AttrFontDesc, AttrList, FontDescription};
+    use async_lsp::lsp_types::{
+        CompletionResponse, CompletionTextEdit, Documentation, MarkupContent, MarkupKind, Position,
+        TextEdit,
+    };
+    use gtk::{
+        Align,
+        pango::{AttrFontDesc, AttrList, FontDescription},
+    };
 
     use crate::lsp;
 
@@ -73,7 +79,19 @@ mod imp {
                     cell.set_text(Some(&proposal.label().unwrap()));
                 }
                 sourceview5::CompletionColumn::Comment => {
-                    cell.set_text(Some(&proposal.comment().unwrap()));
+                    cell.set_text(Some(&proposal.comment().unwrap()))
+                }
+                sourceview5::CompletionColumn::Details => {
+                    let scroll_window = gtk::ScrolledWindow::new();
+                    let label = gtk::Label::new(None);
+                    label.set_markup(&proposal.comment_details().unwrap());
+                    scroll_window.set_child(Some(&label));
+                    cell.set_hexpand(true);
+                    cell.set_vexpand(true);
+                    cell.set_halign(Align::Fill);
+                    cell.set_valign(Align::Start);
+                    cell.set_height_request(256);
+                    cell.set_widget(&scroll_window);
                 }
                 _ => (),
             }
@@ -122,20 +140,49 @@ mod imp {
                         },
                     )
                     .await
-                    {
-                        for item in completion.items {
-                            let p = LspCompletionProposal::new();
-                            p.set_label(&item.label);
-                            p.set_comment(&item.detail.unwrap_or(item.label));
-                            p.set_insert_text(item.insert_text);
-                            p.set_icon(&if let Some(kind) = item.kind {
-                                format!("{:?}", kind).to_lowercase()
+                {
+                    for item in completion.items {
+                        let p = LspCompletionProposal::new();
+                        p.set_label(&item.label);
+                        p.set_comment(&item.detail.unwrap_or(item.label));
+                        p.set_comment_details(
+                            &item
+                                .documentation
+                                .map(|d| {
+                                    match d {
+                                        Documentation::String(val) => val,
+                                        Documentation::MarkupContent(MarkupContent {
+                                            kind: MarkupKind::PlainText,
+                                            value: val,
+                                        }) => val,
+                                        // TODO Convert Markdown to Pango markup
+                                        Documentation::MarkupContent(MarkupContent {
+                                            kind: MarkupKind::Markdown,
+                                            value: val,
+                                        }) => val,
+                                    }
+                                })
+                                .unwrap_or_default(),
+                        );
+                        p.set_insert_text(
+                            if let Some(CompletionTextEdit::Edit(TextEdit {
+                                range: _,
+                                new_text: insert_text,
+                            })) = item.text_edit
+                            {
+                                Some(insert_text)
                             } else {
-                                String::new()
-                            });
-                            list.append(&p);
-                        }
+                                item.insert_text
+                            },
+                        );
+                        p.set_icon(&if let Some(kind) = item.kind {
+                            format!("{:?}", kind).to_lowercase()
+                        } else {
+                            String::new()
+                        });
+                        list.append(&p);
                     }
+                }
                 // Search list
                 // TODO expression can be brought out
                 let expression = ClosureExpression::new::<String>(
