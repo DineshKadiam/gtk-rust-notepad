@@ -52,8 +52,6 @@ i marked optional things with a question mark
 - Sidebar:
   - Rename files
 
-- New terminal tabs -> in workspace folder
-
 - lsp integration:
   - code actions(?)
 

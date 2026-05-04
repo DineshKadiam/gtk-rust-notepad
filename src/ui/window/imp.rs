@@ -87,7 +87,7 @@ impl EditorWindow {
     pub fn new_terminal_tab(&self) -> TabPage {
         let term = TerminalView::new();
         let page = self.tab_view.add_page(&term, None);
-        term.setup(std::env::home_dir().unwrap().to_str().unwrap());
+        term.setup(self.workspace_uri.borrow().as_str());
         page.set_title(&EditorWindow::tab_name("Terminal", false));
         if page.is_selected() {
             self.window_title.set_title(&page.title());
