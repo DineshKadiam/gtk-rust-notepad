@@ -34,6 +34,8 @@ A lightweight, graphical text editor.
 - blueprint-compiler
 - Filesystem where files have forward instead of backward slashes
   - yeah I programmed file i/o like this and left it becuase I hate Windows and DOS..
+- glibc
+  - it breaks all the time on chimera linux and the answer is always "broken musl implementation"
 
 On Arch Linux, that looks like: `pacman -S rust gtksourceview5 libadwaita gtk4 libpanel vte4 blueprint-compiler`
 
