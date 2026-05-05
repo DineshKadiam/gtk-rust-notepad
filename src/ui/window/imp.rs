@@ -47,17 +47,6 @@ pub struct EditorWindow {
 }
 
 impl EditorWindow {
-    fn tab_name(full_path: &str, modified: bool) -> String {
-        let modified_string = if modified { " [+]" } else { "" };
-        let path_string = if !full_path.is_empty() {
-            full_path.split("/").last().unwrap()
-        } else {
-            "scratch"
-        }
-        .to_string();
-        path_string + modified_string
-    }
-
     pub fn reload_config(&self) {
         let cfg = Config::get_or_default();
         // Set theme variant
@@ -82,18 +71,6 @@ impl EditorWindow {
                 buffer.configure();
             }
         });
-    }
-
-    pub fn new_terminal_tab(&self) -> TabPage {
-        let term = TerminalView::new();
-        let page = self.tab_view.add_page(&term, None);
-        term.setup(self.workspace_uri.borrow().as_str());
-        page.set_title(&EditorWindow::tab_name("Terminal", false));
-        if page.is_selected() {
-            self.window_title.set_title(&page.title());
-        }
-        self.stack.set_visible_child_name("tabs");
-        page
     }
 
     pub fn new_tab(&self, path: Option<&str>) -> TabPage {
@@ -129,27 +106,32 @@ impl EditorWindow {
             lsp::file::open(path, self.workspace_uri.borrow().as_str());
         }
         // Add tab
-        page.set_title(&EditorWindow::tab_name(path.unwrap_or_default(), false));
+        page.set_title(&buffer_ui.short_name());
         if page.is_selected() {
             self.window_title.set_title(&page.title());
             buffer_ui.set_status(&self.workspace_uri.borrow());
         }
         // Connect modified
-        //buffer_ui.imp().source_view.connect_paste_clipboard(f)
-        buffer.connect_changed(clone!(
+        buffer.connect_modified_changed(clone!(
             #[strong]
             page,
+            #[strong]
+            buffer_ui,
             #[strong(rename_to=window_title)]
             self.window_title,
+            move |_| {
+                // Set title
+                page.set_title(&buffer_ui.short_name());
+                if page.is_selected() {
+                    window_title.set_title(&page.title());
+                }
+            }
+        ));
+        buffer.connect_changed(clone!(
             #[weak(rename_to=this)]
             self,
             move |buffer| {
                 if !buffer.is_loading() {
-                    // Set title
-                    page.set_title(&EditorWindow::tab_name(&buffer_ui.file_path(), true));
-                    if page.is_selected() {
-                        window_title.set_title(&page.title());
-                    }
                     // Update LSP
                     if !buffer_ui.file_path().is_empty() && !this.workspace_uri.borrow().is_empty()
                     {
@@ -168,99 +150,6 @@ impl EditorWindow {
         ));
         // Return page
         page
-    }
-
-    pub fn save_current_buffer(&self, save_as: bool) {
-        if let Some(page) = self.tab_view.selected_page()
-            && let Some(buffer) = page.child().downcast_ref::<Buffer>()
-        {
-            if buffer.file_path() == "" || save_as {
-                let old_path = buffer.file_path();
-                let workspace_uri = self.workspace_uri.borrow().clone();
-                gtk::FileDialog::new().save(
-                    Some::<&gtk::Window>(&self.obj().clone().into()),
-                    Some(&Cancellable::new()),
-                    clone!(
-                        #[strong]
-                        buffer,
-                        #[strong]
-                        page,
-                        #[weak(rename_to=window)]
-                        self,
-                        move |result| {
-                            if let Ok(file) = result {
-                                let file_name =
-                                    file.path().unwrap().to_str().unwrap().to_string().clone();
-                                // Set syntax highlighting
-                                if let Some(ref language) = sourceview5::LanguageManager::new()
-                                    .guess_language(Some(&file_name), None)
-                                {
-                                    buffer
-                                        .imp()
-                                        .source_view
-                                        .buffer()
-                                        .downcast_ref::<sourceview5::Buffer>()
-                                        .unwrap()
-                                        .set_language(Some(language));
-                                }
-                                // Set buffer path
-                                buffer.set_file_path(file_name.clone());
-                                // Set window/tab title
-                                page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
-                                if page.is_selected() {
-                                    // TODO clearly i should be able to simplify this right
-                                    window.window_title.set_title(&page.title());
-                                    buffer.set_status(&window.workspace_uri.borrow());
-                                }
-                                // Save
-                                glib::spawn_future_local(async move {
-                                    EditorWindow::save_buffer(&buffer).await;
-                                    if !old_path.is_empty() {
-                                        lsp::file::close(&old_path, &workspace_uri);
-                                    }
-                                    buffer.update_uri(&file_name, &workspace_uri);
-                                    lsp::file::open(&file_name, &workspace_uri);
-                                    lsp::file::change(&file_name, &workspace_uri, None);
-                                    lsp::file::save(&file_name, &workspace_uri);
-                                });
-                            }
-                        }
-                    ),
-                );
-            } else {
-                // UI stuff
-                page.set_title(&EditorWindow::tab_name(&buffer.file_path(), false));
-                if page.is_selected() {
-                    self.window_title.set_title(&page.title());
-                    buffer.set_status(&self.workspace_uri.borrow());
-                }
-                // Save
-                let workspace_uri = self.workspace_uri.borrow().clone();
-                let buffer = buffer.clone();
-                glib::spawn_future_local(async move {
-                    // Save, and then...
-                    EditorWindow::save_buffer(&buffer).await;
-                    // Tell LSP file was modified
-                    lsp::file::change(&buffer.file_path(), &workspace_uri, None);
-                    lsp::file::save(&buffer.file_path(), &workspace_uri);
-                });
-            }
-        }
-    }
-
-    async fn save_buffer(buffer: &Buffer) {
-        let file = gio::File::for_path(buffer.file_path());
-        let file = sourceview5::File::builder().location(&file).build();
-        let save = sourceview5::FileSaver::new(
-            buffer
-                .imp()
-                .source_view
-                .buffer()
-                .downcast_ref::<sourceview5::Buffer>()
-                .unwrap(),
-            &file,
-        );
-        save.save_future(glib::Priority::default()).0.await.unwrap();
     }
 
     /// Set up displaying diagnostics for files

@@ -68,6 +68,7 @@ i marked optional things with a question mark
 
 - Sidebar:
   - Rename files
+  - Rename/delete: Check for open tabs, and close them first
 
 - lsp integration:
   - code actions(?)

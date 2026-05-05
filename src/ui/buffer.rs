@@ -1,3 +1,7 @@
+use adw::AlertDialog;
+use adw::ResponseAppearance;
+use adw::TabPage;
+use adw::prelude::*;
 use adw::subclass::prelude::*;
 use async_lsp::lsp_types::DiagnosticSeverity;
 use async_lsp::lsp_types::Range;
@@ -27,6 +31,7 @@ use gtk::{
 
 use crate::config::Config;
 use crate::ui::completion::provider::LspCompletionProvider;
+use crate::ui::window::EditorWindow;
 use crate::utils;
 
 mod imp {
@@ -85,9 +90,11 @@ mod imp {
                 move |_controller, x, y| {
                     if !*this.pin_mmap.borrow()
                         && coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
-                            && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
-                            && let Some(old) = this.mmap_timer.borrow_mut().replace(
-                                glib::timeout_add_seconds_local(
+                        && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
+                        && let Some(old) =
+                            this.mmap_timer
+                                .borrow_mut()
+                                .replace(glib::timeout_add_seconds_local(
                                     1,
                                     clone!(
                                         #[strong]
@@ -100,12 +107,11 @@ mod imp {
                                             ControlFlow::Break
                                         }
                                     ),
-                                ),
-                            )
-                        {
-                            revealer.set_reveal_child(true);
-                            old.remove();
-                        }
+                                ))
+                    {
+                        revealer.set_reveal_child(true);
+                        old.remove();
+                    }
                 }
             ));
             motion_controller.connect_leave(clone!(
@@ -160,17 +166,80 @@ impl Buffer {
         widget
     }
 
-    /// Clear diagnostics
-    pub fn clear_diagnostics(&self) {
-        self.imp().diagnostic_provider.borrow().remove_all();
-        // Clear tags
-        let buffer = self
-            .imp()
+    /// Gets the short name of the buffer.
+    pub fn short_name(&self) -> String {
+        let path_string = if !self.file_path().is_empty() {
+            self.file_path().split("/").last().unwrap().to_string()
+        } else {
+            "scratch".to_string()
+        };
+        path_string
+            + if self.get_sourceview_buffer().is_modified() {
+                " [+]"
+            } else {
+                ""
+            }
+    }
+
+    /// Closes buffer. Returns true if a close action should be propagated to the tab.
+    pub fn close_buffer(&self, window: EditorWindow, page: TabPage) -> bool {
+        // Prompt if tab is not saved
+        if self.get_sourceview_buffer().is_modified() {
+            let dialog = AlertDialog::new(
+                Some("Really close?"),
+                Some(&format!(
+                    "Tab \"{}\" contains unsaved data...",
+                    self.short_name()
+                )),
+            );
+            dialog.add_responses(&[("cancel", "_Cancel"), ("confirm", "_Close")]);
+            dialog.set_response_appearance("confirm", ResponseAppearance::Destructive);
+            dialog.set_default_response(Some("cancel"));
+            dialog.set_close_response("cancel");
+            dialog.connect_response(
+                Some("confirm"),
+                clone!(
+                    #[strong(rename_to=tab_view)]
+                    window.imp().tab_view,
+                    #[strong]
+                    page,
+                    move |_, _| {
+                        tab_view.close_page_finish(&page, true);
+                    }
+                ),
+            );
+            dialog.connect_response(
+                Some("cancel"),
+                clone!(
+                    #[strong(rename_to=tab_view)]
+                    window.imp().tab_view,
+                    move |_, _| {
+                        tab_view.close_page_finish(&page, false);
+                    }
+                ),
+            );
+            adw::prelude::AdwDialogExt::present(&dialog, Some::<&gtk::Window>(&window.into()));
+            false
+        } else {
+            true
+        }
+    }
+
+    /// Returns the sourceview5 buffer from self.source_view
+    pub fn get_sourceview_buffer(&self) -> sourceview5::Buffer {
+        self.imp()
             .source_view
             .buffer()
             .downcast_ref::<sourceview5::Buffer>()
             .unwrap()
-            .clone();
+            .clone()
+    }
+
+    /// Clear diagnostics
+    pub fn clear_diagnostics(&self) {
+        self.imp().diagnostic_provider.borrow().remove_all();
+        // Clear tags
+        let buffer = self.get_sourceview_buffer();
         let bounds = buffer.bounds();
         {
             let mut exists = false;
@@ -217,13 +286,7 @@ impl Buffer {
                 ));
         }
         // Add tag
-        let buffer = self
-            .imp()
-            .source_view
-            .buffer()
-            .downcast_ref::<sourceview5::Buffer>()
-            .unwrap()
-            .clone();
+        let buffer = self.get_sourceview_buffer();
         if let Some(start) =
             buffer.iter_at_line_offset(range.start.line as i32, range.start.character as i32)
             && let Some(end) =
@@ -244,13 +307,7 @@ impl Buffer {
 
     /// Sets information in the statusbar
     pub fn set_status(&self, workspace_dir: &str) {
-        let buffer = self
-            .imp()
-            .source_view
-            .buffer()
-            .downcast_ref::<sourceview5::Buffer>()
-            .unwrap()
-            .clone();
+        let buffer = self.get_sourceview_buffer();
         let path = if self.file_path().is_empty() {
             "[scratch]".to_string()
         } else {
@@ -274,13 +331,7 @@ impl Buffer {
     /// Update self based on config file
     pub fn configure(&self) {
         let config = Config::get_or_default();
-        let buffer = self
-            .imp()
-            .source_view
-            .buffer()
-            .downcast_ref::<sourceview5::Buffer>()
-            .unwrap()
-            .clone();
+        let buffer = self.get_sourceview_buffer();
         if let Some(ref scheme) = StyleSchemeManager::new().scheme(&config.ui.theme) {
             if adw::StyleManager::default().is_dark() {
                 buffer.set_style_scheme(Some(&utils::scheme::dark(scheme)));
@@ -315,13 +366,7 @@ impl Buffer {
     }
 
     pub fn search(&self, query: &str, direction: SearchDirection) -> Result<(), Error> {
-        let buffer = self
-            .imp()
-            .source_view
-            .buffer()
-            .downcast_ref::<sourceview5::Buffer>()
-            .unwrap()
-            .clone();
+        let buffer = self.get_sourceview_buffer();
         let bounds = buffer.bounds();
         let mut cursor_pos = bounds.0;
         cursor_pos.forward_chars(match direction {
