@@ -188,10 +188,11 @@ impl Buffer {
             let dialog = AlertDialog::new(
                 Some("Really close?"),
                 Some(&format!(
-                    "Tab \"{}\" contains unsaved data...",
+                    "<tt>{}</tt> contains unsaved data.",
                     self.short_name()
                 )),
             );
+            dialog.set_body_use_markup(true);
             dialog.add_responses(&[("cancel", "_Cancel"), ("confirm", "_Close")]);
             dialog.set_response_appearance("confirm", ResponseAppearance::Destructive);
             dialog.set_default_response(Some("cancel"));

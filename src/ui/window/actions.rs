@@ -201,10 +201,11 @@ pub fn tree_delete_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Vari
         let dialog = AlertDialog::new(
             Some("Delete file..."),
             Some(&format!(
-                "Do you really want to delete the file at {}? It will be gone forever (a very long time).",
-                path
+                "Really delete <tt>{}</tt>?\n<b>It will be gone forever (a very long time).</b>",
+                path.replace(std::env::home_dir().unwrap().to_str().unwrap(), "~")
             )),
         );
+        dialog.set_body_use_markup(true);
         let window: &gtk::Window = &window.clone().into();
         dialog.add_responses(&[("cancel", "_Cancel"), ("confirm", "_Delete")]);
         dialog.set_response_appearance("confirm", ResponseAppearance::Destructive);
