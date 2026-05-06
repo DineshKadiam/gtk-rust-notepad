@@ -3,15 +3,23 @@ using Adw 1;
 
 template $Sidebar: Adw.Bin {
     PopoverMenu folder_popover {
+        position: right;
         menu-model: menu {
-            item (_("Open folder"), "win.tree.open_folder")
-            item (_("Toggle expanded"), "win.tree.toggle_expand")
-            item (_("New file"), "win.tree.new_file")
+            section {
+                item (_("New file…"), "win.tree.new_file")
+                item (_("Rename"), "win.tree.rename_file")
+            }
+            section {
+                item (_("Open folder"), "win.tree.open_folder")
+                item (_("Toggle expanded"), "win.tree.toggle_expand")
+            }
         };
     }
 
     PopoverMenu file_popover {
+        position: right;
         menu-model: menu {
+            item (_("New file…"), "win.tree.new_file")
             item (_("Rename"), "win.tree.rename_file")
             item (_("Delete"), "win.tree.delete_file")
         };

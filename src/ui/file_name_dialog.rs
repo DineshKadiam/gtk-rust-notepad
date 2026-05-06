@@ -4,8 +4,11 @@ use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::glib::{self, clone};
 use std::cell::RefCell;
+use std::path::Path;
 
 mod imp {
+
+    use std::path::Path;
 
     use super::*;
 
@@ -76,16 +79,22 @@ mod imp {
                 move |_| {
                     let binding = this.entry.text();
                     let filename = binding.trim();
+                    let mut path = Path::new(&this.path.borrow().clone().unwrap()).to_path_buf();
                     if !filename.is_empty() {
                         match *this.kind.borrow() {
-                            super::Kind::Rename => println!("rename"),
-                            super::Kind::Create => {
-                                std::fs::File::create(format!(
-                                    "{}/{}",
+                            super::Kind::Rename => {
+                                std::fs::rename(
                                     this.path.borrow().clone().unwrap(),
-                                    filename
-                                ))
+                                    path.parent().unwrap().join(filename).to_str().unwrap(),
+                                )
                                 .unwrap();
+                            }
+                            super::Kind::Create => {
+                                if path.is_file() {
+                                    path = path.parent().unwrap().to_path_buf();
+                                }
+                                std::fs::File::create(path.join(filename).to_str().unwrap())
+                                    .unwrap();
                             }
                         }
                         adw::prelude::AdwDialogExt::close(&this.obj().clone());
@@ -120,6 +129,16 @@ impl FileNameDialog {
             Kind::Rename => "Rename file…",
             Kind::Create => "Create file…",
         });
+        match kind {
+            Kind::Rename => {
+                let path = Path::new(path).to_path_buf();
+                dialog
+                    .imp()
+                    .entry
+                    .set_text(path.file_name().unwrap().to_str().unwrap());
+            }
+            _ => (),
+        }
         dialog.imp().kind.replace(kind);
         dialog.imp().path.replace(Some(path.to_string()));
         dialog

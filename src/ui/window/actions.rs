@@ -191,6 +191,19 @@ pub fn tree_new_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant
     }
 }
 
+/// Rename file/folder in file tree
+pub fn tree_rename(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+        // Unparent popover (if exists)
+        window.imp().sidebar.imp().folder_popover.unparent();
+        window.imp().sidebar.imp().file_popover.unparent();
+        // Show dialog
+        let dialog = file_name_dialog::FileNameDialog::new(file_name_dialog::Kind::Rename, &path);
+        let window: &gtk::Window = &window.clone().into();
+        adw::prelude::AdwDialogExt::present(&dialog, Some(window));
+    }
+}
+
 /// Delete file from file tree
 pub fn tree_delete_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     if let Some(path) = window.imp().sidebar.get_selected_folder() {

@@ -54,6 +54,7 @@ impl EditorWindow {
             new_entry!("tab.new_terminal", None, tab_term),
             new_entry!("tab.close", None, tab_close),
             new_entry!("tree.delete_file", None, tree_delete_file),
+            new_entry!("tree.rename_file", None, tree_rename),
             new_entry!("tree.new_file", None, tree_new_file),
             new_entry!("tree.open_folder", None, tree_open_folder),
             new_entry!("tree.toggle_expand", None, tree_toggle_expand),

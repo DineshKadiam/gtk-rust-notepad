@@ -69,7 +69,9 @@ pub fn update(
             .set_child(Some(
                 &TreeExpander::builder()
                     .child(&container)
-                    // .hide_expander(true)
+                    .hide_expander(true)
+                    .indent_for_icon(false)
+                    .margin_start(8)
                     .build(),
             ));
     });
@@ -183,6 +185,7 @@ pub fn update(
         let container = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         let label = Label::new(None);
         label.set_ellipsize(gtk::pango::EllipsizeMode::Middle);
+        container.set_margin_start(8);
         container.append(&Image::new());
         container.append(&label);
         list_item
@@ -269,6 +272,7 @@ pub fn set_search_list(file_list_view: &ListView, dir_path: &str) {
     let filter = StringFilter::new(Some(expression));
     let filter_model = FilterListModel::new(Some(list_model_expanded.clone()), Some(filter));
 
+    filter_model.set_incremental(true);
     file_list_view.set_model(Some(&SingleSelection::new(Some(filter_model))));
 }
 
