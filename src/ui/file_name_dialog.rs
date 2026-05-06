@@ -14,7 +14,12 @@ mod imp {
     #[properties(wrapper_type = super::FileNameDialog)]
     pub struct FileNameDialog {
         #[template_child]
+        pub title: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub apply_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub entry: TemplateChild<gtk::Entry>,
+
         pub kind: RefCell<super::Kind>,
         pub path: RefCell<Option<String>>,
     }
@@ -38,11 +43,38 @@ mod imp {
     impl ObjectImpl for FileNameDialog {
         fn constructed(&self) {
             self.parent_constructed();
+            // AAAAAAA (this just sets the button to be disabled by default. nothing else works)
+            self.apply_button.connect_sensitive_notify(clone!(
+                #[weak(rename_to=entry)]
+                self.entry,
+                move |btn| {
+                    btn.set_sensitive(btn.get_sensitive() && !entry.text().is_empty());
+                }
+            ));
+            // Hitting enter on the entry activates the "Apply" button
             self.entry.connect_activate(clone!(
+                #[weak(rename_to=btn)]
+                self.apply_button,
+                move |_| {
+                    btn.activate();
+                }
+            ));
+            // Typing a valid string makes the apply button sensitive
+            self.entry.connect_changed(clone!(
+                #[weak(rename_to=btn)]
+                self.apply_button,
+                move |entry| {
+                    btn.set_sensitive(
+                        !entry.text().trim().is_empty() && !entry.text().contains("/"),
+                    );
+                }
+            ));
+            // Connect the apply button
+            self.apply_button.connect_activate(clone!(
                 #[weak(rename_to=this)]
                 self,
-                move |entry| {
-                    let binding = entry.text();
+                move |_| {
+                    let binding = this.entry.text();
                     let filename = binding.trim();
                     if !filename.is_empty() {
                         match *this.kind.borrow() {
@@ -82,15 +114,14 @@ pub enum Kind {
 }
 
 impl FileNameDialog {
-    pub fn new() -> Self {
-        glib::Object::builder::<Self>().build()
-    }
-
-    pub fn set_kind(&self, kind: Kind) {
-        self.imp().kind.replace(kind);
-    }
-
-    pub fn set_path(&self, path: &str) {
-        self.imp().path.replace(Some(path.to_string()));
+    pub fn new(kind: Kind, path: &str) -> Self {
+        let dialog = glib::Object::builder::<Self>().build();
+        dialog.imp().title.set_label(match kind {
+            Kind::Rename => "Rename file…",
+            Kind::Create => "Create file…",
+        });
+        dialog.imp().kind.replace(kind);
+        dialog.imp().path.replace(Some(path.to_string()));
+        dialog
     }
 }

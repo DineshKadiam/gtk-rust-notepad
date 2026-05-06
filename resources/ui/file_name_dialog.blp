@@ -2,18 +2,58 @@ using Gtk 4.0;
 using Adw 1;
 
 template $FileNameDialog: Adw.Dialog {
-    title: _("Set file name…");
+    title: _("Create/rename file");
+    width-request: 300;
 
-    Adw.ToolbarView {
-        [top]
-        Adw.HeaderBar {}
+    Box {
+        orientation: vertical;
+        spacing: 24;
+        margin-start: 24;
+        margin-end: 24;
+        margin-top: 24;
+        margin-bottom: 24;
+
+        Label title {
+            styles[
+                "title-2"
+            ]
+            label: _("Set file name…");
+        }
 
         Entry entry {
             placeholder-text: _("File name");
-            margin-start: 16;
-            margin-end: 16;
-            margin-top: 16;
-            margin-bottom: 16;
+        }
+
+        Box {
+            orientation: horizontal;
+            spacing: 16;
+            height-request: 32;
+            homogeneous: true;
+            styles[
+                "response-area"
+            ]
+
+            Button {
+                styles[
+                    "text-button"
+                ]
+                hexpand: true;
+                vexpand: true;
+                action-name: "sheet.close";
+                label: _("Cancel");
+            }
+
+            Button apply_button {
+                styles[
+                    "suggested-action",
+                    "text-button"
+                ]
+                hexpand: true;
+                vexpand: true;
+                action-name: "default.activate";
+                sensitive: false;
+                label: _("Apply");
+            }
         }
     }
 }

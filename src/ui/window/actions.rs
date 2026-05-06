@@ -185,10 +185,8 @@ pub fn tree_toggle_expand(window: &EditorWindow, _: &SimpleAction, _: Option<&Va
 /// Create file from file tree
 pub fn tree_new_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     if let Some(path) = window.imp().sidebar.get_selected_folder() {
-        let dialog = file_name_dialog::FileNameDialog::new();
+        let dialog = file_name_dialog::FileNameDialog::new(file_name_dialog::Kind::Create, &path);
         let window: &gtk::Window = &window.clone().into();
-        dialog.set_kind(file_name_dialog::Kind::Create);
-        dialog.set_path(&path);
         adw::prelude::AdwDialogExt::present(&dialog, Some(window));
     }
 }
