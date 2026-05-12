@@ -48,6 +48,15 @@ pub fn tab_term(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     window.imp().stack.set_visible_child_name("tabs");
 }
 
+/// Reloads tab
+pub fn tab_reload(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    if let Some(page) = window.imp().tab_view.selected_page()
+        && let Some(buffer) = page.child().downcast_ref::<Buffer>()
+    {
+        buffer.reload_file();
+    }
+}
+
 /// Closes the current tab
 pub fn tab_close(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     if let Some(page) = window.imp().tab_view.selected_page() {
@@ -268,10 +277,10 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                                     .set_language(Some(language));
                             }
                             // Set buffer path
-                            buffer.set_file_path(file_name.clone());
-                            // Save
+                            buffer.set_file(&file_name);
+                            // Save -- TODO: move to buffer.save() ??? buffer.save_as/new/resave() ???
                             glib::spawn_future_local(async move {
-                                save_buffer(&buffer).await;
+                                buffer.write().await;
                                 if !old_path.is_empty() {
                                     lsp::file::close(&old_path, &workspace_uri);
                                 }
@@ -280,7 +289,7 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                                 lsp::file::change(&file_name, &workspace_uri, None);
                                 lsp::file::save(&file_name, &workspace_uri);
                                 // Set window/tab title
-                                page.set_title(&buffer.short_name());
+                                page.set_title(&buffer.tab_name());
                                 if page.is_selected() {
                                     // TODO clearly i should be able to simplify this right
                                     window.window_title.set_title(&page.title());
@@ -292,42 +301,7 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                 ),
             );
         } else {
-            // Save
-            let workspace_uri = window.workspace_uri.borrow().clone();
-            let buffer = buffer.clone();
-            glib::spawn_future_local(clone!(
-                #[weak]
-                window,
-                async move {
-                    // Save, and then...
-                    save_buffer(&buffer).await;
-                    // Tell LSP file was modified
-                    lsp::file::change(&buffer.file_path(), &workspace_uri, None);
-                    lsp::file::save(&buffer.file_path(), &workspace_uri);
-                    // Set window/tab title
-                    page.set_title(&buffer.short_name());
-                    if page.is_selected() {
-                        // TODO clearly i should be able to simplify this right
-                        window.window_title.set_title(&page.title());
-                        buffer.set_status(&window.workspace_uri.borrow());
-                    }
-                }
-            ));
+            buffer.try_save(&window.obj());
         }
     }
-}
-
-async fn save_buffer(buffer: &Buffer) {
-    let file = gio::File::for_path(buffer.file_path());
-    let file = sourceview5::File::builder().location(&file).build();
-    let save = sourceview5::FileSaver::new(
-        buffer
-            .imp()
-            .source_view
-            .buffer()
-            .downcast_ref::<sourceview5::Buffer>()
-            .unwrap(),
-        &file,
-    );
-    save.save_future(glib::Priority::default()).0.await.unwrap();
 }

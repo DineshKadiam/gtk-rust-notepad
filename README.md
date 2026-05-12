@@ -62,9 +62,13 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 
 i marked optional things with a question mark
 
-- Warn when documents change while editing them
-
 - Format on save
+
+- Cleaning/refactoring
+  - Clean up buffer.rs
+  - Clean alert dialogs/translatable strings?
+  - Move tab open/close to actions.rs or buffer.rs
+  - Get rid of buffer.file_name?
 
 - Sidebar:
   - Rename/delete: Check for open tabs, and close them first

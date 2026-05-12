@@ -8,12 +8,14 @@ use async_lsp::lsp_types::Range;
 use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::TextSearchFlags;
+use gtk::gio;
 use gtk::gio::Icon;
 use gtk::glib;
 use gtk::pango::Underline;
 use sourceview5::Annotation;
 use sourceview5::AnnotationProvider;
 use sourceview5::BackgroundPatternType;
+use sourceview5::FileSaverFlags;
 use sourceview5::StyleSchemeManager;
 use sourceview5::prelude::*;
 use std::cell::RefCell;
@@ -30,6 +32,7 @@ use gtk::{
 };
 
 use crate::config::Config;
+use crate::lsp;
 use crate::ui::completion::provider::LspCompletionProvider;
 use crate::ui::window::EditorWindow;
 use crate::utils;
@@ -52,8 +55,9 @@ mod imp {
         #[property(get, set)]
         pub diagnostic_provider: RefCell<AnnotationProvider>,
 
+        // Variables
         pub completion_provider: RefCell<Option<LspCompletionProvider>>,
-
+        pub file: RefCell<Option<sourceview5::File>>,
         pub mmap_timer: RefCell<Option<SourceId>>,
         pub pin_mmap: RefCell<bool>,
     }
@@ -166,19 +170,31 @@ impl Buffer {
         widget
     }
 
-    /// Gets the short name of the buffer.
-    pub fn short_name(&self) -> String {
-        let path_string = if !self.file_path().is_empty() {
+    /// Gets a sanitized, readable name for the buffer -- its path relative to the workspace directory.
+    pub fn clean_name(&self, workspace_dir: &str) -> String {
+        // TODO we can actually store this, and eliminate the need to borrow a workspace dir EVERY time
+        // store in Buffer::name()
+        if self.file_path().is_empty() {
+            "[scratch]".to_string()
+        } else {
+            self.file_path()
+                .replace(workspace_dir, "")
+                .trim_start_matches("/")
+                .to_string()
+        }
+    }
+
+    /// Gets the short name of the buffer, plus a string if it was modified.
+    pub fn tab_name(&self) -> String {
+        (if !self.file_path().is_empty() {
             self.file_path().split("/").last().unwrap().to_string()
         } else {
             "scratch".to_string()
-        };
-        path_string
-            + if self.get_sourceview_buffer().is_modified() {
-                " [+]"
-            } else {
-                ""
-            }
+        }) + if self.get_sourceview_buffer().is_modified() {
+            " [+]"
+        } else {
+            ""
+        }
     }
 
     /// Closes buffer. Returns true if a close action should be propagated to the tab.
@@ -189,7 +205,7 @@ impl Buffer {
                 Some("Really close?"),
                 Some(&format!(
                     "<tt>{}</tt> contains unsaved data.",
-                    self.short_name()
+                    self.clean_name(&window.imp().workspace_uri.borrow())
                 )),
             );
             dialog.set_body_use_markup(true);
@@ -309,14 +325,7 @@ impl Buffer {
     /// Sets information in the statusbar
     pub fn set_status(&self, workspace_dir: &str) {
         let buffer = self.get_sourceview_buffer();
-        let path = if self.file_path().is_empty() {
-            "[scratch]".to_string()
-        } else {
-            self.file_path()
-                .replace(workspace_dir, "")
-                .trim_start_matches("/")
-                .to_string()
-        };
+        let path = self.clean_name(workspace_dir);
         let lang = if let Some(lang) = buffer.language() {
             lang.name().to_string()
         } else {
@@ -440,6 +449,137 @@ impl Buffer {
             provider
                 .workspace_uri
                 .replace(Some(workspace_uri.to_owned()));
+        }
+    }
+
+    /// Loads a file from a path
+    pub fn load_file(&self, path: &str) {
+        let buffer = self.get_sourceview_buffer();
+        let file = sourceview5::File::builder()
+            .location(&gio::File::for_path(path))
+            .build();
+        let loader = sourceview5::FileLoader::new(&buffer, &file);
+        loader.load_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
+        // Set file instance
+        self.imp().file.replace(Some(file));
+        self.set_file_path(path);
+        // Set syntax highlighting
+        if let Some(ref language) =
+            sourceview5::LanguageManager::new().guess_language(Some(&path), None)
+        {
+            buffer.set_language(Some(language));
+        }
+    }
+
+    /// Reloads current file
+    pub fn reload_file(&self) {
+        let path = self.imp().file_path.borrow().clone();
+        self.load_file(&path);
+    }
+
+    /// Sets `file_path` and `file` without loading contents
+    pub fn set_file(&self, path: &str) {
+        let file = sourceview5::File::builder()
+            .location(&gio::File::for_path(path))
+            .build();
+        self.set_file_path(path);
+        self.imp().file.replace(Some(file));
+    }
+
+    /// Tries to save the file -- if there is a conflict (the file was edited externally), show an alert
+    pub fn try_save(&self, window: &EditorWindow) {
+        if let Some(ref file) = *self.imp().file.borrow() {
+            // Checks if file is externally modified
+            file.check_file_on_disk();
+            if file.is_externally_modified() {
+                let dialog = AlertDialog::new(
+                    Some("File modified..."),
+                    Some(&format!(
+                        "<tt>{}</tt> has been modified by an external program. Really save?",
+                        self.clean_name(&window.imp().workspace_uri.borrow().clone())
+                    )),
+                );
+                dialog.set_body_use_markup(true);
+                let gtk_window: &gtk::Window = &window.clone().into();
+                dialog.add_responses(&[
+                    ("cancel", "_Cancel"),
+                    ("save", "_Force save"),
+                    ("reload", "_Force reload"),
+                ]);
+                dialog.set_response_appearance("save", ResponseAppearance::Destructive);
+                dialog.set_response_appearance("reload", ResponseAppearance::Destructive);
+                dialog.set_default_response(Some("cancel"));
+                dialog.set_close_response("cancel");
+                dialog.connect_response(
+                    Some("save"),
+                    clone!(
+                        #[weak(rename_to=buffer)]
+                        self,
+                        #[strong]
+                        window,
+                        move |_, _| {
+                            buffer.save(&window);
+                        }
+                    ),
+                );
+                dialog.connect_response(
+                    Some("reload"),
+                    clone!(
+                        #[weak(rename_to=buffer)]
+                        self,
+                        move |_, _| {
+                            buffer.reload_file();
+                        }
+                    ),
+                );
+                adw::prelude::AdwDialogExt::present(&dialog, Some(gtk_window));
+            } else {
+                self.save(window);
+            }
+        }
+    }
+
+    /// Asynchronously writes the buffer to `Buffer::file_path` and updates both the associated window and LSP.
+    pub fn save(&self, window: &EditorWindow) {
+        let workspace_uri = window.imp().workspace_uri.borrow().clone();
+        glib::spawn_future_local(clone!(
+            #[weak]
+            window,
+            #[weak(rename_to=buffer)]
+            self,
+            async move {
+                let selected_page = window.imp().tab_view.selected_page();
+                // Save, and then...
+                buffer.write().await;
+                // Tell LSP file was modified
+                lsp::file::change(&buffer.file_path(), &workspace_uri, None);
+                lsp::file::save(&buffer.file_path(), &workspace_uri);
+                // Set window/tab title
+                if let Some(page) = selected_page {
+                    page.set_title(&buffer.tab_name());
+                    if page.is_selected() {
+                        // TODO clearly i should be able to simplify this right
+                        window.imp().window_title.set_title(&page.title());
+                        buffer.set_status(&window.imp().workspace_uri.borrow());
+                    }
+                }
+            }
+        ));
+    }
+
+    /// Force writes buffer to a file.
+    pub async fn write(&self) {
+        if let Some(ref file) = *self.imp().file.borrow() {
+            let save = sourceview5::FileSaver::new(
+                self.imp()
+                    .source_view
+                    .buffer()
+                    .downcast_ref::<sourceview5::Buffer>()
+                    .unwrap(),
+                file,
+            );
+            save.set_flags(FileSaverFlags::IGNORE_MODIFICATION_TIME);
+            save.save_future(glib::Priority::default()).0.await.unwrap();
         }
     }
 }

@@ -52,6 +52,7 @@ impl EditorWindow {
             new_entry!("tab.new", Some(VariantTy::STRING), tab_new),
             new_entry!("tab.new_scratch", None, tab_scratch),
             new_entry!("tab.new_terminal", None, tab_term),
+            new_entry!("tab.reload", None, tab_reload),
             new_entry!("tab.close", None, tab_close),
             new_entry!("tree.delete_file", None, tree_delete_file),
             new_entry!("tree.rename_file", None, tree_rename),

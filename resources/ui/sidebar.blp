@@ -26,6 +26,8 @@ template $Sidebar: Adw.Bin {
     }
 
     Adw.ToolbarView {
+        top-bar-style: raised_border;
+
         [top]
         Adw.HeaderBar {
             title-widget: Adw.WindowTitle sidebar_title {
@@ -53,6 +55,11 @@ template $Sidebar: Adw.Bin {
                         item {
                             label: _("New scratch buffer");
                             action: "win.tab.new_scratch";
+                        }
+
+                        item {
+                            label: _("Reload buffer");
+                            action: "win.tab.reload";
                         }
 
                         item {

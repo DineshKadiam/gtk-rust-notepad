@@ -90,23 +90,14 @@ impl EditorWindow {
         buffer_ui.configure();
         // Files
         if let Some(path) = path {
-            let file = gio::File::for_path(path);
-            let file = sourceview5::File::builder().location(&file).build();
-            let loader = sourceview5::FileLoader::new(&buffer, &file);
-            loader.load_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
-            // Set syntax highlighting
-            if let Some(ref language) =
-                sourceview5::LanguageManager::new().guess_language(Some(&path), None)
-            {
-                buffer.set_language(Some(language));
-            }
+            buffer_ui.load_file(path);
         }
         // LSP servers
         if let Some(path) = path {
             lsp::file::open(path, self.workspace_uri.borrow().as_str());
         }
         // Add tab
-        page.set_title(&buffer_ui.short_name());
+        page.set_title(&buffer_ui.tab_name());
         if page.is_selected() {
             self.window_title.set_title(&page.title());
             buffer_ui.set_status(&self.workspace_uri.borrow());
@@ -121,7 +112,7 @@ impl EditorWindow {
             self.window_title,
             move |_| {
                 // Set title
-                page.set_title(&buffer_ui.short_name());
+                page.set_title(&buffer_ui.tab_name());
                 if page.is_selected() {
                     window_title.set_title(&page.title());
                 }
