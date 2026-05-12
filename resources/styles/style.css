@@ -158,3 +158,15 @@ GtkSourceAssistant.completion box > * {
 cell.details {
     font-family: Sans;
 }
+
+/* Flat (sharp corners) window styling */
+.flat button,
+.flat button *,
+.flat row,
+.flat popover *,
+.flat window,
+.flat sheet,
+.flat list,
+.flat tabbox * {
+  border-radius: 4px;
+}

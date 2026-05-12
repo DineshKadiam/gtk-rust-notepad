@@ -55,6 +55,12 @@ impl EditorWindow {
             crate::config::ThemeVariant::Light => adw::ColorScheme::ForceLight,
             crate::config::ThemeVariant::Dark => adw::ColorScheme::ForceDark,
         });
+        // Round corners (also a theme thing)
+        if cfg.ui.flat_corners {
+            self.obj().add_css_class("flat");
+        } else if self.obj().has_css_class("flat") {
+            self.obj().remove_css_class("flat");
+        }
         // Set theme
         if let Some(ref scheme) = StyleSchemeManager::new().scheme(&cfg.ui.theme) {
             let scheme = if adw::StyleManager::default().is_dark() {

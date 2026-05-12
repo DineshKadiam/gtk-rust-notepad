@@ -19,6 +19,7 @@ pub struct UI {
     pub hl_line: bool,
     pub grid_bg: bool,
     pub word_wrap: bool,
+    pub flat_corners: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -59,6 +60,7 @@ impl Default for UI {
             hl_line: true,
             grid_bg: false,
             word_wrap: false,
+            flat_corners: false,
         }
     }
 }
