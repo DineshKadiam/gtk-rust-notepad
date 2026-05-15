@@ -160,11 +160,11 @@ cell.details {
 }
 
 /* Flat (sharp corners) window styling */
+window.flat,
 .flat button,
 .flat button *,
 .flat row,
 .flat popover *,
-.flat window,
 .flat sheet,
 .flat list,
 .flat tabbox * {
