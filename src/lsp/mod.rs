@@ -1,3 +1,4 @@
+use std::collections::hash_map::Entry;
 use std::fs;
 use std::hash::{BuildHasherDefault, DefaultHasher};
 use std::ops::ControlFlow;
@@ -45,6 +46,9 @@ pub static DIAG_SENDERS: Senders<PublishDiagnosticsParams> = RwLock::new(Vec::ne
 /// File ops (fops 🦊)
 pub mod file;
 
+/// Errors...
+pub mod error;
+
 /// 2a. Create LSP server
 struct ClientState;
 struct Stop;
@@ -58,7 +62,7 @@ pub fn listen_diagnostics() -> Receiver<PublishDiagnosticsParams> {
 
 /// Creates a new language server instance (e.g. spawns a command and main loop) and returns a socket to that instance.
 /// Most of the code here is taken from the async_lsp example; I should probably clean it up a bit...
-async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
+async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSocket> {
     let (mainloop, mut server) = async_lsp::MainLoop::new_client(|_server| {
         let mut router = Router::new(ClientState);
         router
@@ -97,8 +101,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
-        .spawn()
-        .unwrap_or_else(|_| panic!("Failed to run language server {}", &command[0]));
+        .spawn()?;
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
 
@@ -127,7 +130,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> ServerSocket {
         .unwrap();
     server.initialized(InitializedParams {}).unwrap();
 
-    server
+    Ok(server)
 }
 
 /// 3. Request THINGS from an LSP given a file's URI (and workspace URI).
@@ -152,29 +155,36 @@ pub fn lookup_lsp(uri: &str) -> (String, String) {
     (String::new(), String::new())
 }
 
-pub fn get_server(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {
+pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error::Error> {
     let (lsp_command, _) = lookup_lsp(uri);
     if !lsp_command.is_empty() {
-        // Get or create LSP
         let mut a = SERVERS.write().unwrap();
-        let mut server = a
-            .entry(lsp_command.to_string())
-            .or_insert_with(|| RT.block_on(new_lsp(workspace_uri, &lsp_command)))
-            .clone();
-        // If server exists but different workspace, add workspace to lsp
-        server
-            .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
-                event: WorkspaceFoldersChangeEvent {
-                    added: vec![WorkspaceFolder {
-                        uri: Url::from_file_path(workspace_uri).unwrap(),
-                        name: "root".into(),
-                    }],
-                    removed: vec![],
-                },
-            })
-            .unwrap();
-        Some(server)
+        match a.entry(lsp_command.to_string()) {
+            Entry::Vacant(entry) => match RT.block_on(new_lsp(workspace_uri, &lsp_command)) {
+                Ok(server) => Ok(entry.insert(server).clone()),
+                Err(err) => {
+                    if let std::io::ErrorKind::NotFound = err.kind() {
+                        Err(error::Error::LspNotFound(lsp_command))
+                    } else {
+                        Err(error::Error::LspFailed(lsp_command))
+                    }
+                }
+            },
+            Entry::Occupied(mut entry) => {
+                let mut server = entry.get_mut().clone();
+                server.did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
+                    event: WorkspaceFoldersChangeEvent {
+                        added: vec![WorkspaceFolder {
+                            uri: Url::from_file_path(workspace_uri).unwrap(),
+                            name: "root".into(),
+                        }],
+                        removed: vec![],
+                    },
+                });
+                Ok(server)
+            }
+        }
     } else {
-        None
+        Err(error::Error::LspNotConfigured(uri.to_string()))
     }
 }
