@@ -10,8 +10,8 @@ pub async fn completion(
     workspace_uri: &str,
     position: Position,
 ) -> Option<CompletionResponse> {
-    if let Some(mut server) = get_server(uri, workspace_uri) {
-        server
+    match get_server(uri, workspace_uri) {
+        Ok(mut server) => server
             .completion(CompletionParams {
                 text_document_position: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier {
@@ -24,8 +24,10 @@ pub async fn completion(
                 context: None,
             })
             .await
-            .unwrap()
-    } else {
-        None
+            .unwrap(),
+        Err(error) => {
+            eprintln!("{}", error);
+            None
+        }
     }
 }

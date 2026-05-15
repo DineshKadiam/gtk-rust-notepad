@@ -172,15 +172,17 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
             },
             Entry::Occupied(mut entry) => {
                 let mut server = entry.get_mut().clone();
-                server.did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
-                    event: WorkspaceFoldersChangeEvent {
-                        added: vec![WorkspaceFolder {
-                            uri: Url::from_file_path(workspace_uri).unwrap(),
-                            name: "root".into(),
-                        }],
-                        removed: vec![],
-                    },
-                });
+                server
+                    .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
+                        event: WorkspaceFoldersChangeEvent {
+                            added: vec![WorkspaceFolder {
+                                uri: Url::from_file_path(workspace_uri).unwrap(),
+                                name: "root".into(),
+                            }],
+                            removed: vec![],
+                        },
+                    })
+                    .unwrap();
                 Ok(server)
             }
         }
