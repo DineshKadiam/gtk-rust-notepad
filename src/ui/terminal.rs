@@ -72,6 +72,8 @@ macro_rules! get_color {
     };
 }
 
+const DEFAULT_SCHEME_DARK = include_str!("../../resources/styles/TERM_DEFAULT_DARK");
+
 impl TerminalView {
     pub fn setup(&self, folder: &str) {
         self.imp().terminal.reset(true, true);
@@ -93,7 +95,7 @@ impl TerminalView {
         let foreground = get_color!(scheme, "term:fg")
             .unwrap_or((RGBA::parse("#c0bfbc").unwrap(), RGBA::TRANSPARENT));
         let background = get_color!(scheme, "term:bg")
-            .unwrap_or((RGBA::parse("#1d1d20").unwrap(), RGBA::TRANSPARENT));
+            .unwrap_or((RGBA::TRANSPARENT, RGBA::TRANSPARENT));
         let black = get_color!(scheme, "term:black").unwrap_or((
             RGBA::parse("#5d5d5d").unwrap(),
             RGBA::parse("#1e1e1e").unwrap(),
