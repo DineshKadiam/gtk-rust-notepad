@@ -99,9 +99,10 @@ impl PreferencesDialog {
                 crate::config::ThemeVariant::Light => 1,
                 crate::config::ThemeVariant::Dark => 2,
             });
-        self.imp()
-            .theme_variant
-            .connect_selected_notify(|theme_variant| {
+        self.imp().theme_variant.connect_selected_notify(clone!(
+            #[weak(rename_to=this)]
+            self,
+            move |theme_variant| {
                 let mut config = Config::get_or_default();
                 config.ui.theme_variant = match theme_variant.selected() {
                     1 => crate::config::ThemeVariant::Light,
@@ -112,7 +113,9 @@ impl PreferencesDialog {
                 theme_variant
                     .activate_action("win.reload_config", None)
                     .unwrap();
-            });
+                this.update_colorschemes(&config);
+            }
+        ));
         // Present
         AdwDialogExt::present(self, Some(window));
     }
