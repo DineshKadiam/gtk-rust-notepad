@@ -9,6 +9,12 @@ use vte4::PtyFlags;
 use vte4::Terminal;
 use vte4::prelude::*;
 
+use crate::utils;
+
+const DEFAULT_SCHEME_DARK: &'static str = include_str!("../../resources/styles/TERM_DEFAULT_DARK");
+const DEFAULT_SCHEME_LIGHT: &'static str =
+    include_str!("../../resources/styles/TERM_DEFAULT_LIGHT");
+
 mod imp {
 
     use super::*;
@@ -72,8 +78,6 @@ macro_rules! get_color {
     };
 }
 
-const DEFAULT_SCHEME_DARK = include_str!("../../resources/styles/TERM_DEFAULT_DARK");
-
 impl TerminalView {
     pub fn setup(&self, folder: &str) {
         self.imp().terminal.reset(true, true);
@@ -91,43 +95,32 @@ impl TerminalView {
     }
 
     pub fn set_palette(&self, scheme: &sourceview5::StyleScheme) {
+        let fallback = if utils::scheme::is_dark(scheme).is_some_and(|d| d) {
+            DEFAULT_SCHEME_DARK
+        } else {
+            DEFAULT_SCHEME_LIGHT
+        }
+        .split("\n")
+        .map(|color| {
+            if color.len() >= 7 {
+                RGBA::parse(&color[..7]).unwrap()
+            } else {
+                RGBA::TRANSPARENT
+            }
+        })
+        .collect::<Vec<RGBA>>();
         // Custom color definitions with a hard-coded fallback (adwaita light theme)
-        let foreground = get_color!(scheme, "term:fg")
-            .unwrap_or((RGBA::parse("#c0bfbc").unwrap(), RGBA::TRANSPARENT));
-        let background = get_color!(scheme, "term:bg")
-            .unwrap_or((RGBA::TRANSPARENT, RGBA::TRANSPARENT));
-        let black = get_color!(scheme, "term:black").unwrap_or((
-            RGBA::parse("#5d5d5d").unwrap(),
-            RGBA::parse("#1e1e1e").unwrap(),
-        ));
-        let red = get_color!(scheme, "term:red").unwrap_or((
-            RGBA::parse("#f66151").unwrap(),
-            RGBA::parse("#c01c28").unwrap(),
-        ));
-        let green = get_color!(scheme, "term:green").unwrap_or((
-            RGBA::parse("#33d17a").unwrap(),
-            RGBA::parse("#26a269").unwrap(),
-        ));
-        let yellow = get_color!(scheme, "term:yellow").unwrap_or((
-            RGBA::parse("#e9ad0c").unwrap(),
-            RGBA::parse("#a2734c").unwrap(),
-        ));
-        let blue = get_color!(scheme, "term:blue").unwrap_or((
-            RGBA::parse("#2a7bde").unwrap(),
-            RGBA::parse("#12488b").unwrap(),
-        ));
-        let magenta = get_color!(scheme, "term:magenta").unwrap_or((
-            RGBA::parse("#c061cb").unwrap(),
-            RGBA::parse("#a347ba").unwrap(),
-        ));
-        let teal = get_color!(scheme, "term:teal").unwrap_or((
-            RGBA::parse("#33c7de").unwrap(),
-            RGBA::parse("#2aa1b3").unwrap(),
-        ));
-        let white = get_color!(scheme, "term:white").unwrap_or((
-            RGBA::parse("#ffffff").unwrap(),
-            RGBA::parse("#cfcfcf").unwrap(),
-        ));
+        let foreground = get_color!(scheme, "term:fg").unwrap_or((fallback[0], RGBA::TRANSPARENT));
+        let background =
+            get_color!(scheme, "term:bg").unwrap_or((RGBA::TRANSPARENT, RGBA::TRANSPARENT));
+        let black = get_color!(scheme, "term:black").unwrap_or((fallback[2], fallback[3]));
+        let red = get_color!(scheme, "term:red").unwrap_or((fallback[4], fallback[5]));
+        let green = get_color!(scheme, "term:green").unwrap_or((fallback[6], fallback[7]));
+        let yellow = get_color!(scheme, "term:yellow").unwrap_or((fallback[8], fallback[9]));
+        let blue = get_color!(scheme, "term:blue").unwrap_or((fallback[10], fallback[11]));
+        let magenta = get_color!(scheme, "term:magenta").unwrap_or((fallback[12], fallback[13]));
+        let teal = get_color!(scheme, "term:teal").unwrap_or((fallback[14], fallback[15]));
+        let white = get_color!(scheme, "term:white").unwrap_or((fallback[16], fallback[17]));
 
         // Set colors
         self.imp().terminal.set_colors(

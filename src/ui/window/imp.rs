@@ -68,13 +68,22 @@ impl EditorWindow {
             } else {
                 scheme
             };
+            // Built in terminal
+            self.terminal_view.set_palette(scheme);
+            // Style
             self.accent_style
                 .borrow()
                 .load_from_string(&utils::recolor::generate_css(scheme.clone()));
         }
         self.tab_view.pages().iter::<TabPage>().for_each(|page| {
-            if let Some(buffer) = page.unwrap().child().downcast_ref::<Buffer>() {
-                buffer.configure();
+            if let Ok(page) = page {
+                if let Some(buffer) = page.child().downcast_ref::<Buffer>() {
+                    buffer.configure();
+                } else if let Some(term) = page.child().downcast_ref::<TerminalView>()
+                    && let Some(ref scheme) = StyleSchemeManager::new().scheme(&cfg.ui.theme)
+                {
+                    term.set_palette(scheme);
+                }
             }
         });
     }

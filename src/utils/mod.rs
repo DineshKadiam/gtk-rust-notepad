@@ -21,8 +21,8 @@ pub(crate) mod scheme {
 
     pub fn is_dark(scheme: &StyleScheme) -> Option<bool> {
         if let Some(variant) = scheme.metadata("variant") {
-            Some(variant.contains("dark"))
-        } else if scheme.name().contains("dark") {
+            Some(variant.to_lowercase().contains("dark"))
+        } else if scheme.name().to_lowercase().contains("dark") {
             Some(true)
         } else {
             None
@@ -32,13 +32,12 @@ pub(crate) mod scheme {
     /// Gets the dark variant of a StyleScheme or the scheme itself if it doesn't have a dark variant
     pub fn dark(scheme: &StyleScheme) -> StyleScheme {
         if let Some(dark) = is_dark(scheme)
+            && let Some(dark_variant) = scheme.metadata("dark-variant")
             && !dark
-            && scheme.metadata("dark-variant").is_some()
         {
             // is a light variant
-            StyleSchemeManager::default()
-                .scheme(&scheme.metadata("dark-variant").unwrap())
-                .unwrap()
+            println!("{dark_variant}");
+            StyleSchemeManager::default().scheme(&dark_variant).unwrap()
         } else {
             scheme.clone()
         }

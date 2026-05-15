@@ -1,5 +1,5 @@
 #c0bfbc // Text foreground
-        // Text background (unused)
+#1e1e1e // Text background (unused)
 #5d5d5d // Black light
 #1e1e1e // Black dark
 #f66151 // Red light
