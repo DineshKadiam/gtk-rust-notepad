@@ -4,7 +4,7 @@
 
 ![](resources/screenshots/code.png)
 
-(see resources/screenshots for more screenshots)
+<small>(see resources/screenshots for more screenshots)</small>
 
 A lightweight, graphical text editor.
 
