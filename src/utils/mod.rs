@@ -33,6 +33,7 @@ pub(crate) mod scheme {
     pub fn dark(scheme: &StyleScheme) -> StyleScheme {
         if let Some(dark) = is_dark(scheme)
             && !dark
+            && scheme.metadata("dark-variant").is_some()
         {
             // is a light variant
             StyleSchemeManager::default()
@@ -47,6 +48,7 @@ pub(crate) mod scheme {
     pub fn light(scheme: &StyleScheme) -> StyleScheme {
         if let Some(dark) = is_dark(scheme)
             && dark
+            && scheme.metadata("light-variant").is_some()
         {
             // is a light variant
             StyleSchemeManager::default()
