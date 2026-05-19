@@ -1,6 +1,5 @@
 use adw::AlertDialog;
 use adw::ResponseAppearance;
-use adw::TabPage;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use async_lsp::lsp_types::DiagnosticSeverity;
@@ -34,7 +33,6 @@ use gtk::{
 use crate::config::Config;
 use crate::lsp;
 use crate::ui::completion::provider::LspCompletionProvider;
-use crate::ui::dialog::save;
 use crate::ui::window::EditorWindow;
 use crate::utils;
 

@@ -25,6 +25,7 @@ pub struct UI {
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
+#[derive(Default)]
 pub struct Sidebar {
     pub show_hidden: bool,
 }
@@ -72,11 +73,6 @@ impl Default for UI {
     }
 }
 
-impl Default for Sidebar {
-    fn default() -> Self {
-        Self { show_hidden: false }
-    }
-}
 
 impl Config {
     pub fn get_or_default() -> Config {

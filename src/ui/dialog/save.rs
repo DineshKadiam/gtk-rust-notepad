@@ -1,10 +1,10 @@
 use adw::{AlertDialog, ResponseAppearance, prelude::*};
 use gtk::{
-    Align, CheckButton, Label,
+    Align, CheckButton,
     glib::{self, clone},
 };
 
-use crate::{ui::buffer::Buffer, utils};
+use crate::ui::buffer::Buffer;
 
 /// Creates a dialog that prompts the user to save documents before closing a tab/window
 pub fn new<C, D, S>(
@@ -22,9 +22,9 @@ where
     // Create dialog
     let dialog = AlertDialog::new(
         Some("Save changes?"),
-        Some(&format!(
+        Some(
             "Open documents contain unsaved changes. Changes which are not saved will be permanently lost.",
-        )),
+        ),
     );
     // Populate buttons
     dialog.add_responses(&[
@@ -77,10 +77,9 @@ where
         let on_save = on_save.clone();
         let on_close_finish = on_close_finish.clone();
         glib::spawn_future_local(async move {
-            let mut i = 0;
-            for buffer in &buffers {
+            for (i, buffer) in buffers.iter().enumerate() {
                 let is_checked = group
-                    .row(i)
+                    .row(i as u32)
                     .and_downcast_ref::<adw::ActionRow>()
                     .unwrap()
                     .first_child()
@@ -91,8 +90,7 @@ where
                     .and_downcast_ref::<CheckButton>() // holy mother of god look at that chain
                     .unwrap()
                     .is_active();
-                on_save(&buffer, is_checked).await;
-                i += 1;
+                on_save(buffer, is_checked).await;
             }
             on_close_finish();
         });

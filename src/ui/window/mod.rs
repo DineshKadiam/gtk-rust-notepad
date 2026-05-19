@@ -86,7 +86,7 @@ impl EditorWindow {
                     modified_buffers.push(buffer.clone());
                 }
             }
-            if modified_buffers.len() > 0 {
+            if !modified_buffers.is_empty() {
                 let dialog = save::new(
                     modified_buffers.clone(),
                     &window.workspace_uri(),

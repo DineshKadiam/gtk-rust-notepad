@@ -223,7 +223,7 @@ pub fn update(
     file_tree_view.set_factory(Some(&tree_factory));
     file_list_view.set_factory(Some(&list_factory));
     set_filter_hidden_files(
-        &file_tree_view,
+        file_tree_view,
         Config::get_or_default().sidebar.show_hidden,
     );
 }

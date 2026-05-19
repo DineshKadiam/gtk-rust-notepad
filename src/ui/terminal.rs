@@ -11,8 +11,8 @@ use vte4::prelude::*;
 
 use crate::utils;
 
-const DEFAULT_SCHEME_DARK: &'static str = include_str!("../../resources/styles/TERM_DEFAULT_DARK");
-const DEFAULT_SCHEME_LIGHT: &'static str =
+const DEFAULT_SCHEME_DARK: &str = include_str!("../../resources/styles/TERM_DEFAULT_DARK");
+const DEFAULT_SCHEME_LIGHT: &str =
     include_str!("../../resources/styles/TERM_DEFAULT_LIGHT");
 
 mod imp {
