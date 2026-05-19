@@ -2,12 +2,12 @@ use adw::subclass::prelude::*;
 use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*};
 use gtk::Label;
 use gtk::{
-    gio::{self, Cancellable, SimpleAction},
+    gio::{Cancellable, SimpleAction},
     glib::{self, Variant, clone},
 };
 use sourceview5::prelude::*;
 
-use crate::ui::file_name_dialog;
+use crate::ui::dialog::rename_file;
 use crate::ui::preferences::PreferencesDialog;
 use crate::utils;
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
 };
 
 #[macro_export]
-macro_rules! new_entry {
+macro_rules! action_entry {
     ($name: expr, $type: expr, $fn: ident) => {
         ActionEntry::builder($name)
             .parameter_type($type)
@@ -194,7 +194,7 @@ pub fn tree_toggle_expand(window: &EditorWindow, _: &SimpleAction, _: Option<&Va
 /// Create file from file tree
 pub fn tree_new_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     if let Some(path) = window.imp().sidebar.get_selected_folder() {
-        let dialog = file_name_dialog::FileNameDialog::new(file_name_dialog::Kind::Create, &path);
+        let dialog = rename_file::FileNameDialog::new(rename_file::Kind::Create, &path);
         let window: &gtk::Window = &window.clone().into();
         adw::prelude::AdwDialogExt::present(&dialog, Some(window));
     }
@@ -207,7 +207,7 @@ pub fn tree_rename(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>)
         window.imp().sidebar.imp().folder_popover.unparent();
         window.imp().sidebar.imp().file_popover.unparent();
         // Show dialog
-        let dialog = file_name_dialog::FileNameDialog::new(file_name_dialog::Kind::Rename, &path);
+        let dialog = rename_file::FileNameDialog::new(rename_file::Kind::Rename, &path);
         let window: &gtk::Window = &window.clone().into();
         adw::prelude::AdwDialogExt::present(&dialog, Some(window));
     }

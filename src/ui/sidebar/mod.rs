@@ -10,8 +10,9 @@ use gtk::glib::clone;
 use gtk::prelude::*;
 
 use crate::config::Config;
-use crate::ui::file_tree;
 use crate::ui::window::EditorWindow;
+
+mod file_tree;
 
 mod imp {
 

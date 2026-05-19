@@ -9,7 +9,7 @@ use gtk::{CompositeTemplate, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::buffer::Buffer;
-use crate::{lsp, new_entry};
+use crate::{action_entry, lsp};
 
 mod actions;
 mod imp;
@@ -36,29 +36,29 @@ impl EditorWindow {
 
     fn setup_actions(&self) {
         self.add_action_entries([
-            new_entry!("new_window", None, new_window),
-            new_entry!("open.file", None, open_file),
-            new_entry!("open.folder", None, open_folder),
-            new_entry!("reload_config", None, reload_config),
-            new_entry!("search.toggle", None, search_toggle),
-            new_entry!("search.files.toggle", None, search_files_toggle),
-            new_entry!("sidebar.toggle", None, sidebar_toggle),
-            new_entry!("show_prefs", None, show_prefs),
-            new_entry!(
+            action_entry!("new_window", None, new_window),
+            action_entry!("open.file", None, open_file),
+            action_entry!("open.folder", None, open_folder),
+            action_entry!("reload_config", None, reload_config),
+            action_entry!("search.toggle", None, search_toggle),
+            action_entry!("search.files.toggle", None, search_files_toggle),
+            action_entry!("sidebar.toggle", None, sidebar_toggle),
+            action_entry!("show_prefs", None, show_prefs),
+            action_entry!(
                 "status.set_file",
                 Some(VariantTy::STRING_ARRAY),
                 status_set_file
             ),
-            new_entry!("tab.new", Some(VariantTy::STRING), tab_new),
-            new_entry!("tab.new_scratch", None, tab_scratch),
-            new_entry!("tab.new_terminal", None, tab_term),
-            new_entry!("tab.reload", None, tab_reload),
-            new_entry!("tab.close", None, tab_close),
-            new_entry!("tree.delete_file", None, tree_delete_file),
-            new_entry!("tree.rename_file", None, tree_rename),
-            new_entry!("tree.new_file", None, tree_new_file),
-            new_entry!("tree.open_folder", None, tree_open_folder),
-            new_entry!("tree.toggle_expand", None, tree_toggle_expand),
+            action_entry!("tab.new", Some(VariantTy::STRING), tab_new),
+            action_entry!("tab.new_scratch", None, tab_scratch),
+            action_entry!("tab.new_terminal", None, tab_term),
+            action_entry!("tab.reload", None, tab_reload),
+            action_entry!("tab.close", None, tab_close),
+            action_entry!("tree.delete_file", None, tree_delete_file),
+            action_entry!("tree.rename_file", None, tree_rename),
+            action_entry!("tree.new_file", None, tree_new_file),
+            action_entry!("tree.open_folder", None, tree_open_folder),
+            action_entry!("tree.toggle_expand", None, tree_toggle_expand),
             // Saves the buffer in the current tab
             ActionEntry::builder("save")
                 .parameter_type(None)
