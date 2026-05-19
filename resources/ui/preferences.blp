@@ -56,5 +56,13 @@ template $PreferencesDialog: Adw.PreferencesDialog {
                 subtitle: _("Uses custom CSS - use at your own risk!");
             }
         }
+
+        Adw.PreferencesGroup {
+            title: _("Sidebar");
+
+            Adw.SwitchRow show_hidden {
+                title: _("Show hidden files and folders");
+            }
+        }
     }
 }

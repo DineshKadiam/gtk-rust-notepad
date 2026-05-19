@@ -29,6 +29,8 @@ mod imp {
         pub word_wrap: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub flat_corners: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub show_hidden: TemplateChild<adw::SwitchRow>,
     }
 
     #[glib::object_subclass]
@@ -91,6 +93,7 @@ impl PreferencesDialog {
         connect_switch!(self.imp().grid_bg, config.ui.grid_bg);
         connect_switch!(self.imp().word_wrap, config.ui.word_wrap);
         connect_switch!(self.imp().flat_corners, config.ui.flat_corners);
+        connect_switch!(self.imp().show_hidden, config.sidebar.show_hidden);
         // NOTE position of the strings in the blueprint file matters for this one lmao
         self.imp()
             .theme_variant

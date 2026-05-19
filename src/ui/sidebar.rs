@@ -9,6 +9,7 @@ use gtk::glib;
 use gtk::glib::clone;
 use gtk::prelude::*;
 
+use crate::config::Config;
 use crate::ui::file_tree;
 use crate::ui::window::EditorWindow;
 
@@ -233,6 +234,13 @@ impl Sidebar {
             dir_path,
             self.imp().file_popover.clone(),
             self.imp().folder_popover.clone(),
+        );
+    }
+
+    pub fn reload_config(&self) {
+        file_tree::set_filter_hidden_files(
+            &self.imp().file_tree,
+            Config::get_or_default().sidebar.show_hidden,
         );
     }
 }

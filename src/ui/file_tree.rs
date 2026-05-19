@@ -1,11 +1,14 @@
 use gtk::{
-    ClosureExpression, CustomSorter, DirectoryList, Expression, FilterListModel, GestureClick,
-    Image, Label, ListItem, ListView, Orientation, PopoverMenu, SignalListItemFactory,
-    SingleSelection, SortListModel, StringFilter, TreeExpander, TreeListModel, TreeListRow,
+    ClosureExpression, CustomFilter, CustomSorter, DirectoryList, Expression, FilterListModel,
+    GestureClick, Image, Label, ListItem, ListView, Orientation, PopoverMenu,
+    SignalListItemFactory, SingleSelection, SortListModel, StringFilter, TreeExpander,
+    TreeListModel, TreeListRow,
     gio::{self, FileInfo},
     glib::{self, clone, closure},
 };
 use sourceview5::prelude::*;
+
+use crate::config::Config;
 
 /// credit to https://codeberg.org/Cyncrovee/Datolite/src/branch/main/src/util.rs which i used as a reference
 /// idk how the fuck to do this and the wiki doesn't really help
@@ -213,9 +216,36 @@ pub fn update(
     }));
 
     // Hook things up
-    file_tree_view.set_model(Some(&SingleSelection::new(Some(list_model))));
+    file_tree_view.set_model(Some(&SingleSelection::new(Some(FilterListModel::new(
+        Some(list_model),
+        None::<gtk::Filter>,
+    )))));
     file_tree_view.set_factory(Some(&tree_factory));
     file_list_view.set_factory(Some(&list_factory));
+    set_filter_hidden_files(
+        &file_tree_view,
+        Config::get_or_default().sidebar.show_hidden,
+    );
+}
+
+/// Filter out hidden files on the file tree
+pub fn set_filter_hidden_files(file_tree_view: &ListView, show_hidden: bool) {
+    let filter = CustomFilter::new(move |object| {
+        if let Some(row) = object.downcast_ref::<TreeListRow>()
+            && let Some(file_info) = row.item().and_downcast::<FileInfo>()
+        {
+            !file_info.is_hidden()
+        } else {
+            true
+        }
+    });
+    if let Some(selection_model) = file_tree_view.model().and_downcast_ref::<SingleSelection>()
+        && let Some(filter_model) = selection_model
+            .model()
+            .and_downcast_ref::<FilterListModel>()
+    {
+        filter_model.set_filter(if !show_hidden { Some(&filter) } else { None });
+    }
 }
 
 pub fn set_search_list(file_list_view: &ListView, dir_path: &str) {

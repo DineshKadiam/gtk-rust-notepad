@@ -86,6 +86,8 @@ impl EditorWindow {
                 }
             }
         });
+        // Reload sidebar
+        self.sidebar.reload_config();
     }
 
     pub fn new_tab(&self, path: Option<&str>) -> TabPage {

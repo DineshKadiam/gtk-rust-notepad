@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Default)]
 pub struct Config {
     pub ui: UI,
+    pub sidebar: Sidebar,
     pub lang_server: Vec<LanguageServer>,
 }
 
@@ -20,6 +21,12 @@ pub struct UI {
     pub grid_bg: bool,
     pub word_wrap: bool,
     pub flat_corners: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(default)]
+pub struct Sidebar {
+    pub show_hidden: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -62,6 +69,12 @@ impl Default for UI {
             word_wrap: false,
             flat_corners: false,
         }
+    }
+}
+
+impl Default for Sidebar {
+    fn default() -> Self {
+        Self { show_hidden: false }
     }
 }
 
