@@ -6,6 +6,8 @@ use gtk::glib::{self, clone};
 use std::cell::RefCell;
 use std::path::Path;
 
+// FIXME use adw::alertdialog instead
+
 mod imp {
 
     use std::path::Path;

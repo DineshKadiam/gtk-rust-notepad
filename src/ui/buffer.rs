@@ -34,6 +34,7 @@ use gtk::{
 use crate::config::Config;
 use crate::lsp;
 use crate::ui::completion::provider::LspCompletionProvider;
+use crate::ui::dialog::save;
 use crate::ui::window::EditorWindow;
 use crate::utils;
 
@@ -201,36 +202,31 @@ impl Buffer {
     pub fn close_buffer(&self, window: EditorWindow, page: TabPage) -> bool {
         // Prompt if tab is not saved
         if self.get_sourceview_buffer().is_modified() {
-            let dialog = AlertDialog::new(
-                Some("Really close?"),
-                Some(&format!(
-                    "<tt>{}</tt> contains unsaved data.",
-                    self.clean_name(&window.imp().workspace_uri.borrow())
-                )),
-            );
-            dialog.set_body_use_markup(true);
-            dialog.add_responses(&[("cancel", "_Cancel"), ("confirm", "_Close")]);
-            dialog.set_response_appearance("confirm", ResponseAppearance::Destructive);
-            dialog.set_default_response(Some("cancel"));
-            dialog.set_close_response("cancel");
-            dialog.connect_response(
-                Some("confirm"),
+            let dialog = save::new(
+                vec![self.clone()],
                 clone!(
                     #[strong(rename_to=tab_view)]
                     window.imp().tab_view,
                     #[strong]
                     page,
-                    move |_, _| {
-                        tab_view.close_page_finish(&page, true);
-                    }
+                    move || tab_view.close_page_finish(&page, false) // Page close was rejected
                 ),
-            );
-            dialog.connect_response(
-                Some("cancel"),
                 clone!(
                     #[strong(rename_to=tab_view)]
                     window.imp().tab_view,
-                    move |_, _| {
+                    #[strong]
+                    page,
+                    move || tab_view.close_page_finish(&page, true) // Page close finish
+                ),
+                clone!(
+                    #[strong(rename_to=tab_view)]
+                    window.imp().tab_view,
+                    move |buf, save| {
+                        println!(
+                            "buffer {} was selected/not selected {}",
+                            buf.tab_name(),
+                            save
+                        );
                         tab_view.close_page_finish(&page, false);
                     }
                 ),

@@ -9,6 +9,7 @@ use gtk::{CompositeTemplate, gio};
 use sourceview5::prelude::*;
 
 use crate::ui::buffer::Buffer;
+use crate::ui::dialog::save;
 use crate::{action_entry, lsp};
 
 mod actions;
@@ -76,16 +77,45 @@ impl EditorWindow {
         let window = self.imp().downgrade();
         let window_title = self.imp().window_title.downgrade();
         self.connect_close_request(|window| {
+            let mut modified_buffers = vec![];
             for page in window.imp().tab_view.pages().iter::<TabPage>() {
                 if let Ok(page) = page
                     && let Some(buffer) = page.child().downcast_ref::<Buffer>()
                     && buffer.get_sourceview_buffer().is_modified()
                 {
-                    window.imp().tab_view.close_page(&page);
-                    return glib::Propagation::Stop;
+                    modified_buffers.push(buffer.clone());
                 }
             }
-            glib::Propagation::Proceed
+            if modified_buffers.len() > 0 {
+                let dialog = save::new(
+                    modified_buffers.clone(),
+                    || (),
+                    clone!(
+                        #[strong]
+                        window,
+                        move || {
+                            modified_buffers.iter().for_each(|b| {
+                                b.get_sourceview_buffer().set_modified(false);
+                            });
+                            window.close()
+                        }
+                    ),
+                    |buf, save| {
+                        println!(
+                            "buffer {} was selected/not selected {}",
+                            buf.tab_name(),
+                            save
+                        );
+                    },
+                );
+                adw::prelude::AdwDialogExt::present(
+                    &dialog,
+                    Some::<&gtk::Window>(&window.clone().into()),
+                );
+                glib::Propagation::Stop
+            } else {
+                glib::Propagation::Proceed
+            }
         });
         self.imp().tab_view.connect_n_pages_notify(clone!(
             #[strong(rename_to=stack)]
