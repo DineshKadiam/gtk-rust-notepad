@@ -89,6 +89,7 @@ impl EditorWindow {
             if modified_buffers.len() > 0 {
                 let dialog = save::new(
                     modified_buffers.clone(),
+                    &window.workspace_uri(),
                     || (),
                     clone!(
                         #[strong]
@@ -146,6 +147,7 @@ impl EditorWindow {
                     let window = binding.obj();
                     let dialog = save::new(
                         vec![buffer.clone()],
+                        &window.workspace_uri(),
                         clone!(
                             #[strong(rename_to=tab_view)]
                             window.imp().tab_view,

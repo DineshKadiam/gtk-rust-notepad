@@ -9,6 +9,7 @@ use crate::{ui::buffer::Buffer, utils};
 /// Creates a dialog that prompts the user to save documents before closing a tab/window
 pub fn new<C, D, S>(
     buffers: Vec<Buffer>,
+    workspace_uri: &str,
     on_cancel: C,
     on_close_finish: D,
     on_save: S,
@@ -52,7 +53,7 @@ where
         check.set_valign(Align::Center);
         row.add_prefix(&check);
         row.set_activatable_widget(Some(&check));
-        row.set_title(&buffer.tab_name()); // TODO replace with clean name - get workspace uri
+        row.set_title(&buffer.clean_name(workspace_uri));
         if buffer.is_externally_modified() {
             row.set_subtitle("Externally modified");
             row.add_css_class("warning");
