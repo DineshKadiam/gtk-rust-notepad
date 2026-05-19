@@ -300,8 +300,37 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                     }
                 ),
             );
+            println!("this code is running asynchronously")
         } else {
             buffer.try_save(&window.obj());
         }
+    }
+}
+
+/// Saves a buffer asynchronously. Used/designed for alert dialogs where LSP integration does not matter
+pub async fn save_buffer_async(window: &EditorWindow, buffer: Buffer) {
+    let window = window.imp();
+    if buffer.file_path() == "" {
+        let (tx, rx) = async_channel::bounded(1);
+        gtk::FileDialog::new().save(
+            Some::<&gtk::Window>(&window.obj().clone().into()),
+            Some(&Cancellable::new()),
+            move |result| {
+                if let Ok(file) = result {
+                    tx.send_blocking(Some(
+                        file.path().unwrap().to_str().unwrap().to_string().clone(),
+                    ))
+                    .unwrap();
+                } else {
+                    tx.send_blocking(None).unwrap();
+                }
+            },
+        );
+        if let Ok(Some(file_name)) = rx.recv().await {
+            buffer.set_file(&file_name);
+            buffer.write().await;
+        }
+    } else {
+        buffer.write().await;
     }
 }

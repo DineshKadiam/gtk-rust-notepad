@@ -100,13 +100,15 @@ impl EditorWindow {
                             window.close()
                         }
                     ),
-                    |buf, save| {
-                        println!(
-                            "buffer {} was selected/not selected {}",
-                            buf.tab_name(),
-                            save
-                        );
-                    },
+                    clone!(
+                        #[strong]
+                        window,
+                        async move |buf, save| {
+                            if save {
+                                actions::save_buffer_async(&window, buf.clone()).await;
+                            }
+                        }
+                    ),
                 );
                 adw::prelude::AdwDialogExt::present(
                     &dialog,
@@ -137,12 +139,42 @@ impl EditorWindow {
             #[strong]
             window,
             move |_, page| {
-                if let Some(buffer) = page.child().downcast_ref::<Buffer>() {
-                    match buffer.close_buffer(window.upgrade().unwrap().obj().clone(), page.clone())
-                    {
-                        true => glib::Propagation::Proceed,
-                        false => glib::Propagation::Stop,
-                    }
+                if let Some(buffer) = page.child().downcast_ref::<Buffer>()
+                    && buffer.get_sourceview_buffer().is_modified()
+                {
+                    let binding = window.upgrade().unwrap();
+                    let window = binding.obj();
+                    let dialog = save::new(
+                        vec![buffer.clone()],
+                        clone!(
+                            #[strong(rename_to=tab_view)]
+                            window.imp().tab_view,
+                            #[strong]
+                            page,
+                            move || tab_view.close_page_finish(&page, false) // Page close was rejected
+                        ),
+                        clone!(
+                            #[strong(rename_to=tab_view)]
+                            window.imp().tab_view,
+                            #[strong]
+                            page,
+                            move || tab_view.close_page_finish(&page, true) // Page close finish
+                        ),
+                        clone!(
+                            #[strong]
+                            window,
+                            async move |buf, save| {
+                                if save {
+                                    actions::save_buffer_async(&window, buf.clone()).await;
+                                }
+                            }
+                        ),
+                    );
+                    adw::prelude::AdwDialogExt::present(
+                        &dialog,
+                        Some::<&gtk::Window>(&window.clone().into()),
+                    );
+                    glib::Propagation::Stop
                 } else {
                     glib::Propagation::Proceed
                 }

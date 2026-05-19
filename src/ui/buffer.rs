@@ -198,46 +198,6 @@ impl Buffer {
         }
     }
 
-    /// Closes buffer. Returns true if a close action should be propagated to the tab.
-    pub fn close_buffer(&self, window: EditorWindow, page: TabPage) -> bool {
-        // Prompt if tab is not saved
-        if self.get_sourceview_buffer().is_modified() {
-            let dialog = save::new(
-                vec![self.clone()],
-                clone!(
-                    #[strong(rename_to=tab_view)]
-                    window.imp().tab_view,
-                    #[strong]
-                    page,
-                    move || tab_view.close_page_finish(&page, false) // Page close was rejected
-                ),
-                clone!(
-                    #[strong(rename_to=tab_view)]
-                    window.imp().tab_view,
-                    #[strong]
-                    page,
-                    move || tab_view.close_page_finish(&page, true) // Page close finish
-                ),
-                clone!(
-                    #[strong(rename_to=tab_view)]
-                    window.imp().tab_view,
-                    move |buf, save| {
-                        println!(
-                            "buffer {} was selected/not selected {}",
-                            buf.tab_name(),
-                            save
-                        );
-                        tab_view.close_page_finish(&page, false);
-                    }
-                ),
-            );
-            adw::prelude::AdwDialogExt::present(&dialog, Some::<&gtk::Window>(&window.into()));
-            false
-        } else {
-            true
-        }
-    }
-
     /// Returns the sourceview5 buffer from self.source_view
     pub fn get_sourceview_buffer(&self) -> sourceview5::Buffer {
         self.imp()
@@ -480,6 +440,16 @@ impl Buffer {
             .build();
         self.set_file_path(path);
         self.imp().file.replace(Some(file));
+    }
+
+    /// Checks if file associated with buffer is externally modified
+    pub fn is_externally_modified(&self) -> bool {
+        if let Some(ref file) = *self.imp().file.borrow() {
+            file.check_file_on_disk();
+            file.is_externally_modified()
+        } else {
+            false
+        }
     }
 
     /// Tries to save the file -- if there is a conflict (the file was edited externally), show an alert
