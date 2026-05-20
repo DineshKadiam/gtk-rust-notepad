@@ -16,7 +16,7 @@ pub fn generate_css(style_scheme: StyleScheme) -> String {
       @define-color popover_fg_color @window_fg_color;
       @define-color dialog_fg_color @window_fg_color;
       @define-color dark_fill_bg_color @headerbar_bg_color;
-      @define-color sidebar_backdrop_color @window_bg_color;
+      @define-color sidebar_backdrop_color mix(@sidebar_bg_color, @window_bg_color, .5);
       @define-color sidebar_fg_color @window_fg_color;
       @define-color view_fg_color @window_fg_color;"
         .to_string();
@@ -43,22 +43,26 @@ pub fn generate_css(style_scheme: StyleScheme) -> String {
     );
 
     // Sidebar bg/fg color
-    if let Some(line_style) = style_scheme.style("line-numbers") {
+    if let Some(line_style) = style_scheme.style("line-numbers")
+        && line_style.background().unwrap() != text_style.background().unwrap()
+    {
         style += &format!(
-            "@define-color sidebar_bg_color {};
+            "@define-color sidebar_bg_color mix({}, {}, 0.25);
              @define-color sidebar_fg_color mix({}, {}, 0.5);\n",
             line_style
                 .background()
                 .unwrap_or(text_style.background().unwrap()),
+            text_style.background().unwrap(),
             line_style.foreground().unwrap(),
             alt
         );
     } else {
         style += &format!(
-            "@define-color sidebar_bg_color {};
+            "@define-color sidebar_bg_color mix({}, {}, 0.085);
              @define-color sidebar_fg_color {};\n",
             text_style.background().unwrap(),
-            text_style.foreground().unwrap()
+            text_style.foreground().unwrap(),
+            text_style.foreground().unwrap(),
         );
     }
 
