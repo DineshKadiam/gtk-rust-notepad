@@ -406,7 +406,7 @@ impl Buffer {
         }
     }
 
-    /// Loads a file from a path
+    /// Loads a file from a path. The loading process is spawned in another thread.
     pub fn load_file(&self, path: &str) {
         let buffer = self.get_sourceview_buffer();
         let file = sourceview5::File::builder()
@@ -425,10 +425,47 @@ impl Buffer {
         }
     }
 
+    /// Loads a file from a path, asynchronously
+    pub async fn load_file_async(&self, path: &str) {
+        let buffer = self.get_sourceview_buffer();
+        let file = sourceview5::File::builder()
+            .location(&gio::File::for_path(path))
+            .build();
+        let loader = sourceview5::FileLoader::new(&buffer, &file);
+        // Set file instance
+        self.imp().file.replace(Some(file));
+        self.set_file_path(path);
+        // Set syntax highlighting
+        if let Some(ref language) =
+            sourceview5::LanguageManager::new().guess_language(Some(&path), None)
+        {
+            buffer.set_language(Some(language));
+        }
+        // Load
+        loader
+            .load_future(glib::Priority::default())
+            .0
+            .await
+            .unwrap();
+    }
+
     /// Reloads current file
     pub fn reload_file(&self) {
+        let cursor = self.get_sourceview_buffer().cursor_position();
         let path = self.imp().file_path.borrow().clone();
-        self.load_file(&path);
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to=this)]
+            self,
+            async move {
+                this.load_file_async(&path).await;
+                // Move cursor back if that position still exists
+                let buffer = this.get_sourceview_buffer();
+                let mut bound = buffer.bounds().0;
+                if bound.forward_chars(cursor) {
+                    buffer.place_cursor(&bound);
+                }
+            }
+        ));
     }
 
     /// Sets `file_path` and `file` without loading contents
@@ -506,6 +543,7 @@ impl Buffer {
     /// Asynchronously writes the buffer to `Buffer::file_path` and updates both the associated window and LSP.
     pub fn save(&self, window: &EditorWindow) {
         let workspace_uri = window.imp().workspace_uri.borrow().clone();
+        // <- TODO format before saving right here
         glib::spawn_future_local(clone!(
             #[weak]
             window,
@@ -518,6 +556,9 @@ impl Buffer {
                 // Tell LSP file was modified
                 lsp::file::change(&buffer.file_path(), &workspace_uri, None);
                 lsp::file::save(&buffer.file_path(), &workspace_uri);
+                // Format and reload buffer
+                lsp::format::format(&buffer.file_path(), &workspace_uri);
+                buffer.reload_file();
                 // Set window/tab title
                 if let Some(page) = selected_page {
                     page.set_title(&buffer.tab_name());

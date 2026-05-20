@@ -38,9 +38,12 @@ pub enum ThemeVariant {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(default)]
+#[derive(Default)]
 pub struct LanguageServer {
     pub file_extension: String,
     pub command: String,
+    pub formatter: String, // In-place formatter
     pub language: String,
 }
 
@@ -49,11 +52,13 @@ pub fn default_lang_servers() -> Vec<LanguageServer> {
         LanguageServer {
             file_extension: ".rs".into(),
             command: "rust-analyzer".into(),
+            formatter: "rustfmt".into(),
             language: "rust".into(),
         },
         LanguageServer {
             file_extension: ".blp".into(),
             command: "blueprint-compiler lsp".into(),
+            formatter: "blueprint-compiler format -f".into(),
             language: "blueprint".into(),
         },
     ]
@@ -72,7 +77,6 @@ impl Default for UI {
         }
     }
 }
-
 
 impl Config {
     pub fn get_or_default() -> Config {

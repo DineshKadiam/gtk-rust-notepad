@@ -49,6 +49,9 @@ pub mod file;
 /// Errors...
 pub mod error;
 
+// File formatting
+pub mod format;
+
 /// 2a. Create LSP server
 struct ClientState;
 struct Stop;
