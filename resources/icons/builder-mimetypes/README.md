@@ -1,0 +1,1 @@
+This folder contains custom mimetype icons that GNOME Builder uses. Kyanite will fall back to a default document icon, but you can install these to make files more discernable. Place them in `[~/.local/share or /usr/share]/icons/hicolor/scalable/mimetypes` so Kyanite can find them.

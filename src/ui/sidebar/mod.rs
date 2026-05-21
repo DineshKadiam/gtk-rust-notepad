@@ -13,6 +13,7 @@ use crate::config::Config;
 use crate::ui::window::EditorWindow;
 
 mod file_tree;
+mod icons;
 
 mod imp {
 

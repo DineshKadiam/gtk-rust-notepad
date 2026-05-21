@@ -8,7 +8,7 @@ use gtk::{
 };
 use sourceview5::prelude::*;
 
-use crate::config::Config;
+use crate::{config::Config, ui::sidebar::icons};
 
 /// credit to https://codeberg.org/Cyncrovee/Datolite/src/branch/main/src/util.rs which i used as a reference
 /// idk how the fuck to do this and the wiki doesn't really help
@@ -138,9 +138,7 @@ pub fn update(
                     container.parent().unwrap().add_controller(tree_click);
                 } else {
                     label.set_text(&file_info.display_name());
-                    if let Some(icon) = file_info.symbolic_icon() {
-                        image.set_from_gicon(&icon);
-                    }
+                    image.set_icon_name(Some(&icons::from_file_info(&file_info)));
                     // Context menus
                     let tree_click = GestureClick::new();
                     tree_click.set_button(3);
@@ -222,10 +220,7 @@ pub fn update(
     )))));
     file_tree_view.set_factory(Some(&tree_factory));
     file_list_view.set_factory(Some(&list_factory));
-    set_filter_hidden_files(
-        file_tree_view,
-        Config::get_or_default().sidebar.show_hidden,
-    );
+    set_filter_hidden_files(file_tree_view, Config::get_or_default().sidebar.show_hidden);
 }
 
 /// Filter out hidden files on the file tree
