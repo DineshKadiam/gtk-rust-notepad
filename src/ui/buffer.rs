@@ -574,7 +574,7 @@ impl Buffer {
 
     /// Force writes buffer to a file.
     pub async fn write(&self) {
-        if let Some(ref file) = *self.imp().file.borrow() {
+        if let Some(ref file) = self.imp().file.borrow().clone() {
             let save = sourceview5::FileSaver::new(
                 self.imp()
                     .source_view

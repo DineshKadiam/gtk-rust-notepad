@@ -9,7 +9,7 @@ pub fn format(uri: &str, workspace_uri: &str) {
     let mut servers = config.lang_server;
     servers.append(&mut config::default_lang_servers());
     for server in servers {
-        if uri.ends_with(&server.file_extension) && server.formatter != "" {
+        if uri.ends_with(&server.file_extension) && !server.formatter.is_empty() {
             let mut command = server.formatter.split(" ").collect::<Vec<&str>>();
             match Command::new(command[0])
                 .current_dir(workspace_uri)

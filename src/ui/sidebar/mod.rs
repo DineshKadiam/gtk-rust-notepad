@@ -1,6 +1,3 @@
-use std::path::Path;
-use std::path::PathBuf;
-use std::str::FromStr;
 
 use adw::subclass::prelude::*;
 use glib::Properties;
