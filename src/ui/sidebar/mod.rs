@@ -1,3 +1,7 @@
+use std::path::Path;
+use std::path::PathBuf;
+use std::str::FromStr;
+
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
@@ -11,6 +15,7 @@ use gtk::prelude::*;
 
 use crate::config::Config;
 use crate::ui::window::EditorWindow;
+use crate::utils;
 
 mod file_tree;
 mod icons;
@@ -228,7 +233,7 @@ impl Sidebar {
     pub fn update_folder(&self, dir_path: &str) {
         self.imp()
             .sidebar_title
-            .set_title(dir_path.split("/").last().unwrap()); // yeah fuck you windows "\" users
+            .set_title(utils::basename(dir_path));
 
         file_tree::update(
             &self.imp().file_tree.clone(),

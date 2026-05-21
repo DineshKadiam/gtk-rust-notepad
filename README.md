@@ -32,8 +32,6 @@ A lightweight, graphical text editor.
 - libpanel
 - vte4 >= 0.78
 - blueprint-compiler
-- Filesystem where files have forward instead of backward slashes
-  - yeah I programmed file i/o like this and left it becuase I hate Windows and DOS..
 - glibc
   - it breaks all the time on chimera linux and the answer is always "broken musl implementation"
 

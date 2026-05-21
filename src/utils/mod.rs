@@ -58,3 +58,11 @@ pub(crate) mod scheme {
         }
     }
 }
+
+pub fn basename(path: &str) -> &str {
+    std::path::Path::new(path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+}

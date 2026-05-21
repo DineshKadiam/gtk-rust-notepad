@@ -186,7 +186,7 @@ impl Buffer {
     /// Gets the short name of the buffer, plus a string if it was modified.
     pub fn tab_name(&self) -> String {
         (if !self.file_path().is_empty() {
-            self.file_path().split("/").last().unwrap().to_string()
+            utils::basename(&self.file_path()).to_string()
         } else {
             "scratch".to_string()
         }) + if self.get_sourceview_buffer().is_modified() {
