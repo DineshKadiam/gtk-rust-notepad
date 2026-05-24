@@ -1,19 +1,18 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
-use gtk::CompositeTemplate;
 use gtk::gdk::RGBA;
 use gtk::gio::Cancellable;
 use gtk::glib;
 use gtk::glib::SpawnFlags;
+use gtk::CompositeTemplate;
+use vte4::prelude::*;
 use vte4::PtyFlags;
 use vte4::Terminal;
-use vte4::prelude::*;
 
 use crate::utils;
 
 const DEFAULT_SCHEME_DARK: &str = include_str!("../../resources/styles/TERM_DEFAULT_DARK");
-const DEFAULT_SCHEME_LIGHT: &str =
-    include_str!("../../resources/styles/TERM_DEFAULT_LIGHT");
+const DEFAULT_SCHEME_LIGHT: &str = include_str!("../../resources/styles/TERM_DEFAULT_LIGHT");
 
 mod imp {
 
