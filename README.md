@@ -68,8 +68,12 @@ i marked optional things with a question mark
 - Sidebar:
   - Rename/delete: Check for open tabs, and close them first
 
-- lsp integration:
-  - code actions(?)
+- lsp integration (the horrors):
+  - code actions
+  - lsp hover
+  - close lsp when window closes
+  - write errors to log file (optional)
+  - lsp indicator (shows status/icon, loading/healthy/error statuses) in bottom bar
 
 - git integration:
   - highlight changed (git) lines(?)
@@ -91,3 +95,10 @@ i marked optional things with a question mark
 By using or contributing to this software, you agree that *trans rights are human rights*, *ACAB*, and that *hate has no place here*.
 
 ![](resources/screenshots/kills_fascists.png)
+
+
+
+
+
+
+

@@ -8,6 +8,8 @@ use glib::Properties;
 use gtk::CompositeTemplate;
 use gtk::TextSearchFlags;
 use gtk::gio;
+use gtk::gio::Cancellable;
+use gtk::gio::FileQueryInfoFlags;
 use gtk::gio::Icon;
 use gtk::glib;
 use gtk::pango::Underline;
@@ -408,19 +410,22 @@ impl Buffer {
     }
 
     /// Loads a file from a path. The loading process is spawned in another thread.
+    /// TODO make this an alias to load_file_async
     pub fn load_file(&self, path: &str) {
         let buffer = self.get_sourceview_buffer();
-        let file = sourceview5::File::builder()
-            .location(&gio::File::for_path(path))
-            .build();
+        let gio_file = gio::File::for_path(path);
+        let file = sourceview5::File::builder().location(&gio_file).build();
+        let info = gio_file
+            .query_info("standard::*", FileQueryInfoFlags::NONE, Cancellable::NONE)
+            .unwrap();
         let loader = sourceview5::FileLoader::new(&buffer, &file);
         loader.load_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
         // Set file instance
         self.imp().file.replace(Some(file));
         self.set_file_path(path);
         // Set syntax highlighting
-        if let Some(ref language) =
-            sourceview5::LanguageManager::new().guess_language(Some(&path), None)
+        if let Some(ref language) = sourceview5::LanguageManager::new()
+            .guess_language(Some(&path), info.content_type().as_deref())
         {
             buffer.set_language(Some(language));
         }
@@ -429,16 +434,18 @@ impl Buffer {
     /// Loads a file from a path, asynchronously
     pub async fn load_file_async(&self, path: &str) {
         let buffer = self.get_sourceview_buffer();
-        let file = sourceview5::File::builder()
-            .location(&gio::File::for_path(path))
-            .build();
+        let gio_file = gio::File::for_path(path);
+        let file = sourceview5::File::builder().location(&gio_file).build();
+        let info = gio_file
+            .query_info("standard::*", FileQueryInfoFlags::NONE, Cancellable::NONE)
+            .unwrap();
         let loader = sourceview5::FileLoader::new(&buffer, &file);
         // Set file instance
         self.imp().file.replace(Some(file));
         self.set_file_path(path);
         // Set syntax highlighting
-        if let Some(ref language) =
-            sourceview5::LanguageManager::new().guess_language(Some(&path), None)
+        if let Some(ref language) = sourceview5::LanguageManager::new()
+            .guess_language(Some(&path), info.content_type().as_deref())
         {
             buffer.set_language(Some(language));
         }
@@ -495,44 +502,26 @@ impl Buffer {
         // This is wildly inefficient but the only way to get sane reloading (the only way to actually set buffer text
         // without GTK being annoying). This has made me genuinely consider using iced widgets instead of GTK ones, which
         // I might do in the future anyway, because I'm fed up with putting up with GTK's shit.
-        // FIXME use a macro!
-        {
-            scroll_window.vadjustment().set_value(scroll_y);
-            let scroll_window = scroll_window.clone();
-            let (tx, rx) = async_channel::unbounded();
-            let handler_id = scroll_window
-                .vadjustment()
-                .connect_value_notify(move |adjustment| {
-                    if adjustment.value() != scroll_y && adjustment.value() != adjustment.upper() {
-                        adjustment.set_value(scroll_y);
+        macro_rules! scroll {
+            ($adj: expr, $to: expr) => {
+                let adj = $adj;
+                let (tx, rx) = async_channel::unbounded();
+                adj.set_value($to);
+                let handler_id = $adj.connect_value_notify(move |adjustment| {
+                    if adjustment.value() != $to && adjustment.value() != adjustment.upper() {
+                        adjustment.set_value($to);
                     } else {
-                        // Disconnect
                         tx.send_blocking(()).unwrap();
                     }
                 });
-            glib::spawn_future_local(async move {
-                rx.recv().await.unwrap();
-                scroll_window.vadjustment().disconnect(handler_id);
-            });
-        }
-        {
-            scroll_window.hadjustment().set_value(scroll_x);
-            let (tx, rx) = async_channel::unbounded();
-            let handler_id = scroll_window
-                .hadjustment()
-                .connect_value_notify(move |adjustment| {
-                    if adjustment.value() != scroll_x && adjustment.value() != adjustment.upper() {
-                        adjustment.set_value(scroll_x);
-                    } else {
-                        // Disconnect
-                        tx.send_blocking(()).unwrap();
-                    }
+                glib::spawn_future_local(async move {
+                    rx.recv().await.unwrap();
+                    adj.disconnect(handler_id);
                 });
-            glib::spawn_future_local(async move {
-                rx.recv().await.unwrap();
-                scroll_window.hadjustment().disconnect(handler_id);
-            });
+            };
         }
+        scroll!(scroll_window.clone().vadjustment(), scroll_y);
+        scroll!(scroll_window.clone().hadjustment(), scroll_x);
     }
 
     /// Sets `file_path` and `file` without loading contents

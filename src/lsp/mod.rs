@@ -103,7 +103,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
         .args(command.split_off(1))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(Stdio::piped()) // TODO read pipe, print in log file
         .spawn()?;
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
@@ -193,3 +193,12 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
         Err(error::Error::LspNotConfigured(uri.to_string()))
     }
 }
+
+
+
+
+
+
+
+
+

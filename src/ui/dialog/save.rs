@@ -43,6 +43,7 @@ where
     ]);
     dialog.set_response_appearance("discard", ResponseAppearance::Destructive);
     dialog.set_response_appearance("save", ResponseAppearance::Suggested);
+    dialog.set_close_response("cancel");
     dialog.set_prefer_wide_layout(true);
     // Create/populate preferences group
     let group = adw::PreferencesGroup::new();
