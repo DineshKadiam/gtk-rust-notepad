@@ -18,6 +18,7 @@ use sourceview5::FileSaverFlags;
 use sourceview5::StyleSchemeManager;
 use sourceview5::prelude::*;
 use std::cell::RefCell;
+use std::fs;
 use std::io::Error;
 
 use std::sync::{
@@ -451,21 +452,78 @@ impl Buffer {
 
     /// Reloads current file
     pub fn reload_file(&self) {
+        // Save cursor/scroll positions
         let cursor = self.get_sourceview_buffer().cursor_position();
-        let path = self.imp().file_path.borrow().clone();
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to=this)]
-            self,
-            async move {
-                this.load_file_async(&path).await;
-                // Move cursor back if that position still exists
-                let buffer = this.get_sourceview_buffer();
-                let mut bound = buffer.bounds().0;
-                if bound.forward_chars(cursor) {
-                    buffer.place_cursor(&bound);
-                }
-            }
-        ));
+        let scroll_window = self
+            .imp()
+            .source_view
+            .parent()
+            .and_downcast::<gtk::ScrolledWindow>()
+            .unwrap();
+        let (scroll_y, scroll_x) = (
+            scroll_window.vadjustment().value(),
+            scroll_window.hadjustment().value(),
+        );
+        // Get buffer
+        let buffer = self.get_sourceview_buffer();
+        // Reload manually, blocking
+        buffer.set_text(&fs::read_to_string(self.file_path()).unwrap());
+        buffer.set_modified(false);
+        // Move cursor back if that position still exists
+        let mut start = buffer.start_iter();
+        if start.forward_chars(cursor) {
+            buffer.place_cursor(&start);
+        }
+        self.imp().source_view.set_buffer(Some(&buffer));
+        // Scroll back FIXME: cursed gtk stuff :(
+        // GTK4 recomputes the size of the SourceView widget as it reloads from the buffer. This cases it to scroll up
+        // for an indeterminate time until it's done loading. There's no signal I can follow for when it's done, so I
+        // don't know when to scroll back safely. Instead, I have to continually set the horizontal/scroll values
+        // until GTK stops overriding them each time.
+        // This connects to whenever the `value` attribute on a scrollbar has changed, and only disconnects it when
+        // GTK hasn't overridden it. This has to use a sender/receiver pair because I can't access the handler ID from
+        // inside the closure.
+        //
+        // This is wildly inefficient but the only way to get sane reloading (the only way to actually set buffer text
+        // without GTK being annoying). This has made me genuinely consider using iced widgets instead of GTK ones, which
+        // I might do in the future anyway, because I'm fed up with putting up with GTK's shit.
+        {
+            scroll_window.vadjustment().set_value(scroll_y);
+            let scroll_window = scroll_window.clone();
+            let (tx, rx) = async_channel::unbounded();
+            let handler_id = scroll_window
+                .vadjustment()
+                .connect_value_notify(move |adjustment| {
+                    if adjustment.value() != scroll_y {
+                        adjustment.set_value(scroll_y);
+                    } else {
+                        // Disconnect
+                        tx.send_blocking(()).unwrap();
+                    }
+                });
+            glib::spawn_future_local(async move {
+                rx.recv().await.unwrap();
+                scroll_window.vadjustment().disconnect(handler_id);
+            });
+        }
+        {
+            scroll_window.hadjustment().set_value(scroll_x);
+            let (tx, rx) = async_channel::unbounded();
+            let handler_id = scroll_window
+                .hadjustment()
+                .connect_value_notify(move |adjustment| {
+                    if adjustment.value() != scroll_x {
+                        adjustment.set_value(scroll_x);
+                    } else {
+                        // Disconnect
+                        tx.send_blocking(()).unwrap();
+                    }
+                });
+            glib::spawn_future_local(async move {
+                rx.recv().await.unwrap();
+                scroll_window.hadjustment().disconnect(handler_id);
+            });
+        }
     }
 
     /// Sets `file_path` and `file` without loading contents
