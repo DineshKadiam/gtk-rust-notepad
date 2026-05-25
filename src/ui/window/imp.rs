@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use async_lsp::lsp_types::DiagnosticSeverity;
-use gtk::{CssProvider, SearchBar, SearchEntry, Stack};
+use gtk::{CssProvider, SearchBar, SearchEntry, Stack, ToggleButton};
 use sourceview5::StyleSchemeManager;
 
 use crate::{
@@ -32,6 +32,8 @@ pub struct EditorWindow {
     pub terminal_view: TemplateChild<TerminalView>,
     #[template_child]
     pub sidebar: TemplateChild<Sidebar>,
+    #[template_child]
+    pub sidebar_button: TemplateChild<ToggleButton>,
     #[template_child]
     pub stack: TemplateChild<Stack>,
     /* Status bar labels */
@@ -242,6 +244,11 @@ impl ObjectImpl for EditorWindow {
             while listener.recv().await.is_ok() {
                 lsp_load.set_visible(lsp::loading::is_loading());
             }
+        });
+        // Set up sidebar button
+        let button = self.sidebar_button.clone();
+        self.split_view.connect_show_sidebar_notify(move |sidebar| {
+            button.set_active(sidebar.shows_sidebar());
         });
     }
 }

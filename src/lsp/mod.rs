@@ -111,6 +111,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
     // Spawn main loop
     tokio::spawn(async move {
         mainloop.run_buffered(stdout, stdin).await.unwrap();
+        // TODO clean up lsp stuff
     });
 
     // Initialize.
@@ -193,12 +194,3 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
         Err(error::Error::LspNotConfigured(uri.to_string()))
     }
 }
-
-
-
-
-
-
-
-
-

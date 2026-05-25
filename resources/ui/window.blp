@@ -3,241 +3,245 @@ using Adw 1;
 using Panel 1;
 
 template $EditorWindow: Adw.ApplicationWindow {
-    accent_style: Gtk.CssProvider {};
+	accent_style: Gtk.CssProvider {};
 
-    workspace_uri: "";
+	workspace_uri: "";
 
-    Adw.Breakpoint {
-        condition ("max-width: 600sp")
+	Adw.Breakpoint {
+		condition ("max-width: 600sp")
 
-        setters {
-            split_view.collapsed: true;
-        }
-    }
+		setters {
+			split_view.collapsed: true;
+		}
+	}
 
-    [content]
-    Adw.OverlaySplitView split_view {
-        min-sidebar-width: 256;
-        sidebar-width-fraction: 0.4;
-        show-sidebar: false;
+	[content]
+	Adw.OverlaySplitView split_view {
+		min-sidebar-width: 256;
+		sidebar-width-fraction: 0.4;
+		show-sidebar: false;
 
-        [sidebar]
-        $Sidebar sidebar {}
+		[sidebar]
+		$Sidebar sidebar {}
 
-        [content]
-        Adw.ToolbarView {
-            top-bar-style: raised_border;
-            bottom-bar-style: raised_border;
+		[content]
+		Adw.ToolbarView {
+			top-bar-style: raised_border;
+			bottom-bar-style: raised_border;
 
-            [top]
-            Adw.HeaderBar {
-                Button {
-                    icon-name: "sidebar-show-symbolic";
-                    action-name: "win.sidebar.toggle";
-                }
+			[top]
+			Adw.HeaderBar {
+				ToggleButton sidebar_button {
+					icon-name: "sidebar-show-symbolic";
+					action-name: "win.sidebar.toggle";
+				}
 
-                title-widget: Adw.WindowTitle window_title {
-                    title: _("Kyanite");
-                };
-            }
+				title-widget: Adw.WindowTitle window_title {
+					title: _("Kyanite");
+				};
+			}
 
-            [top]
-            Adw.TabBar {
-                view: tab_view;
-            }
+			[top]
+			Adw.TabBar {
+				view: tab_view;
+			}
 
-            [bottom]
-            SearchBar search_bar {
-                Box {
-                    spacing: 8;
-                    margin-start: 8;
-                    margin-end: 8;
+			[bottom]
+			SearchBar search_bar {
+				Box {
+					spacing: 8;
+					margin-start: 8;
+					margin-end: 8;
 
-                    SearchEntry search_entry {
-                        styles [
-                            "flat",
-                        ]
+					SearchEntry search_entry {
+						styles [
+							"flat",
+						]
 
-                        hexpand: true;
-                        placeholder-text: _("Search");
-                    }
+						hexpand: true;
+						placeholder-text: _("Search");
+					}
 
-                    // ToggleButton {
-                    //     icon-name: "edit-find-replace-symbolic";
-                    // }
-                    Button {
-                        icon-name: "window-close-symbolic";
-                        action-name: "win.search.toggle";
-                    }
-                }
-            }
+					// ToggleButton {
+					//     icon-name: "edit-find-replace-symbolic";
+					// }
+					Button {
+						icon-name: "window-close-symbolic";
+						action-name: "win.search.toggle";
+					}
+				}
+			}
 
-            Box {
-                orientation: vertical;
+			Box {
+				orientation: vertical;
 
-                Panel.Dock dock {
-                    vexpand: true;
-                    reveal-start: true;
+				Panel.Dock dock {
+					vexpand: true;
+					reveal-start: true;
 
-                    [content]
-                    Stack stack {
-                        vexpand: true;
+					[content]
+					Stack stack {
+						vexpand: true;
 
-                        StackPage {
-                            name: "empty";
+						StackPage {
+							name: "empty";
 
-                            child: $WelcomeScreen startpage {
-                                vexpand: true;
-                            };
-                        }
+							child: $WelcomeScreen startpage {
+								vexpand: true;
+							};
+						}
 
-                        StackPage {
-                            name: "tabs";
+						StackPage {
+							name: "tabs";
 
-                            child: Adw.TabView tab_view {
-                                vexpand: true;
+							child: Adw.TabView tab_view {
+								vexpand: true;
 
-                                menu-model: menu {
-                                    section {
-                                        item {
-                                            label: _("Pin tab");
-                                            action: "tab_context.pin";
-                                            hidden-when: 'action-disabled';
-                                        }
+								menu-model: menu {
+									section {
+										item {
+											label: _("Pin tab");
+											action: "tab_context.pin";
+											hidden-when: 'action-disabled';
+										}
 
-                                        item {
-                                            label: _("Unpin tab");
-                                            action: "tab_context.unpin";
-                                            hidden-when: 'action-disabled';
-                                        }
-                                    }
+										item {
+											label: _("Unpin tab");
+											action: "tab_context.unpin";
+											hidden-when: 'action-disabled';
+										}
+									}
 
-                                    section {
-                                        item {
-                                            label: _("Move left");
-                                            action: "tab_context.move_left";
-                                        }
+									section {
+										item {
+											label: _("Move left");
+											action: "tab_context.move_left";
+										}
 
-                                        item {
-                                            label: _("Move right");
-                                            action: "tab_context.move_right";
-                                        }
+										item {
+											label: _("Move right");
+											action: "tab_context.move_right";
+										}
 
-                                        item {
-                                            label: _("Move to new window");
-                                            action: "tab_context.move_new";
-                                        }
-                                    }
+										item {
+											label: _("Move to new window");
+											action: "tab_context.move_new";
+										}
+									}
 
-                                    section {
-                                        item {
-                                            label: _("Close tab");
-                                            action: "tab_context.close";
-                                        }
+									section {
+										item {
+											label: _("Close tab");
+											action: "tab_context.close";
+										}
 
-                                        item {
-                                            label: _("Close tabs to the left");
-                                            action: "tab_context.close_left";
-                                        }
+										item {
+											label: _(
+												"Close tabs to the left"
+											);
+											action: "tab_context.close_left";
+										}
 
-                                        item {
-                                            label: _("Close tabs to the right");
-                                            action: "tab_context.close_left";
-                                        }
+										item {
+											label: _(
+												"Close tabs to the right"
+											);
+											action: "tab_context.close_left";
+										}
 
-                                        item {
-                                            label: _("Close other tabs");
-                                            action: "tab_context.close_other";
-                                        }
-                                    }
-                                };
-                            };
-                        }
-                    }
+										item {
+											label: _("Close other tabs");
+											action: "tab_context.close_other";
+										}
+									}
+								};
+							};
+						}
+					}
 
-                    [bottom]
-                    $TerminalView terminal_view {
-                        height-request: 200;
-                    }
-                }
+					[bottom]
+					$TerminalView terminal_view {
+						height-request: 200;
+					}
+				}
 
-                Separator {
-                    orientation: horizontal;
-                }
+				Separator {
+					orientation: horizontal;
+				}
 
-                /* Status bar */
-                Panel.Statusbar {
-                    [prefix]
-                    Box status_mode {
-                        visible: false;
+				/* Status bar */
+				Panel.Statusbar {
+					[prefix]
+					Box status_mode {
+						visible: false;
 
-                        Label {
-                            styles [
-                                "monospace",
-                            ]
+						Label {
+							styles [
+								"monospace",
+							]
 
-                            label: "NORMAL";
-                        }
+							label: "NORMAL";
+						}
 
-                        Separator {
-                            orientation: vertical;
-                        }
-                    }
+						Separator {
+							orientation: vertical;
+						}
+					}
 
-                    [prefix]
-                    Box status_files {
-                        visible: false;
+					[prefix]
+					Box status_files {
+						visible: false;
 
-                        Label {
-                            name: "status_file_path";
-                            label: "full/path/to/file";
-                        }
+						Label {
+							name: "status_file_path";
+							label: "full/path/to/file";
+						}
 
-                        Separator {
-                            orientation: vertical;
-                        }
+						Separator {
+							orientation: vertical;
+						}
 
-                        Label {
-                            name: "status_lang";
-                            label: "lang";
-                        }
+						Label {
+							name: "status_lang";
+							label: "lang";
+						}
 
-                        Separator {
-                            orientation: vertical;
-                        }
-                    }
+						Separator {
+							orientation: vertical;
+						}
+					}
 
-                    [prefix]
-                    Box status_lsp_load {
-                        orientation: horizontal;
-                        visible: false;
+					[prefix]
+					Box status_lsp_load {
+						orientation: horizontal;
+						visible: false;
 
-                        Adw.Spinner {}
+						Adw.Spinner {}
 
-                        Label {
-                            label: _("LSP loading...");
-                            ellipsize: end;
-                        }
-                    }
+						Label {
+							label: _("LSP loading...");
+							ellipsize: end;
+						}
+					}
 
-                    [suffix]
-                    Box {
-                        Separator {
-                            orientation: vertical;
-                        }
+					[suffix]
+					Box {
+						Separator {
+							orientation: vertical;
+						}
 
-                        Panel.ToggleButton toggle_terminal_button {
-                            dock: dock;
-                            area: bottom;
+						Panel.ToggleButton toggle_terminal_button {
+							dock: dock;
+							area: bottom;
 
-                            styles [
-                                "compressed",
-                                "flat",
-                            ]
-                        }
-                    }
-                }
-            }
-        }
-    }
+							styles [
+								"compressed",
+								"flat",
+							]
+						}
+					}
+				}
+			}
+		}
+	}
 }
