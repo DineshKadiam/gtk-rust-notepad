@@ -452,6 +452,14 @@ impl Buffer {
 
     /// Reloads current file
     pub fn reload_file(&self) {
+        self.set_buffer_text(&fs::read_to_string(self.file_path()).unwrap());
+        self.set_file(&self.file_path());
+    }
+
+    /// Modifies the buffer text in place, and then attempts to both set the cursor back to its
+    /// original position and scroll to the original position. Good for reloading files, or formatting
+    /// files.
+    pub fn set_buffer_text(&self, text: &str) {
         // Save cursor/scroll positions
         let cursor = self.get_sourceview_buffer().cursor_position();
         let scroll_window = self
@@ -467,7 +475,7 @@ impl Buffer {
         // Get buffer
         let buffer = self.get_sourceview_buffer();
         // Reload manually, blocking
-        buffer.set_text(&fs::read_to_string(self.file_path()).unwrap());
+        buffer.set_text(text);
         buffer.set_modified(false);
         // Move cursor back if that position still exists
         let mut start = buffer.start_iter();
@@ -487,6 +495,7 @@ impl Buffer {
         // This is wildly inefficient but the only way to get sane reloading (the only way to actually set buffer text
         // without GTK being annoying). This has made me genuinely consider using iced widgets instead of GTK ones, which
         // I might do in the future anyway, because I'm fed up with putting up with GTK's shit.
+        // FIXME use a macro!
         {
             scroll_window.vadjustment().set_value(scroll_y);
             let scroll_window = scroll_window.clone();
@@ -494,7 +503,7 @@ impl Buffer {
             let handler_id = scroll_window
                 .vadjustment()
                 .connect_value_notify(move |adjustment| {
-                    if adjustment.value() != scroll_y {
+                    if adjustment.value() != scroll_y && adjustment.value() != adjustment.upper() {
                         adjustment.set_value(scroll_y);
                     } else {
                         // Disconnect
@@ -512,7 +521,7 @@ impl Buffer {
             let handler_id = scroll_window
                 .hadjustment()
                 .connect_value_notify(move |adjustment| {
-                    if adjustment.value() != scroll_x {
+                    if adjustment.value() != scroll_x && adjustment.value() != adjustment.upper() {
                         adjustment.set_value(scroll_x);
                     } else {
                         // Disconnect
@@ -615,7 +624,7 @@ impl Buffer {
                 lsp::file::change(&buffer.file_path(), &workspace_uri, None);
                 lsp::file::save(&buffer.file_path(), &workspace_uri);
                 // Format and reload buffer
-                lsp::format::format(&buffer.file_path(), &workspace_uri);
+                lsp::format::format(&buffer.file_path(), &workspace_uri).await;
                 buffer.reload_file();
                 // Set window/tab title
                 if let Some(page) = selected_page {
