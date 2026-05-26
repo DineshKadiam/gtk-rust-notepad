@@ -41,9 +41,7 @@ pub fn change(uri: &str, workspace_uri: &str, new: Option<String>) {
                 }],
             })
             .unwrap(),
-        Err(error) => {
-            eprintln!("{}", error);
-        }
+        Err(_) => (),
     }
 }
 
