@@ -97,6 +97,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
             .service(router)
     });
 
+    let command_full = command.to_string();
     let mut command = command.split(" ").collect::<Vec<&str>>();
     let child = async_process::Command::new(command[0])
         .current_dir(workspace_uri)
@@ -108,10 +109,17 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
 
+    eprintln!("Started LSP {command_full}");
+
     // Spawn main loop
     tokio::spawn(async move {
-        mainloop.run_buffered(stdout, stdin).await.unwrap();
-        // TODO clean up lsp stuff
+        match mainloop.run_buffered(stdout, stdin).await {
+            Ok(_) => (),
+            Err(_) => eprintln!("LSP {command_full} crashed!"),
+        }
+        // Remove language server socket from hashmap
+        let mut a = SERVERS.write().unwrap();
+        a.remove(&command_full);
     });
 
     // Initialize.
