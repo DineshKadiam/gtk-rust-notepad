@@ -613,8 +613,9 @@ impl Buffer {
                 lsp::file::change(&buffer.file_path(), &workspace_uri, None);
                 lsp::file::save(&buffer.file_path(), &workspace_uri);
                 // Format and reload buffer
-                lsp::format::format(&buffer.file_path(), &workspace_uri).await;
-                buffer.reload_file();
+                if lsp::format::format(&buffer.file_path(), &workspace_uri).await {
+                    buffer.reload_file();
+                }
                 // Set window/tab title
                 if let Some(page) = selected_page {
                     page.set_title(&buffer.tab_name());

@@ -3,8 +3,8 @@ use std::process::Stdio;
 use crate::config::{self, Config};
 
 /// Formats documents. This isn't substantial enough to be a part of its own module, so it's a part of the lsp module.
-/// Runs an in-place formatter if it exists for a language
-pub async fn format(uri: &str, workspace_uri: &str) {
+/// Runs an in-place formatter if it exists for a language, and returns true if the formatter was successful.
+pub async fn format(uri: &str, workspace_uri: &str) -> bool {
     let config = Config::get_or_default();
     let mut servers = config.lang_server;
     servers.append(&mut config::default_lang_servers());
@@ -21,9 +21,10 @@ pub async fn format(uri: &str, workspace_uri: &str) {
                 .output()
                 .await
             {
-                Ok(_) => (),
+                Ok(_) => return true,
                 Err(_) => eprintln!("Formatter command failed for {}", uri),
             }
         }
     }
+    false
 }
