@@ -25,7 +25,7 @@ A lightweight, graphical text editor.
 ## Build/run
 
 ### Dependencies (install these first)
-- rust >= (I don't know to be honest, I have 1.95 installed and my Cargo.toml's `edition` tag says 2024.)
+- rust >= 1.92.0
 - gtksourceview5 >= 5.18
 - libadwaita >= 1.8
 - gtk4 >= 4.20
