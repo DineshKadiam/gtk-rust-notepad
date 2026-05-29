@@ -6,6 +6,7 @@ use gtk::{
     glib::{self, Variant, clone},
 };
 use sourceview5::prelude::*;
+use vte4::prelude::*;
 
 use crate::ui::dialog::rename_file;
 use crate::ui::preferences::PreferencesDialog;
@@ -46,6 +47,20 @@ pub fn tab_term(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
         window.imp().window_title.set_title(&page.title());
     }
     window.imp().stack.set_visible_child_name("tabs");
+    // Connect to vte title changes
+    let window = window.clone();
+    term.imp()
+        .terminal
+        .connect_termprop_changed(Some("xterm.title"), move |term, _| {
+            let title = term
+                .termprop_string("xterm.title")
+                .0
+                .unwrap_or("Terminal".into());
+            page.set_title(&title);
+            if page.is_selected() {
+                window.imp().window_title.set_title(&page.title());
+            }
+        });
 }
 
 /// Reloads tab
