@@ -52,6 +52,11 @@ mod imp {
             if let Some(ref scheme) =
                 sourceview5::StyleSchemeManager::new().scheme(&config.ui.theme)
             {
+                let scheme = if adw::StyleManager::default().is_dark() {
+                    &utils::scheme::dark(scheme)
+                } else {
+                    scheme
+                };
                 self.obj().set_palette(scheme);
             }
         }

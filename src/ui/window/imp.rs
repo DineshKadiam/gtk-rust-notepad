@@ -84,6 +84,11 @@ impl EditorWindow {
                 } else if let Some(term) = page.child().downcast_ref::<TerminalView>()
                     && let Some(ref scheme) = StyleSchemeManager::new().scheme(&cfg.ui.theme)
                 {
+                    let scheme = if adw::StyleManager::default().is_dark() {
+                        &utils::scheme::dark(scheme)
+                    } else {
+                        scheme
+                    };
                     term.set_palette(scheme);
                 }
             }

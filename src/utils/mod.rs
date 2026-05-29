@@ -36,7 +36,6 @@ pub(crate) mod scheme {
             && !dark
         {
             // is a light variant
-            println!("{dark_variant}");
             StyleSchemeManager::default().scheme(&dark_variant).unwrap()
         } else {
             scheme.clone()

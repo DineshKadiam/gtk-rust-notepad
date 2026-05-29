@@ -315,7 +315,6 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                     }
                 ),
             );
-            println!("this code is running asynchronously")
         } else {
             buffer.try_save(&window.obj());
         }
