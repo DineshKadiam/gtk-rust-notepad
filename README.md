@@ -95,10 +95,3 @@ i marked optional things with a question mark
 By using or contributing to this software, you agree that *trans rights are human rights*, *ACAB*, and that *hate has no place here*.
 
 ![](resources/screenshots/kills_fascists.png)
-
-
-
-
-
-
-
