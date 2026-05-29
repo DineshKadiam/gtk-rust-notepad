@@ -1,13 +1,13 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
+use gtk::CompositeTemplate;
 use gtk::gdk::RGBA;
 use gtk::gio::Cancellable;
 use gtk::glib;
 use gtk::glib::SpawnFlags;
-use gtk::CompositeTemplate;
-use vte4::prelude::*;
 use vte4::PtyFlags;
 use vte4::Terminal;
+use vte4::prelude::*;
 
 use crate::utils;
 
@@ -15,6 +15,8 @@ const DEFAULT_SCHEME_DARK: &str = include_str!("../../resources/styles/TERM_DEFA
 const DEFAULT_SCHEME_LIGHT: &str = include_str!("../../resources/styles/TERM_DEFAULT_LIGHT");
 
 mod imp {
+
+    use crate::config::Config;
 
     use super::*;
 
@@ -45,8 +47,11 @@ mod imp {
     impl ObjectImpl for TerminalView {
         fn constructed(&self) {
             self.parent_constructed();
-            // TODO fixme
-            if let Some(ref scheme) = sourceview5::StyleSchemeManager::new().scheme("Adwaita") {
+            // Set colorscheme
+            let config = Config::get_or_default();
+            if let Some(ref scheme) =
+                sourceview5::StyleSchemeManager::new().scheme(&config.ui.theme)
+            {
                 self.obj().set_palette(scheme);
             }
         }
