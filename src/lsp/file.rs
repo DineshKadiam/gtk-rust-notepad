@@ -27,22 +27,19 @@ pub fn open(uri: &str, workspace_uri: &str) {
 
 /// Tell an LSP a file was modified
 pub fn change(uri: &str, workspace_uri: &str, new: Option<String>) {
-    match get_server(uri, workspace_uri) {
-        Ok(mut server) => server
-            .did_change(DidChangeTextDocumentParams {
-                text_document: VersionedTextDocumentIdentifier {
-                    uri: Url::from_file_path(uri).unwrap(),
-                    version: 0,
-                },
-                content_changes: vec![TextDocumentContentChangeEvent {
-                    range: None,
-                    range_length: None,
-                    text: new.unwrap_or_else(|| fs::read_to_string(uri).unwrap()),
-                }],
-            })
-            .unwrap(),
-        Err(_) => (),
-    }
+    if let Ok(mut server) = get_server(uri, workspace_uri) { server
+    .did_change(DidChangeTextDocumentParams {
+        text_document: VersionedTextDocumentIdentifier {
+            uri: Url::from_file_path(uri).unwrap(),
+            version: 0,
+        },
+        content_changes: vec![TextDocumentContentChangeEvent {
+            range: None,
+            range_length: None,
+            text: new.unwrap_or_else(|| fs::read_to_string(uri).unwrap()),
+        }],
+    })
+    .unwrap() }
 }
 
 /// Tell an LSP a file was saved

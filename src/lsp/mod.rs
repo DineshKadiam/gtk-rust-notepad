@@ -176,9 +176,9 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
                 Ok(server) => Ok(entry.insert(server).clone()),
                 Err(err) => {
                     if let std::io::ErrorKind::NotFound = err.kind() {
-                        Err(error::Error::LspNotFound(lsp_command))
+                        Err(error::Error::NotFound(lsp_command))
                     } else {
-                        Err(error::Error::LspFailed(lsp_command))
+                        Err(error::Error::Crashed(lsp_command))
                     }
                 }
             },
@@ -199,6 +199,6 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
             }
         }
     } else {
-        Err(error::Error::LspNotConfigured(uri.to_string()))
+        Err(error::Error::NotConfigured(uri.to_string()))
     }
 }

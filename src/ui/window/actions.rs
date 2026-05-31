@@ -1,6 +1,5 @@
 use adw::subclass::prelude::*;
 use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*};
-use gtk::gio::FileQueryInfoFlags;
 use gtk::{Label, gio};
 use gtk::{
     gio::{Cancellable, SimpleAction},
@@ -11,7 +10,6 @@ use vte4::prelude::*;
 
 use crate::ui::dialog::rename_file;
 use crate::ui::preferences::PreferencesDialog;
-use crate::ui::sidebar;
 use crate::utils;
 use crate::{
     lsp,
