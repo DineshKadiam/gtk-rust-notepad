@@ -45,6 +45,9 @@ pub fn tab_term(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     let page = window.imp().tab_view.add_page(&term, None);
     term.setup(window.imp().workspace_uri.borrow().as_str());
     page.set_title("Terminal");
+    page.set_icon(Some(&gio::ThemedIcon::from_names(&[
+        "utilities-terminal-symbolic",
+    ])));
     if page.is_selected() {
         window.imp().window_title.set_title(&page.title());
     }
