@@ -1,4 +1,3 @@
-
 use adw::subclass::prelude::*;
 use glib::Properties;
 use gtk::CompositeTemplate;
@@ -15,7 +14,7 @@ use crate::ui::window::EditorWindow;
 use crate::utils;
 
 mod file_tree;
-mod icons;
+pub mod icons;
 
 mod imp {
 

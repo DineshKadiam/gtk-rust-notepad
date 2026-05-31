@@ -2,41 +2,40 @@ using Gtk 4.0;
 using GtkSource 5;
 
 template $Buffer: Box {
-    file_path: "";
-    orientation: horizontal;
+	orientation: horizontal;
 
-    diagnostic_provider: GtkSource.AnnotationProvider {};
+	diagnostic_provider: GtkSource.AnnotationProvider {};
 
-    ScrolledWindow {
-        vscrollbar-policy: external;
+	ScrolledWindow {
+		vscrollbar-policy: external;
 
-        GtkSource.View source_view {
-            vexpand: true;
-            hexpand: true;
-            monospace: true;
-            show-line-numbers: true;
-            show-line-marks: true;
-            top-margin: 12;
-            bottom-margin: 16;
-            pixels-below-lines: 4;
-            // Helix-like indentation
-            left-margin: 4;
-            tab-width: 4;
-            insert-spaces-instead-of-tabs: true;
-            indent-width: 4;
-            auto-indent: true;
-        }
-    }
+		GtkSource.View source_view {
+			vexpand: true;
+			hexpand: true;
+			monospace: true;
+			show-line-numbers: true;
+			show-line-marks: true;
+			top-margin: 12;
+			bottom-margin: 16;
+			pixels-below-lines: 4;
+			// Helix-like indentation
+			left-margin: 4;
+			tab-width: 4;
+			insert-spaces-instead-of-tabs: true;
+			indent-width: 4;
+			auto-indent: true;
+		}
+	}
 
-    Revealer map_revealer {
-        transition-type: slide_left;
+	Revealer map_revealer {
+		transition-type: slide_left;
 
-        GtkSource.Map source_map {
-            halign: end;
-            valign: fill;
-            view: source_view;
-            highlight-current-line: true;
-            vexpand: true;
-        }
-    }
+		GtkSource.Map source_map {
+			halign: end;
+			valign: fill;
+			view: source_view;
+			highlight-current-line: true;
+			vexpand: true;
+		}
+	}
 }

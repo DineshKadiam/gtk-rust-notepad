@@ -1,6 +1,7 @@
 use adw::subclass::prelude::*;
 use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*};
-use gtk::Label;
+use gtk::gio::FileQueryInfoFlags;
+use gtk::{Label, gio};
 use gtk::{
     gio::{Cancellable, SimpleAction},
     glib::{self, Variant, clone},
@@ -10,6 +11,7 @@ use vte4::prelude::*;
 
 use crate::ui::dialog::rename_file;
 use crate::ui::preferences::PreferencesDialog;
+use crate::ui::sidebar;
 use crate::utils;
 use crate::{
     lsp,
@@ -77,9 +79,9 @@ pub fn tab_close(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     if let Some(page) = window.imp().tab_view.selected_page() {
         // LSP file close
         if let Some(buffer) = page.child().downcast_ref::<Buffer>()
-            && !buffer.file_path().is_empty()
+            && let Some(path) = buffer.file_path()
         {
-            lsp::file::close(&buffer.file_path(), &window.workspace_uri());
+            lsp::file::close(&path, &window.workspace_uri());
         }
         window.imp().tab_view.close_page(&page);
     }
@@ -262,7 +264,7 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
     if let Some(page) = window.tab_view.selected_page()
         && let Some(buffer) = page.child().downcast_ref::<Buffer>()
     {
-        if buffer.file_path() == "" || save_as {
+        if buffer.file_path().is_some() || save_as {
             let old_path = buffer.file_path();
             let workspace_uri = window.workspace_uri.borrow().clone();
             gtk::FileDialog::new().save(
@@ -271,15 +273,15 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                 clone!(
                     #[strong]
                     buffer,
-                    #[strong]
-                    page,
                     #[weak]
                     window,
                     move |result| {
                         if let Ok(file) = result {
                             let file_name =
                                 file.path().unwrap().to_str().unwrap().to_string().clone();
-                            // Set syntax highlighting
+                            // Set buffer path
+                            buffer.set_file(&file_name);
+                            // Syntax highlighting
                             if let Some(ref language) = sourceview5::LanguageManager::new()
                                 .guess_language(Some(&file_name), None)
                             {
@@ -291,26 +293,11 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
                                     .unwrap()
                                     .set_language(Some(language));
                             }
-                            // Set buffer path
-                            buffer.set_file(&file_name);
-                            // Save -- TODO: move to buffer.save() ??? buffer.save_as/new/resave() ???
-                            glib::spawn_future_local(async move {
-                                buffer.write().await;
-                                if !old_path.is_empty() {
-                                    lsp::file::close(&old_path, &workspace_uri);
-                                }
-                                buffer.update_uri(&file_name, &workspace_uri);
-                                lsp::file::open(&file_name, &workspace_uri);
-                                lsp::file::change(&file_name, &workspace_uri, None);
-                                lsp::file::save(&file_name, &workspace_uri);
-                                // Set window/tab title
-                                page.set_title(&buffer.tab_name());
-                                if page.is_selected() {
-                                    // TODO clearly i should be able to simplify this right
-                                    window.window_title.set_title(&page.title());
-                                    buffer.set_status(&window.workspace_uri.borrow());
-                                }
-                            });
+                            // Save
+                            buffer.save(&window.obj().clone());
+                            if let Some(ref path) = old_path {
+                                lsp::file::close(path, &workspace_uri);
+                            }
                         }
                     }
                 ),
@@ -324,7 +311,7 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
 /// Saves a buffer asynchronously. Used/designed for alert dialogs where LSP integration does not matter
 pub async fn save_buffer_async(window: &EditorWindow, buffer: Buffer) {
     let window = window.imp();
-    if buffer.file_path() == "" {
+    if buffer.file_path().is_some() {
         let (tx, rx) = async_channel::bounded(1);
         gtk::FileDialog::new().save(
             Some::<&gtk::Window>(&window.obj().clone().into()),

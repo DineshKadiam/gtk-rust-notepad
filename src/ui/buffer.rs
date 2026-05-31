@@ -36,6 +36,7 @@ use gtk::{
 use crate::config::Config;
 use crate::lsp;
 use crate::ui::completion::provider::LspCompletionProvider;
+use crate::ui::sidebar;
 use crate::ui::window::EditorWindow;
 use crate::utils;
 
@@ -52,8 +53,6 @@ mod imp {
         pub source_map: TemplateChild<sourceview5::Map>,
         #[template_child]
         pub map_revealer: TemplateChild<Revealer>,
-        #[property(get, set)]
-        pub file_path: RefCell<String>,
         #[property(get, set)]
         pub diagnostic_provider: RefCell<AnnotationProvider>,
 
@@ -176,20 +175,19 @@ impl Buffer {
     pub fn clean_name(&self, workspace_dir: &str) -> String {
         // TODO we can actually store this, and eliminate the need to borrow a workspace dir EVERY time
         // store in Buffer::name()
-        if self.file_path().is_empty() {
-            "[scratch]".to_string()
-        } else {
-            self.file_path()
-                .replace(workspace_dir, "")
+        if let Some(path) = self.file_path() {
+            path.replace(workspace_dir, "")
                 .trim_start_matches("/")
                 .to_string()
+        } else {
+            "[scratch]".to_string()
         }
     }
 
     /// Gets the short name of the buffer, plus a string if it was modified.
     pub fn tab_name(&self) -> String {
-        (if !self.file_path().is_empty() {
-            utils::basename(&self.file_path()).to_string()
+        (if let Some(path) = self.file_path() {
+            utils::basename(&path).to_string()
         } else {
             "scratch".to_string()
         }) + if self.get_sourceview_buffer().is_modified() {
@@ -422,7 +420,6 @@ impl Buffer {
         loader.load_async(glib::Priority::default(), gio::Cancellable::NONE, |_| {});
         // Set file instance
         self.imp().file.replace(Some(file));
-        self.set_file_path(path);
         // Set syntax highlighting
         if let Some(ref language) = sourceview5::LanguageManager::new()
             .guess_language(Some(&path), info.content_type().as_deref())
@@ -442,7 +439,6 @@ impl Buffer {
         let loader = sourceview5::FileLoader::new(&buffer, &file);
         // Set file instance
         self.imp().file.replace(Some(file));
-        self.set_file_path(path);
         // Set syntax highlighting
         if let Some(ref language) = sourceview5::LanguageManager::new()
             .guess_language(Some(&path), info.content_type().as_deref())
@@ -457,10 +453,23 @@ impl Buffer {
             .unwrap();
     }
 
+    /// Gets the file path from a FileInfo, if it exists, or None.
+    pub fn file_path(&self) -> Option<String> {
+        if let Some(ref file) = *self.imp().file.borrow()
+            && let Some(path) = file.location().path()
+        {
+            Some(path.to_str().unwrap().to_string().clone())
+        } else {
+            None
+        }
+    }
+
     /// Reloads current file
     pub fn reload_file(&self) {
-        self.set_buffer_text(&fs::read_to_string(self.file_path()).unwrap());
-        self.set_file(&self.file_path());
+        if let Some(path) = self.file_path() {
+            self.set_buffer_text(&fs::read_to_string(&path).unwrap());
+            self.set_file(&path);
+        }
     }
 
     /// Modifies the buffer text in place, and then attempts to both set the cursor back to its
@@ -529,7 +538,6 @@ impl Buffer {
         let file = sourceview5::File::builder()
             .location(&gio::File::for_path(path))
             .build();
-        self.set_file_path(path);
         self.imp().file.replace(Some(file));
     }
 
@@ -599,7 +607,6 @@ impl Buffer {
     /// Asynchronously writes the buffer to `Buffer::file_path` and updates both the associated window and LSP.
     pub fn save(&self, window: &EditorWindow) {
         let workspace_uri = window.imp().workspace_uri.borrow().clone();
-        // <- TODO format before saving right here
         glib::spawn_future_local(clone!(
             #[weak]
             window,
@@ -610,15 +617,27 @@ impl Buffer {
                 // Save, and then...
                 buffer.write().await;
                 // Tell LSP file was modified
-                lsp::file::change(&buffer.file_path(), &workspace_uri, None);
-                lsp::file::save(&buffer.file_path(), &workspace_uri);
+                let path = buffer.file_path().unwrap();
+                lsp::file::change(&path, &workspace_uri, None);
+                lsp::file::save(&path, &workspace_uri);
                 // Format and reload buffer
-                if lsp::format::format(&buffer.file_path(), &workspace_uri).await {
+                if lsp::format::format(&path, &workspace_uri).await {
                     buffer.reload_file();
                 }
                 // Set window/tab title
                 if let Some(page) = selected_page {
                     page.set_title(&buffer.tab_name());
+                    if let Some(ref file) = *buffer.imp().file.borrow()
+                        && let Ok(info) = file.location().query_info(
+                            "standard::*",
+                            FileQueryInfoFlags::NONE,
+                            Cancellable::NONE,
+                        )
+                    {
+                        let icon_name = sidebar::icons::from_file_info(&info);
+                        let icon = gio::ThemedIcon::from_names(&[&icon_name]);
+                        page.set_icon(Some(&icon));
+                    }
                     if page.is_selected() {
                         // TODO clearly i should be able to simplify this right
                         window.imp().window_title.set_title(&page.title());

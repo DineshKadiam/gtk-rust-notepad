@@ -1,14 +1,24 @@
 use std::cell::RefCell;
 
 use async_lsp::lsp_types::DiagnosticSeverity;
-use gtk::{CssProvider, SearchBar, SearchEntry, Stack, ToggleButton};
+use gtk::{
+    CssProvider, SearchBar, SearchEntry, Stack, ToggleButton,
+    gio::{Cancellable, FileQueryInfoFlags},
+};
 use sourceview5::StyleSchemeManager;
 
 use crate::{
     config::Config,
-    ui::{buffer::Buffer, sidebar::Sidebar, terminal::TerminalView, welcome::WelcomeScreen},
+    ui::{
+        buffer::Buffer,
+        sidebar::{self, Sidebar},
+        terminal::TerminalView,
+        welcome::WelcomeScreen,
+    },
     utils,
 };
+
+use gtk::prelude::*;
 
 use super::*;
 
@@ -106,7 +116,6 @@ impl EditorWindow {
         // Create buffer UI and page
         let buffer_ui = Buffer::with_source(buffer.clone());
         let page = self.tab_view.add_page(&buffer_ui, None);
-        buffer_ui.set_file_path(path.unwrap_or_default());
         buffer_ui.update_uri(
             path.unwrap_or_default(),
             &self.workspace_uri.borrow().clone(),
@@ -115,10 +124,20 @@ impl EditorWindow {
         // Files
         if let Some(path) = path {
             buffer_ui.load_file(path);
-        }
-        // LSP servers
-        if let Some(path) = path {
+            // LSP servers
             lsp::file::open(path, self.workspace_uri.borrow().as_str());
+            // Page icons
+            if let Some(ref file) = *buffer_ui.imp().file.borrow()
+                && let Ok(info) = file.location().query_info(
+                    "standard::*",
+                    FileQueryInfoFlags::NONE,
+                    Cancellable::NONE,
+                )
+            {
+                let icon_name = sidebar::icons::from_file_info(&info);
+                let icon = gio::ThemedIcon::from_names(&[&icon_name]);
+                page.set_icon(Some(&icon));
+            }
         }
         // Add tab
         page.set_title(&buffer_ui.tab_name());
@@ -148,10 +167,11 @@ impl EditorWindow {
             move |buffer| {
                 if !buffer.is_loading() {
                     // Update LSP
-                    if !buffer_ui.file_path().is_empty() && !this.workspace_uri.borrow().is_empty()
+                    if let Some(path) = buffer_ui.file_path()
+                        && !this.workspace_uri.borrow().is_empty()
                     {
                         lsp::file::change(
-                            &buffer_ui.file_path(),
+                            &path,
                             &this.workspace_uri.borrow(),
                             Some(
                                 buffer
@@ -177,7 +197,8 @@ impl EditorWindow {
                 // Look for a buffer with corresponding uri
                 tab_view.pages().iter::<TabPage>().for_each(|page| {
                     if let Some(buffer) = page.unwrap().child().downcast_ref::<Buffer>()
-                        && buffer.file_path() == uri
+                        && let Some(path) = buffer.file_path()
+                        && path == uri
                     {
                         buffer.clear_diagnostics();
                         let mut start_lines = vec![];
