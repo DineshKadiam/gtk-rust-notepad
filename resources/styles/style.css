@@ -106,7 +106,7 @@ flowboxchild {
 }
 
 /* Styling headerbars to look like GNOME Builder's (libpanel header) */
-toolbarview .top-bar {
+toolbarview .top-bar, toolbarview .bottom-bar {
     background-color: @window_bg_color;
     --headerbar-darker-shade-color: color-mix(
         in srgb,
