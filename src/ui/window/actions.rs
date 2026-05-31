@@ -267,7 +267,7 @@ pub fn save_current_buffer(window: &EditorWindow, save_as: bool) {
     if let Some(page) = window.tab_view.selected_page()
         && let Some(buffer) = page.child().downcast_ref::<Buffer>()
     {
-        if buffer.file_path().is_some() || save_as {
+        if buffer.file_path().is_none() || save_as {
             let old_path = buffer.file_path();
             let workspace_uri = window.workspace_uri.borrow().clone();
             gtk::FileDialog::new().save(
