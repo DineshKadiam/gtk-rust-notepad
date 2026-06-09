@@ -32,11 +32,11 @@ pub(crate) mod scheme {
     /// Gets the dark variant of a StyleScheme or the scheme itself if it doesn't have a dark variant
     pub fn dark(scheme: &StyleScheme) -> StyleScheme {
         if let Some(dark) = is_dark(scheme)
-            && let Some(dark_variant) = scheme.metadata("dark-variant")
+            && let Some(ref dark_variant) = scheme.metadata("dark-variant")
             && !dark
         {
             // is a light variant
-            StyleSchemeManager::default().scheme(&dark_variant).unwrap()
+            StyleSchemeManager::default().scheme(dark_variant).unwrap()
         } else {
             scheme.clone()
         }
@@ -45,13 +45,11 @@ pub(crate) mod scheme {
     /// Gets the light variant of a StyleScheme or the scheme itself if it doesn't have a light variant
     pub fn light(scheme: &StyleScheme) -> StyleScheme {
         if let Some(dark) = is_dark(scheme)
+            && let Some(ref light_variant) = scheme.metadata("light-variant")
             && dark
-            && scheme.metadata("light-variant").is_some()
         {
             // is a light variant
-            StyleSchemeManager::default()
-                .scheme(&scheme.metadata("light-variant").unwrap())
-                .unwrap()
+            StyleSchemeManager::default().scheme(light_variant).unwrap()
         } else {
             scheme.clone()
         }
