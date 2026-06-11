@@ -1,12 +1,13 @@
-# Kyanite
+<h1> <img height="32px" src="resources/icons/ca.potatoe.Kyanite.svg"/> Kyanite </h1>
 
-![](resources/icons/ca.potatoe.Kyanite.svg) 
+![trans rights](https://img.shields.io/badge/-rights_btw-wtf?style=flat&label=trans&labelColor=5BCEFA&color=F5A9B8)
+
+A lightweight, graphical text editor.
 
 ![](resources/screenshots/code.png)
 
 <small>(see resources/screenshots for more screenshots)</small>
 
-A lightweight, graphical text editor.
 
 ## Features
 - File tree!
@@ -94,4 +95,4 @@ i marked optional things with a question mark
 
 By using or contributing to this software, you agree that *trans rights are human rights*, *ACAB*, and that *hate has no place here*.
 
-![](resources/screenshots/kills_fascists.png)
+<img width="256px" src="resources/screenshots/kills_fascists.png"/>
