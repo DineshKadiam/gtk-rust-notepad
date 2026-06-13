@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use async_lsp::lsp_types::DiagnosticSeverity;
 use gtk::{
-    CssProvider, SearchBar, SearchEntry, Stack, ToggleButton,
+    Button, CssProvider, SearchBar, SearchEntry, Stack, ToggleButton,
     gio::{Cancellable, FileQueryInfoFlags},
 };
 use sourceview5::StyleSchemeManager;
@@ -44,6 +44,8 @@ pub struct EditorWindow {
     pub sidebar: TemplateChild<Sidebar>,
     #[template_child]
     pub sidebar_button: TemplateChild<ToggleButton>,
+    #[template_child]
+    pub toggle_terminal_button: TemplateChild<libpanel::ToggleButton>,
     #[template_child]
     pub stack: TemplateChild<Stack>,
     /* Status bar labels */
@@ -276,6 +278,13 @@ impl ObjectImpl for EditorWindow {
         self.split_view.connect_show_sidebar_notify(move |sidebar| {
             button.set_active(sidebar.shows_sidebar());
         });
+        // Set up panel button
+        // Use a universal system icon so it looks good with other icon themes
+        if let Some(first) = self.toggle_terminal_button.first_child()
+            && let Some(button) = first.first_child().and_downcast_ref::<Button>()
+        {
+            button.set_icon_name("utilities-terminal-symbolic")
+        }
     }
 }
 impl WidgetImpl for EditorWindow {}
