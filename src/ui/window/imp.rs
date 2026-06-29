@@ -265,6 +265,19 @@ impl ObjectImpl for EditorWindow {
             &self.accent_style.borrow().clone(),
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
+        self.stack.connect_visible_child_notify(clone!(
+            #[strong(rename_to=window)]
+            self.obj(),
+            move |stack| {
+                if let Some(name) = stack.visible_child_name()
+                    && name == "empty"
+                {
+                    window.add_css_class("hide-border");
+                } else {
+                    window.remove_css_class("hide-border");
+                }
+            }
+        ));
         // Set up LSP loading spinner
         let listener = lsp::loading::listen();
         let lsp_load = self.status_lsp_load.clone();

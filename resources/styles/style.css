@@ -8,7 +8,7 @@ textview.GtkSourceMap {
         color-mix(in srgb, var(--border-color) 30%, transparent);
     background: transparent;
     font-size: 2pt;
-    line-height: 2px;
+    line-height: 1em;
 }
 
 textview.GtkSourceMap *:last-child {
@@ -113,6 +113,10 @@ toolbarview .top-bar, toolbarview .bottom-bar {
         var(--border-color) 60%,
         transparent
     );
+}
+
+window.hide-border toolbarview .top-bar {
+    --headerbar-darker-shade-color: transparent;
 }
 
 .sidebar-pane .top-bar {
