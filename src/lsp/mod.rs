@@ -13,17 +13,22 @@ use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
 use async_lsp::lsp_types::{
     ClientCapabilities, DidChangeWorkspaceFoldersParams, DidCloseTextDocumentParams,
-    DidOpenTextDocumentParams, InitializeParams, InitializedParams, ProgressParamsValue,
-    PublishDiagnosticsParams, TextDocumentIdentifier, TextDocumentItem, Url,
-    WindowClientCapabilities, WorkDoneProgress, WorkspaceFolder, WorkspaceFoldersChangeEvent,
+    DidOpenTextDocumentParams, InitializeParams, InitializedParams, MessageType,
+    ProgressParamsValue, PublishDiagnosticsParams, TextDocumentIdentifier, TextDocumentItem, Url,
+    WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
+    WorkspaceFoldersChangeEvent,
 };
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
 use async_lsp::tracing::TracingLayer;
+use futures::io::BufReader;
+use gtk::glib::clone;
 use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
 use crate::config::{self, Config};
+use crate::notifications;
+use crate::notifications::data::Notification;
 
 /// Stores language servers globally, and marks their names along with a socket.
 /// > [!NOTE]
@@ -66,37 +71,86 @@ pub fn listen_diagnostics() -> Receiver<PublishDiagnosticsParams> {
 /// Creates a new language server instance (e.g. spawns a command and main loop) and returns a socket to that instance.
 /// Most of the code here is taken from the async_lsp example; I should probably clean it up a bit...
 async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSocket> {
-    let (mainloop, mut server) = async_lsp::MainLoop::new_client(|_server| {
-        let mut router = Router::new(ClientState);
-        router
-            .notification::<Progress>(|_this, prog| {
-                // println!("{:?} {:?}", prog.token, prog.value);
-                match prog.value {
-                    ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => loading::add(1),
-                    ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => loading::sub(1),
-                    _ => (),
-                }
-                ControlFlow::Continue(())
-            })
-            .notification::<PublishDiagnostics>(|_, prog| {
-                DIAG_SENDERS.write().unwrap().iter_mut().for_each(|sender| {
-                    sender.send_blocking(prog.clone()).unwrap();
-                });
-                ControlFlow::Continue(())
-            })
-            .notification::<ShowMessage>(|_, params| {
-                println!("Message {:?}: {}", params.typ, params.message);
-                ControlFlow::Continue(())
-            })
-            .event(|_, _: Stop| ControlFlow::Break(Ok(())));
+    let (mainloop, mut server) = {
+        let command = command.split(" ").collect::<Vec<&str>>()[0].to_string();
+        async_lsp::MainLoop::new_client(move |_server| {
+            let mut router = Router::new(ClientState);
+            router
+                .notification::<Progress>(clone!(
+                    #[strong]
+                    command,
+                    move |_this, prog| {
+                        let id = format!("{command}_progress");
+                        match prog.value {
+                            ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => {
+                                loading::add(1)
+                            }
+                            ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => {
+                                loading::sub(1);
+                                notifications::push(Notification {
+                                    summary: format!("{command} loaded"),
+                                    status: notifications::data::Status::Progress(1.0),
+                                    id,
+                                    ..Notification::default()
+                                });
+                            }
+                            ProgressParamsValue::WorkDone(WorkDoneProgress::Report(
+                                WorkDoneProgressReport {
+                                    message: Some(text),
+                                    cancellable: _,
+                                    percentage,
+                                },
+                            )) => {
+                                let percentage = percentage.unwrap_or(0);
+                                notifications::push(Notification {
+                                    summary: format!("{command} loading"),
+                                    details: text,
+                                    status: notifications::data::Status::Progress(
+                                        percentage as f32 / 100.,
+                                    ),
+                                    id,
+                                    ..Notification::default()
+                                });
+                            }
+                            _ => (),
+                        }
+                        ControlFlow::Continue(())
+                    }
+                ))
+                .notification::<PublishDiagnostics>(|_, prog| {
+                    DIAG_SENDERS.write().unwrap().iter_mut().for_each(|sender| {
+                        sender.send_blocking(prog.clone()).unwrap();
+                    });
+                    ControlFlow::Continue(())
+                })
+                .notification::<ShowMessage>(clone!(
+                    #[strong]
+                    command,
+                    move |_, params| {
+                        let priority = match params.typ {
+                            MessageType::ERROR => notifications::data::Priority::High,
+                            MessageType::WARNING => notifications::data::Priority::Medium,
+                            _ => notifications::data::Priority::Low,
+                        };
+                        notifications::push(Notification {
+                            summary: format!("{command}: {:?}", params.typ),
+                            details: params.message,
+                            id: format!("{command}_message"),
+                            priority,
+                            ..Notification::default()
+                        });
+                        ControlFlow::Continue(())
+                    }
+                ))
+                .event(|_, _: Stop| ControlFlow::Break(Ok(())));
 
-        ServiceBuilder::new()
-            .layer(TracingLayer::default())
-            .layer(CatchUnwindLayer::default())
-            .layer(ConcurrencyLayer::default())
-            .service(router)
-    });
-
+            ServiceBuilder::new()
+                .layer(TracingLayer::default())
+                .layer(CatchUnwindLayer::default())
+                .layer(ConcurrencyLayer::default())
+                .service(router)
+        })
+    };
     let command_full = command.to_string();
     let mut command = command.split(" ").collect::<Vec<&str>>();
     let child = async_process::Command::new(command[0])
@@ -104,18 +158,38 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
         .args(command.split_off(1))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped()) // TODO read pipe, print in log file
+        .stderr(Stdio::piped())
         .spawn()?;
     let stdout = child.stdout.unwrap();
     let stdin = child.stdin.unwrap();
-
-    eprintln!("Started LSP {command_full}");
+    let stderr = child.stderr.unwrap();
 
     // Spawn main loop
     tokio::spawn(async move {
         match mainloop.run_buffered(stdout, stdin).await {
             Ok(_) => (),
-            Err(_) => eprintln!("LSP {command_full} crashed!"),
+            Err(_) => {
+                // Read stderr
+                let err = String::from_utf8(
+                    BufReader::new(stderr)
+                        .buffer()
+                        .iter()
+                        .map(|n| *n)
+                        .collect::<Vec<u8>>(),
+                )
+                .unwrap();
+                // Send notification
+                notifications::push(Notification {
+                    summary: format!("{command_full} crashed"),
+                    details: err,
+                    priority: notifications::data::Priority::High,
+                    id: format!(
+                        "{}_error",
+                        command_full.split(" ").collect::<Vec<&str>>()[0]
+                    ),
+                    ..Notification::default()
+                });
+            }
         }
         // Remove language server socket from hashmap
         let mut a = SERVERS.write().unwrap();

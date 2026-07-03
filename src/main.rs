@@ -1,5 +1,6 @@
 mod config;
 mod lsp;
+mod notifications;
 mod ui;
 mod utils;
 
