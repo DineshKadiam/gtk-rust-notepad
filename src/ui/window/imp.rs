@@ -296,7 +296,8 @@ impl ObjectImpl for EditorWindow {
         if let Some(first) = self.toggle_terminal_button.first_child()
             && let Some(button) = first.first_child().and_downcast_ref::<Button>()
         {
-            button.set_icon_name("utilities-terminal-symbolic")
+            /*button.set_icon_name("utilities-terminal-symbolic");*/
+            button.set_label(">_");
         }
     }
 }
