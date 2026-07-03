@@ -67,11 +67,15 @@ fn open(app: &Application, files: &[gtk::gio::File], _: &str) {
 }
 
 fn load_css(_: &Application) {
-    let provider = CssProvider::new();
-    provider.load_from_string(include_str!("../resources/styles/style.css"));
-    gtk::style_context_add_provider_for_display(
-        &Display::default().expect("Could not connect to a display."),
-        &provider,
-        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-    );
+    _load(include_str!("../resources/styles/style.css"));
+    _load(include_str!("../resources/styles/completion.css"));
+    fn _load(css: &str) {
+        let provider = CssProvider::new();
+        provider.load_from_string(css);
+        gtk::style_context_add_provider_for_display(
+            &Display::default().expect("Could not connect to a display."),
+            &provider,
+            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+        );
+    }
 }

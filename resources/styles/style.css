@@ -130,41 +130,6 @@ separator {
     background-color: color-mix(in srgb, var(--border-color) 60%, transparent);
 }
 
-/* Code completion */
-GtkSourceAssistant.completion, GtkSourceAssistant.completion-info {
-    min-width: 1px;
-    background: transparent;
-}
-
-GtkSourceAssistant.completion contents,
-GtkSourceAssistant.completion-info contents {
-    min-width: 258px;
-    margin: 4px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-    border-radius: 8px;
-    background: @view_bg_color;
-}
-
-GtkSourceAssistant.completion-info contents {
-    margin: 8px;
-    padding: 8px;
-}
-
-GtkSourceAssistant.completion box  {
-    margin: 2px;
-    border-radius: 8px;
-}
-
-GtkSourceAssistant.completion box > * {
-    border-radius: 8px;
-    padding: 0 2px;
-    margin: 1px;
-}
-
-cell.details {
-    font-family: Sans;
-}
-
 /* Flat (sharp corners) window styling */
 window.flat,
 .flat button,

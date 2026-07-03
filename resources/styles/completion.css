@@ -1,0 +1,57 @@
+/* GtkSourceView code completion hacks */
+.completion, .completion-info {
+    background: transparent;
+}
+
+.completion > *, .completion-info > * {
+    min-width: 258px;
+    background: @sidebar_bg_color;
+    margin: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px 3px var(--shade-color), 0 0 0 1px rgba(0, 0, 0, 0.09);
+}
+
+.completion-info contents {
+    padding: 4px;
+}
+
+.completion scrolledwindow * {
+    min-height: 0;
+}
+
+.completion-info scrolledwindow {
+    border-bottom: unset;
+}
+
+GtkSourceAssistant.completion-info  {
+    margin: 8px;
+    padding: 8px;
+}
+
+.completion row  {
+    padding: 6px 16px;
+}
+
+cell.details {
+    font-family: Sans;
+}
+
+cell.comment {
+    padding: 0 16px;
+    margin: 0;
+}
+
+.completion button {
+    padding: 2px 8px;
+    margin: 3px;
+    font-family: sans;
+}
+
+cell.details {
+    margin: 0;
+    padding: 0;
+}
+
+box.details {
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+}
