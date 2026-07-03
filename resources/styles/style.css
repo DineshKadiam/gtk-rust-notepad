@@ -67,6 +67,8 @@ paneltogglebutton.compressed button {
 panelstatusbar label,
 panelstatusbar image {
     padding: 2px 8px;
+    font-size: 13px;
+    font-family: monospace;
 }
 
 .statusbar.search {
