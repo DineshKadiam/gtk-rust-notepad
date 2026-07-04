@@ -6,12 +6,18 @@ template $NotificationsView: Adw.Bin {
 		icon-name: "dialog-information-symbolic";
 
 		popover: Popover {
+			styles [
+				"notifs-popover",
+			]
+
 			ScrolledWindow {
 				width-request: 400;
 				height-request: 256;
 
-				Box notifs_list {
-					orientation: vertical;
+				ListBox notifs_list {
+					styles [
+						"notifs-list",
+					]
 				}
 			}
 		};

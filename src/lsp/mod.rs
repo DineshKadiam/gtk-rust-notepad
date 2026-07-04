@@ -14,9 +14,9 @@ use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessa
 use async_lsp::lsp_types::{
     ClientCapabilities, DidChangeWorkspaceFoldersParams, DidCloseTextDocumentParams,
     DidOpenTextDocumentParams, InitializeParams, InitializedParams, MessageType,
-    ProgressParamsValue, PublishDiagnosticsParams, TextDocumentIdentifier, TextDocumentItem, Url,
-    WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
-    WorkspaceFoldersChangeEvent,
+    ProgressParamsValue, ProgressToken, PublishDiagnosticsParams, TextDocumentIdentifier,
+    TextDocumentItem, Url, WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport,
+    WorkspaceFolder, WorkspaceFoldersChangeEvent,
 };
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
@@ -80,7 +80,12 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     #[strong]
                     command,
                     move |_this, prog| {
-                        let id = format!("{command}_progress");
+                        let id = format!("{command}_progress_{:?}", prog.token);
+                        let summary = if let ProgressToken::String(token_string) = prog.token {
+                            format!("{token_string}")
+                        } else {
+                            format!("{command}: loading")
+                        };
                         match prog.value {
                             ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => {
                                 loading::add(1)
@@ -88,7 +93,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                             ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => {
                                 loading::sub(1);
                                 notifications::push(Notification {
-                                    summary: format!("{command} loaded"),
+                                    summary,
                                     status: notifications::data::Status::Progress(1.0),
                                     id,
                                     ..Notification::default()
@@ -103,7 +108,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                             )) => {
                                 let percentage = percentage.unwrap_or(0);
                                 notifications::push(Notification {
-                                    summary: format!("{command} loading"),
+                                    summary,
                                     details: text,
                                     status: notifications::data::Status::Progress(
                                         percentage as f32 / 100.,

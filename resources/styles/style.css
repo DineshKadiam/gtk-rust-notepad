@@ -1,3 +1,11 @@
+:root {
+    --border-light-color: color-mix(
+        in srgb,
+        var(--border-color) 60%,
+        transparent
+    );
+}
+
 /* Theme sidebar/source */
 gutter > * {
     margin-left: 10px;
@@ -110,11 +118,7 @@ flowboxchild {
 /* Styling headerbars to look like GNOME Builder's (libpanel header) */
 toolbarview .top-bar, toolbarview .bottom-bar {
     background-color: @window_bg_color;
-    --headerbar-darker-shade-color: color-mix(
-        in srgb,
-        var(--border-color) 60%,
-        transparent
-    );
+    --headerbar-darker-shade-color: var(--border-light-color);
 }
 
 window.hide-border toolbarview .top-bar {
@@ -127,7 +131,38 @@ window.hide-border toolbarview .top-bar {
 }
 
 separator {
-    background-color: color-mix(in srgb, var(--border-color) 60%, transparent);
+    background-color: var(--border-light-color);
+}
+
+/* Notifications */
+.notifs-popover > * {
+	padding: 0;
+	border: 1px solid var(--border-color);
+}
+
+.notifs-list {
+	background: transparent;
+}
+
+.notifs-list > * {
+	color: var(--card-fg-color);
+	border-bottom: 1px solid var(--border-color);
+}
+
+.notifs-list > *:last-child {
+	border-bottom: unset;
+}
+
+.notif-row {
+	padding: 2px 12px;
+}
+
+.notif-row button {
+	padding: 0;
+}
+
+.notif-progress {
+	margin: 8px 0;
 }
 
 /* Flat (sharp corners) window styling */

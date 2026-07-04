@@ -11,7 +11,7 @@ use crate::{
     config::Config,
     ui::{
         buffer::Buffer,
-        notifs::NotificationsView,
+        notifications::view::NotificationsView,
         sidebar::{self, Sidebar},
         terminal::TerminalView,
         welcome::WelcomeScreen,

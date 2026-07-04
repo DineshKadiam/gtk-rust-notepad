@@ -1,0 +1,42 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $NotificationRow: Adw.Bin {
+	summary: "";
+	progress: -1.0;
+
+	styles [
+		"notif-row",
+	]
+
+	Box {
+		orientation: vertical;
+
+		CenterBox {
+			[start]
+			Label label_summary {}
+
+			[end]
+			Button {
+				icon-name: "window-close-symbolic";
+				valign: center;
+				vexpand: false;
+
+				styles [
+					"close",
+					"circular",
+				]
+			}
+		}
+
+		ProgressBar progress_bar {
+			styles [
+				"notif-progress",
+			]
+
+			visible: false;
+			valign: center;
+			fraction: 0.5;
+		}
+	}
+}

@@ -11,7 +11,10 @@ mod imp {
 
     use gtk::{Label, glib::clone};
 
-    use crate::notifications::{self, data::Event};
+    use crate::{
+        notifications::{self, data::Event},
+        ui::notifications::row::NotificationRow,
+    };
 
     use super::*;
 
@@ -20,7 +23,7 @@ mod imp {
     #[properties(wrapper_type = super::NotificationsView)]
     pub struct NotificationsView {
         #[template_child]
-        pub notifs_list: TemplateChild<gtk::Box>,
+        pub notifs_list: TemplateChild<gtk::ListBox>,
     }
 
     #[glib::object_subclass]
@@ -48,23 +51,27 @@ mod imp {
                 self.notifs_list,
                 async move {
                     let rx = notifications::subscribe();
-                    let mut labels: Vec<gtk::Label> = vec![];
+                    let mut labels: Vec<NotificationRow> = vec![];
                     while let Ok(event) = rx.recv().await {
                         match event {
                             Event::Push(notif) => {
-                                let text = if let notifications::data::Status::Progress(p) =
+                                let progress = if let notifications::data::Status::Progress(p) =
                                     notif.status
                                 {
-                                    format!("{} {}%", notif.summary, p * 100.)
+                                    p as f64
                                 } else {
-                                    notif.summary
+                                    -1.0
                                 };
                                 if let Some(label) =
                                     labels.iter().find(|l| l.widget_name() == notif.id)
+                                    && !notif.id.is_empty()
                                 {
-                                    label.set_text(&text);
+                                    label.set_summary(notif.summary);
+                                    label.set_progress(progress);
                                 } else {
-                                    let label = Label::new(Some(&text));
+                                    let label = NotificationRow::new();
+                                    label.set_summary(notif.summary);
+                                    label.set_progress(progress);
                                     label.set_widget_name(&notif.id);
                                     notifs_list.prepend(&label);
                                     labels.push(label);
@@ -75,6 +82,14 @@ mod imp {
                     }
                 }
             ));
+            /*
+            for _ in 0..10 {
+                notifications::push(notifications::data::Notification {
+                    summary: "test!".to_string(),
+                    status: notifications::data::Status::Progress(0.5),
+                    ..Default::default()
+                });
+            }*/
         }
     }
     impl WidgetImpl for NotificationsView {}
