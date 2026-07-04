@@ -7,8 +7,8 @@ template $EditorWindow: Adw.ApplicationWindow {
 
 	workspace_uri: "";
 
-	styles[
-		"hide-border"
+	styles [
+		"hide-border",
 	]
 
 	Adw.Breakpoint {
@@ -39,6 +39,8 @@ template $EditorWindow: Adw.ApplicationWindow {
 					icon-name: "sidebar-show-symbolic";
 					action-name: "win.sidebar.toggle";
 				}
+
+				$NotificationsView notifications_button {}
 
 				title-widget: Adw.WindowTitle window_title {
 					title: _("Kyanite");

@@ -11,6 +11,7 @@ use crate::{
     config::Config,
     ui::{
         buffer::Buffer,
+        notifs::NotificationsView,
         sidebar::{self, Sidebar},
         terminal::TerminalView,
         welcome::WelcomeScreen,
@@ -241,6 +242,7 @@ impl ObjectSubclass for EditorWindow {
         TerminalView::static_type();
         WelcomeScreen::static_type();
         libpanel::Dock::static_type();
+        NotificationsView::static_type();
         Self::bind_template(klass);
     }
 

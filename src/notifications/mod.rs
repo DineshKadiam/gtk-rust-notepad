@@ -1,18 +1,15 @@
-use std::sync::RwLock;
+use async_channel::Receiver;
 
-use bus::{Bus, BusReader};
-use lazy_static::lazy_static;
+use crate::async_bus::Bus;
 
 pub mod data;
 
-lazy_static! {
-    static ref BUS: RwLock<Bus<data::Event>> = RwLock::new(Bus::new(8));
-}
+static BUS: Bus<data::Event> = Bus::new();
 
 pub fn push(notif: data::Notification) {
-    BUS.write().unwrap().broadcast(data::Event::Push(notif));
+    BUS.broadcast(data::Event::Push(notif));
 }
 
-pub fn subscribe() -> BusReader<data::Event> {
-    BUS.write().unwrap().add_rx()
+pub fn subscribe() -> Receiver<data::Event> {
+    BUS.add_rx()
 }

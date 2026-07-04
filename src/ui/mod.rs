@@ -1,6 +1,7 @@
 pub mod buffer;
 pub mod completion;
 pub mod dialog;
+pub mod notifs;
 pub mod preferences;
 pub mod sidebar;
 pub mod terminal;
