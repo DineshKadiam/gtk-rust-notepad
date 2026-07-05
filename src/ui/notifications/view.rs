@@ -69,38 +69,16 @@ mod imp {
                                 } else {
                                     -1.0
                                 };
-                                if let Some(label) =
-                                    labels.iter().find(|l| l.widget_name() == notif.id)
-                                    && !notif.id.is_empty()
-                                {
-                                    label.set_summary(notif.summary);
-                                    label.set_progress(progress);
-                                } else {
-                                    let label = NotificationRow::new();
-                                    label.set_summary(notif.summary);
-                                    label.set_progress(progress);
-                                    label.set_widget_name(&notif.id);
-                                    notifs_list.prepend(&label);
-                                    labels.push(label);
-                                }
+                                remove(notifs_list.clone(), &mut labels, notif.id.clone());
+                                let label = NotificationRow::new();
+                                label.set_summary(notif.summary);
+                                label.set_progress(progress);
+                                label.set_widget_name(&notif.id);
+                                notifs_list.prepend(&label);
+                                labels.push(label);
                             }
                             Event::Pop(id) => {
-                                let mut _child = notifs_list.first_child();
-                                while let Some(child) = _child {
-                                    if let Some(row) = child.first_child()
-                                        && row.widget_name() == id
-                                    {
-                                        labels.remove(
-                                            labels
-                                                .iter()
-                                                .position(|l| l.widget_name() == id)
-                                                .unwrap(),
-                                        );
-                                        notifs_list.remove(&child);
-                                        break;
-                                    }
-                                    _child = child.next_sibling();
-                                }
+                                remove(notifs_list.clone(), &mut labels, id);
                                 button.set_sensitive(!labels.is_empty());
                             }
                         }
@@ -111,6 +89,20 @@ mod imp {
     }
     impl WidgetImpl for NotificationsView {}
     impl BinImpl for NotificationsView {}
+
+    fn remove(notifs_list: gtk::ListBox, labels: &mut Vec<NotificationRow>, id: String) {
+        let mut _child = notifs_list.first_child();
+        while let Some(child) = _child {
+            if let Some(row) = child.first_child()
+                && row.widget_name() == id
+            {
+                labels.remove(labels.iter().position(|l| l.widget_name() == id).unwrap());
+                notifs_list.remove(&child);
+                break;
+            }
+            _child = child.next_sibling();
+        }
+    }
 }
 
 glib::wrapper! {
