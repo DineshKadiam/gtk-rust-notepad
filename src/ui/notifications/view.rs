@@ -44,6 +44,7 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
+            self.button.set_sensitive(false);
             self.button.connect_active_notify(move |button| {
                 button.set_always_show_arrow(false);
             });
@@ -60,6 +61,7 @@ mod imp {
                         match event {
                             Event::Push(notif) => {
                                 button.set_always_show_arrow(true);
+                                button.set_sensitive(!labels.is_empty());
                                 let progress = if let notifications::data::Status::Progress(p) =
                                     notif.status
                                 {
@@ -99,6 +101,7 @@ mod imp {
                                     }
                                     _child = child.next_sibling();
                                 }
+                                button.set_sensitive(!labels.is_empty());
                             }
                         }
                     }

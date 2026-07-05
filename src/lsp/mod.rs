@@ -81,13 +81,23 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     command,
                     move |_this, prog| {
                         let id = format!("{command}_progress_{:?}", prog.token);
+                        let summary = if let ProgressToken::String(token_string) = prog.token {
+                            format!("{token_string}")
+                        } else {
+                            format!("{command}: loading")
+                        };
                         match prog.value {
                             ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => {
                                 loading::add(1)
                             }
                             ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => {
                                 loading::sub(1);
-                                notifications::pop(id);
+                                notifications::push(Notification {
+                                    summary: format!("{summary} (done)"),
+                                    status: notifications::data::Status::Done,
+                                    id,
+                                    ..Notification::default()
+                                });
                             }
                             ProgressParamsValue::WorkDone(WorkDoneProgress::Report(
                                 WorkDoneProgressReport {
@@ -98,12 +108,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                             )) => {
                                 let percentage = percentage.unwrap_or(0);
                                 notifications::push(Notification {
-                                    summary: if let ProgressToken::String(token_string) = prog.token
-                                    {
-                                        format!("{token_string}")
-                                    } else {
-                                        format!("{command}: loading")
-                                    },
+                                    summary,
                                     details: text,
                                     status: notifications::data::Status::Progress(
                                         percentage as f32 / 100.,
