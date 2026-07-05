@@ -45,9 +45,6 @@ mod imp {
             self.parent_constructed();
 
             self.button.set_sensitive(false);
-            self.button.connect_active_notify(move |button| {
-                button.set_always_show_arrow(false);
-            });
 
             glib::spawn_future_local(clone!(
                 #[strong(rename_to=notifs_list)]
@@ -60,7 +57,6 @@ mod imp {
                     while let Ok(event) = rx.recv().await {
                         match event {
                             Event::Push(notif) => {
-                                button.set_always_show_arrow(true);
                                 button.set_sensitive(!labels.is_empty());
                                 let progress = if let notifications::data::Status::Progress(p) =
                                     notif.status
