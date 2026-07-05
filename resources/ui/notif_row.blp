@@ -17,14 +17,15 @@ template $NotificationRow: Adw.Bin {
 			Label label_summary {}
 
 			[end]
-			Button {
+			Button close_button {
 				icon-name: "window-close-symbolic";
 				valign: center;
 				vexpand: false;
+				action-name: "default.activate";
 
 				styles [
 					"close",
-					"circular",
+					"pill",
 				]
 			}
 		}
@@ -32,6 +33,7 @@ template $NotificationRow: Adw.Bin {
 		ProgressBar progress_bar {
 			styles [
 				"notif-progress",
+				"osd",
 			]
 
 			visible: false;

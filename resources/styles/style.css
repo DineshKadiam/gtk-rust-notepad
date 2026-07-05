@@ -6,6 +6,12 @@
     );
 }
 
+@keyframes blink {
+   0% { background: var(--accent-bg-color); }
+   30% { background: color-mix(var(--accent-bg-color), transparent, 40%); }
+   100% { background: transparent; }
+}
+
 /* Theme sidebar/source */
 gutter > * {
     margin-left: 10px;
@@ -140,29 +146,20 @@ separator {
 	border: 1px solid var(--border-color);
 }
 
-.notifs-list {
-	background: transparent;
+.notifs-popover  {
+	padding: 8px 0;
 }
 
-.notifs-list > * {
-	color: var(--card-fg-color);
-	border-bottom: 1px solid var(--border-color);
-}
-
-.notifs-list > *:last-child {
-	border-bottom: unset;
-}
-
-.notif-row {
-	padding: 2px 12px;
+.notif-row > box > box {
+	padding: 4px 12px;
 }
 
 .notif-row button {
 	padding: 0;
 }
 
-.notif-progress {
-	margin: 8px 0;
+.notifs-popover row {
+	padding: 0;
 }
 
 /* Flat (sharp corners) window styling */

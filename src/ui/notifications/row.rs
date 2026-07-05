@@ -8,7 +8,9 @@ mod imp {
 
     use std::cell::RefCell;
 
-    use gtk::{Label, ProgressBar};
+    use gtk::{Button, Label, ProgressBar, glib::clone};
+
+    use crate::notifications;
 
     use super::*;
 
@@ -20,6 +22,8 @@ mod imp {
         pub label_summary: TemplateChild<Label>,
         #[template_child]
         pub progress_bar: TemplateChild<ProgressBar>,
+        #[template_child]
+        pub close_button: TemplateChild<Button>,
         #[property(get, set)]
         pub summary: RefCell<String>,
         #[property(get, set)]
@@ -45,6 +49,14 @@ mod imp {
     impl ObjectImpl for NotificationRow {
         fn constructed(&self) {
             self.parent_constructed();
+
+            self.close_button.connect_activate(clone!(
+                #[strong(rename_to=obj)]
+                self.obj(),
+                move |_| {
+                    notifications::pop(obj.widget_name().into());
+                }
+            ));
         }
         fn dispatch_properties_changed(&self, p: &[glib::ParamSpec]) {
             for s in p {

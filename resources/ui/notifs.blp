@@ -2,21 +2,28 @@ using Gtk 4.0;
 using Adw 1;
 
 template $NotificationsView: Adw.Bin {
-	MenuButton {
+	MenuButton button {
 		icon-name: "dialog-information-symbolic";
 
 		popover: Popover {
+			has-arrow: false;
+
 			styles [
 				"notifs-popover",
 			]
 
 			ScrolledWindow {
 				width-request: 400;
-				height-request: 256;
+				max-content-height: 256;
+				propagate-natural-height: true;
 
 				ListBox notifs_list {
+					selection-mode: none;
+					accept-unpaired-release: true;
+
 					styles [
 						"notifs-list",
+						"boxed-list",
 					]
 				}
 			}

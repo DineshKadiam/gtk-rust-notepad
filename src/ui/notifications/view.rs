@@ -1,15 +1,11 @@
+use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::Properties;
+use glib::clone;
 use gtk::CompositeTemplate;
-use gtk::gdk::RGBA;
-use gtk::gio::Cancellable;
 use gtk::glib;
-use gtk::glib::SpawnFlags;
-use vte4::prelude::*;
 
 mod imp {
-
-    use gtk::{Label, glib::clone};
 
     use crate::{
         notifications::{self, data::Event},
@@ -24,6 +20,8 @@ mod imp {
     pub struct NotificationsView {
         #[template_child]
         pub notifs_list: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub button: TemplateChild<gtk::MenuButton>,
     }
 
     #[glib::object_subclass]
@@ -46,15 +44,22 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
+            self.button.connect_active_notify(move |button| {
+                button.set_always_show_arrow(false);
+            });
+
             glib::spawn_future_local(clone!(
                 #[strong(rename_to=notifs_list)]
                 self.notifs_list,
+                #[strong(rename_to=button)]
+                self.button,
                 async move {
                     let rx = notifications::subscribe();
                     let mut labels: Vec<NotificationRow> = vec![];
                     while let Ok(event) = rx.recv().await {
                         match event {
                             Event::Push(notif) => {
+                                button.set_always_show_arrow(true);
                                 let progress = if let notifications::data::Status::Progress(p) =
                                     notif.status
                                 {
@@ -77,19 +82,28 @@ mod imp {
                                     labels.push(label);
                                 }
                             }
-                            _ => (),
+                            Event::Pop(id) => {
+                                let mut _child = notifs_list.first_child();
+                                while let Some(child) = _child {
+                                    if let Some(row) = child.first_child()
+                                        && row.widget_name() == id
+                                    {
+                                        labels.remove(
+                                            labels
+                                                .iter()
+                                                .position(|l| l.widget_name() == id)
+                                                .unwrap(),
+                                        );
+                                        notifs_list.remove(&child);
+                                        break;
+                                    }
+                                    _child = child.next_sibling();
+                                }
+                            }
                         }
                     }
                 }
             ));
-            /*
-            for _ in 0..10 {
-                notifications::push(notifications::data::Notification {
-                    summary: "test!".to_string(),
-                    status: notifications::data::Status::Progress(0.5),
-                    ..Default::default()
-                });
-            }*/
         }
     }
     impl WidgetImpl for NotificationsView {}

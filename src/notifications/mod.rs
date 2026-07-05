@@ -10,6 +10,10 @@ pub fn push(notif: data::Notification) {
     BUS.broadcast(data::Event::Push(notif));
 }
 
+pub fn pop(id: String) {
+    BUS.broadcast(data::Event::Pop(id));
+}
+
 pub fn subscribe() -> Receiver<data::Event> {
     BUS.add_rx()
 }
