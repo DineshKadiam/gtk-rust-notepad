@@ -5,26 +5,29 @@ jobs:
   build:
     runs-on: codeberg-medium
     container:
-      image: docker.io/rust:latest
+      image: docker.io/rust:alpine3.24
     steps:
       - run: git clone https://codeberg.org/pastthepixels/kyanite .
       # Install deps, Clang for linking
       - name: Install dependencies
-        run: apt update && apt install -y clang libgtk-4-dev libpanel-dev libadwaita-1-dev libvte-dev
+        run: apk update && apk add gtk4.0-dev vte3-dev vte3-gtk4 libadwaita-dev libpanel-dev
       # Build
       - name: Build for Linux glibc x64
         run: |
           rustup target add x86_64-unknown-linux-gnu
           cargo build --target=x86_64-unknown-linux-gnu --release
+      - name: Build for Linux glibc x64
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          cargo build --target=x86_64-unknown-linux-musl --release
       # Upload 
       - name: (sigh) Install node
         run: apt install nodejs -y
       - uses: actions/upload-artifact@v3
         with:
-          name: build_x86-pc-windows-gnu
-          path: target/x86_64-pc-windows-gnu/release/cmdjewel.exe
+          name: kyanite_x86_64-unknown-linux-gnu
+          path: target/x86_64-unknown-linux-gnu/release/kyanite
       - uses: actions/upload-artifact@v3
         with:
-          name: cmdjewel_x86_64-unknown-linux-gnu
-          path: target/x86_64-unknown-linux-gnu/release/cmdjewel
- 
+          name: kyanite_x86_64-unknown-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/kyanite
