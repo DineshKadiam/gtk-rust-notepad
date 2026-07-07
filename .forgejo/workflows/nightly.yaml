@@ -1,0 +1,29 @@
+name: Build (nightly)
+
+on: [push]
+jobs:
+  build:
+    runs-on: codeberg-medium
+    container:
+      image: docker.io/rust:latest
+    steps:
+      - run: git clone https://codeberg.org/pastthepixels/kyanite .
+      # Install deps, Clang for linking
+      - name: Install dependencies
+        run: apt update && apt install -y clang libgtk-4-dev libpanel-dev libadwaita-1-dev libvte-dev
+      # Build
+      - name: Build for Linux glibc x64
+        run: |
+          rustup target add x86_64-unknown-linux-gnu
+          cargo build --target=x86_64-unknown-linux-gnu --release
+      # Upload 
+      - name: (sigh) Install node
+        run: apt install nodejs -y
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build_x86-pc-windows-gnu
+          path: target/x86_64-pc-windows-gnu/release/cmdjewel.exe
+      - uses: actions/upload-artifact@v3
+        with:
+          name: cmdjewel_x86_64-unknown-linux-gnu
+          path: target/x86_64-unknown-linux-gnu/release/cmdjewel
