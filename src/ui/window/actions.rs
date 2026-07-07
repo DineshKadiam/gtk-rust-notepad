@@ -52,6 +52,20 @@ pub fn tab_term(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     window.imp().stack.set_visible_child_name("tabs");
     // Connect to vte title changes
     let window = window.clone();
+    term.imp().terminal.connect_child_exited(clone!(
+        #[strong]
+        page,
+        #[strong(rename_to=tab_view)]
+        window.imp().tab_view,
+        move |_, code| {
+            // If the child closed without any error code (e.g. didn't crash),
+            // we can assume it was intentional; e.g. the user is done with
+            // the terminal/view and doesn't need it anymore.
+            if code == 0 {
+                tab_view.close_page(&page);
+            }
+        }
+    ));
     term.imp()
         .terminal
         .connect_termprop_changed(Some("xterm.title"), move |term, _| {
