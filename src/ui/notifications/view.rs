@@ -19,6 +19,8 @@ mod imp {
     #[properties(wrapper_type = super::NotificationsView)]
     pub struct NotificationsView {
         #[template_child]
+        pub clear_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub notifs_list: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub button: TemplateChild<gtk::MenuButton>,
@@ -45,6 +47,27 @@ mod imp {
             self.parent_constructed();
 
             self.button.set_sensitive(false);
+
+            self.clear_button.connect_activate(clone!(
+                #[strong(rename_to=notifs_list)]
+                self.notifs_list,
+                move |_| {
+                    let mut _child = notifs_list.first_child();
+                    let mut ids: Vec<String> = vec![];
+                    while let Some(child) = _child {
+                        if let Some(row) = child.first_child().and_downcast_ref::<NotificationRow>()
+                        {
+                            ids.push(row.widget_name().into());
+                        }
+                        _child = child.next_sibling();
+                    }
+                    gtk::gio::spawn_blocking(move || {
+                        ids.iter().for_each(|id| {
+                            notifications::pop(id.to_string());
+                        });
+                    });
+                }
+            ));
 
             glib::spawn_future_local(clone!(
                 #[strong(rename_to=notifs_list)]
@@ -92,7 +115,9 @@ mod imp {
             if let Some(row) = child.first_child()
                 && row.widget_name() == id
             {
-                labels.remove(labels.iter().position(|l| l.widget_name() == id).unwrap());
+                if let Some(p) = labels.iter().position(|l| l.widget_name() == id) {
+                    labels.remove(p);
+                }
                 notifs_list.remove(&child);
                 break;
             }
