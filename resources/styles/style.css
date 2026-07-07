@@ -85,6 +85,11 @@ panelstatusbar image {
     font-family: monospace;
 }
 
+panelstatusbar button label,
+panelstatusbar button image {
+    padding: 0;
+}
+
 .statusbar.search {
     margin: 0;
     border-radius: 0;
