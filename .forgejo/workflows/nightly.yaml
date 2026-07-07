@@ -7,10 +7,11 @@ jobs:
     container:
       image: docker.io/rust:alpine3.24
     steps:
-      - run: git clone https://codeberg.org/pastthepixels/kyanite .
       # Install deps, Clang for linking
       - name: Install dependencies
-        run: apk update && apk add gtk4.0-dev vte3-dev vte3-gtk4 libadwaita-dev libpanel-dev
+        run: apk update && apk add gtk4.0-dev vte3-dev vte3-gtk4 libadwaita-dev libpanel-dev git clang
+      # clone
+      - run: git clone https://codeberg.org/pastthepixels/kyanite .
       # Build
       - name: Build for Linux glibc x64
         run: |
