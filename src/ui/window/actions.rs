@@ -151,6 +151,7 @@ pub fn open_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
 
 /// Opens a folder
 pub fn open_folder(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    window.imp().sidebar.imp().folder_popover.unparent(); // Unparent sidebar widget
     gtk::FileDialog::new().select_folder(
         window.into(),
         Some(&Cancellable::new()),
