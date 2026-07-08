@@ -9,7 +9,7 @@ jobs:
     steps:
       # Install deps, Clang for linking
       - name: Install dependencies
-        run: apk update && apk add gtk4.0-dev vte3-dev vte3-gtk4 libadwaita-dev libpanel-dev gtksourceview5-dev git clang 
+        run: apk update && apk add gtk4.0-dev vte3-dev vte3-gtk4 libadwaita-dev libpanel-dev gtksourceview5-dev blueprint-compiler git clang 
       # clone
       - run: git clone https://codeberg.org/pastthepixels/kyanite .
       # Build
