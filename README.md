@@ -30,6 +30,30 @@ A lightweight, graphical text editor.
 ### Weekly builds
 Kyanite has [weekly builds](https://codeberg.org/pastthepixels/kyanite/actions) via Codeberg Actions. Download an executable and proceed to *Installing metadata* for icons and a desktop shortcut. These builds are from source, so there are no guarantees you'll have a stable experience.
 
+### Nix
+
+Kyanite is packaged as a nix flake in this repo.
+
+To try it without installing:
+
+```bash
+nix run git+https://codeberg.org/pastthepixels/kyanite
+```
+
+To install it in your profile:
+
+```bash
+nix profile install git+https://codeberg.org/pastthepixels/kyanite
+```
+
+To use it from a flake, add it to the flake inputs:
+
+```nix
+inputs.kyanite.url = "git+https://codeberg.org/pastthepixels/kyanite";
+```
+
+You can then access the package with `kyanite.packages.${system}.kyanite`
+
 ### Build from source
 
 #### Dependencies (install these first)
