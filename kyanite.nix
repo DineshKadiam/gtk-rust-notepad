@@ -1,5 +1,5 @@
 {
-  fetchFromCodeberg,
+  lib,
   rustPlatform,
   wrapGAppsHook4,
   pkg-config,
@@ -45,6 +45,16 @@ rustPlatform.buildRustPackage {
   '';
 
   meta = {
+    description = "Lightweight text editor written with GTK4 + Rust";
+    homepage = "https://codeberg.org/pastthepixels/kyanite";
+    license = lib.licenses.gpl3Only;
     mainProgram = "ky";
+
+    maintainers = [
+      {
+        name = "breaady";
+        email = "imadiamondtaco@gmail.com";
+      }
+    ];
   };
 }
