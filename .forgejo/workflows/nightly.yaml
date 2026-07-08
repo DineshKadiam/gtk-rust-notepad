@@ -13,21 +13,21 @@ jobs:
       # clone
       - run: git clone https://codeberg.org/pastthepixels/kyanite .
       # Build
-      - name: Build for Linux glibc x64
-        run: |
-          rustup target add x86_64-unknown-linux-gnu
-          cargo build --target=x86_64-unknown-linux-gnu --release
-      - name: Build for Linux glibc x64
+      # - name: Build for Linux glibc x64
+      #   run: |
+      #     rustup target add x86_64-unknown-linux-gnu
+      #     cargo build --target=x86_64-unknown-linux-gnu --release
+      - name: Build for Linux x64
         run: |
           rustup target add x86_64-unknown-linux-musl
           cargo build --target=x86_64-unknown-linux-musl --release
       # Upload 
       - name: (sigh) Install node
-        run: apt install nodejs -y
-      - uses: actions/upload-artifact@v3
-        with:
-          name: kyanite_x86_64-unknown-linux-gnu
-          path: target/x86_64-unknown-linux-gnu/release/kyanite
+        run: apk install nodejs
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: kyanite_x86_64-unknown-linux-gnu
+      #     path: target/x86_64-unknown-linux-gnu/release/kyanite
       - uses: actions/upload-artifact@v3
         with:
           name: kyanite_x86_64-unknown-linux-musl
