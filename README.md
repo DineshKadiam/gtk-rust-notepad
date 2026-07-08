@@ -57,26 +57,28 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 ### Where does the name come from?
 [CHECK OUT THIS COOL ROCK](https://en.wikipedia.org/wiki/Kyanite)
 
-## TODO
+## Roadmap/TODO
 
-i marked optional things with a question mark
+### quality-of-life
 
-- Cleaning/refactoring
-  - Clean up buffer.rs
-  - Move tab open/close to actions.rs or buffer.rs
-  - Get rid of buffer.file_name?
-
-- Sidebar:
-  - Rename/delete: Check for open tabs, and close them first
-
-- lsp integration (the horrors):
+### lsp integration (the horrors)
   - code actions
   - lsp hover
-  - close lsp when window closes
-  - write errors to log file (optional)
-  - lsp indicator (shows status/icon, loading/healthy/error statuses) in bottom bar
+  - gracefully close lsp when window closes
 
-- git integration:
+### keybinds
+- modal by design
+  - default mode is always insert
+- configurable modes (e.g. you can define your own modes)
+- configurable keybinds
+  - conditional keybind actions (e.g. only run in a certain mode)
+  - multiple binds should be possible
+
+### plugins
+- ask charlotte about this, she wants to do it and she has interesting ideas
+
+### git integration(?)
+  - maybe make this a plugin....
   - highlight changed (git) lines(?)
   - sidebar window to:
     - make git commits
@@ -84,7 +86,7 @@ i marked optional things with a question mark
     - push
     - switch commits
 
-- helix keybinds (configurable)
+
 - mode line
 
 - plugins
