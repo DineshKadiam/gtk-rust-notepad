@@ -1,6 +1,9 @@
-name: Build (nightly)
+name: Build (weekly)
 
-on: [push]
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+
 jobs:
   build:
     runs-on: codeberg-medium
