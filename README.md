@@ -23,9 +23,16 @@ A lightweight, graphical text editor.
     - Window recoloring to match themes (like GNOME Builder)!
 - Adaptive UI (aka works on phones)!
 
-## Build/run
+## Obtaining Kyanite
 
-### Dependencies (install these first)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/kyanite.svg)](https://repology.org/project/kyanite/versions)
+
+### Weekly builds
+Kyanite has [weekly builds](https://codeberg.org/pastthepixels/kyanite/actions) via Codeberg Actions. Download an executable and proceed to *Installing metadata* for icons and a desktop shortcut. These builds are from source, so there are no guarantees you'll have a stable experience.
+
+### Build from source
+
+#### Dependencies (install these first)
 - rust >= 1.92.0
 - gtksourceview5 >= 5.18
 - libadwaita >= 1.8
@@ -33,17 +40,17 @@ A lightweight, graphical text editor.
 - libpanel
 - vte4 >= 0.78
 - blueprint-compiler
-- glibc
-  - it breaks all the time on chimera linux and the answer is always "broken musl implementation"
 
 On Arch Linux, that looks like: `pacman -S rust gtksourceview5 libadwaita gtk4 libpanel vte4 blueprint-compiler`
 
-### Running
+#### Running
 - Release build: `cargo run --release`
 - Debug build: `cargo run`
 
-### Installing
-Running `cargo install --path .` will build Kyanite and install the editor command, `ky`, to your user directory (`~/.cargo/bin`).  
+#### Installing manually
+Running `cargo install --path .` will build Kyanite and install the editor command, `ky`, to your user directory (`~/.cargo/bin`).
+
+### Installing metadata
 
 If you're on Linux, copy the icons at `resources/icons` to `~/.local/share/icons/`, and `resources/metadata/ca.potatoe.Kyanite.desktop` to `~/.local/share/applications/`.
 The latter sets up a shortcut for Kyanite that's locally installed in your home directory (you can remove it any time).
