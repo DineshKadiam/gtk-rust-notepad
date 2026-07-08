@@ -60,11 +60,12 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 ## Roadmap/TODO
 
 ### quality-of-life
+- recent file list
 
 ### lsp integration (the horrors)
-  - code actions
-  - lsp hover
-  - gracefully close lsp when window closes
+- code actions
+- lsp hover
+- gracefully close lsp when window closes
 
 ### keybinds
 - modal by design
