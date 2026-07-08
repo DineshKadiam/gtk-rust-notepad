@@ -23,7 +23,7 @@ jobs:
           RUSTFLAGS="-Ctarget-feature=-crt-static" cargo build --target=x86_64-unknown-linux-musl --release
       # Upload 
       - name: (sigh) Install node
-        run: apk install nodejs
+        run: apk add nodejs
       # - uses: actions/upload-artifact@v3
       #   with:
       #     name: kyanite_x86_64-unknown-linux-gnu
