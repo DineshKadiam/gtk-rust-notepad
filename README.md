@@ -40,19 +40,13 @@ To try it without installing:
 nix run git+https://codeberg.org/pastthepixels/kyanite
 ```
 
-To install it in your profile:
-
-```bash
-nix profile install git+https://codeberg.org/pastthepixels/kyanite
-```
-
 To use it from a flake, add it to the flake inputs:
 
 ```nix
 inputs.kyanite.url = "git+https://codeberg.org/pastthepixels/kyanite";
 ```
 
-You can then access the package with `kyanite.packages.${system}.kyanite`
+You can then access the package with `kyanite.packages.${system}.kyanite`.
 
 ### Build from source
 
