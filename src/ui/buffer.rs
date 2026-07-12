@@ -41,6 +41,8 @@ use crate::ui::window::EditorWindow;
 use crate::utils;
 
 mod imp {
+    use gtk::pango::{FontDescription, FontMap};
+
     use super::*;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
@@ -82,6 +84,12 @@ mod imp {
     impl ObjectImpl for Buffer {
         fn constructed(&self) {
             self.parent_constructed();
+
+            // Custom SourceMap fonts
+            self.source_map.set_font_map(None::<&FontMap>);
+            self.source_map
+                .set_font_desc(Some(&FontDescription::from_string("KyaniteBlocks")));
+
             // Show map on mouse motion only
             let motion_controller = EventControllerMotion::new();
             let coords = Arc::new((AtomicUsize::new(0), AtomicUsize::new(0)));
