@@ -464,7 +464,7 @@ impl Buffer {
     /// Gets the file path from a FileInfo, if it exists, or None.
     pub fn file_path(&self) -> Option<String> {
         if let Some(ref file) = *self.imp().file.borrow()
-            && let Some(path) = file.location().path()
+            && let Some(path) = file.location().unwrap().path()
         {
             Some(path.to_str().unwrap().to_string().clone())
         } else {
@@ -636,7 +636,7 @@ impl Buffer {
                 if let Some(page) = selected_page {
                     page.set_title(&buffer.tab_name());
                     if let Some(ref file) = *buffer.imp().file.borrow()
-                        && let Ok(info) = file.location().query_info(
+                        && let Ok(info) = file.location().unwrap().query_info(
                             "standard::*",
                             FileQueryInfoFlags::NONE,
                             Cancellable::NONE,

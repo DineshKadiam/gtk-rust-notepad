@@ -131,7 +131,7 @@ impl EditorWindow {
             lsp::file::open(path, self.workspace_uri.borrow().as_str());
             // Page icons
             if let Some(ref file) = *buffer_ui.imp().file.borrow()
-                && let Ok(info) = file.location().query_info(
+                && let Ok(info) = file.location().unwrap().query_info(
                     "standard::*",
                     FileQueryInfoFlags::NONE,
                     Cancellable::NONE,
