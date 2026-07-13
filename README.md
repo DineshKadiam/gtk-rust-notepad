@@ -86,6 +86,9 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 
 ### quality-of-life
 - recent file list
+- get rid of sidebar popover (right clicking on files/folders)
+  - yea it inherently has memory management issues; also file management introduces so much possible errors and points of failure
+  - better to just have a "open in file manager" button and let the actual dedicated program do it
 
 #### preferences menu
 - less choppy loading (oh my god)
