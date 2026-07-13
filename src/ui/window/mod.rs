@@ -40,6 +40,7 @@ impl EditorWindow {
             action_entry!("new_window", None, new_window),
             action_entry!("open.file", None, open_file),
             action_entry!("open.folder", None, open_folder),
+            action_entry!("set_folder", Some(VariantTy::STRING), set_folder),
             action_entry!("reload_config", None, reload_config),
             action_entry!("search.toggle", None, search_toggle),
             action_entry!("search.files.toggle", None, search_files_toggle),

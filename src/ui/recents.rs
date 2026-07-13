@@ -48,11 +48,12 @@ mod imp {
             let recents = gtk::RecentManager::default();
             let files = self.files.clone();
             let folders = self.folders.clone();
+            let this = self.obj().clone();
             recents.items().iter().for_each(|item| {
                 if item.exists() && item.is_local() {
                     let row = adw::ActionRow::new();
                     let button = gtk::Button::new();
-                    let uri = item.uri().to_string().replace("file://", "").to_variant();
+                    let uri = item.uri_display().unwrap().to_string().to_variant();
                     //row.set_activatable_widget(Some(&button));
                     row.set_title(&item.display_name());
                     row.add_suffix(&button);
@@ -75,10 +76,13 @@ mod imp {
                     } else if item.mime_type() == "inode/directory" {
                         folders.append(&row);
                         row.set_icon_name(Some("folder-symbolic"));
-                        button.connect_clicked(move |b| {
-                            b.activate_action("win.tab.new", Some(&uri.clone().to_variant()))
+                        button.connect_clicked(clone!(
+                        #[strong]
+                        this,move |b| {
+                            b.activate_action("win.set_folder", Some(&uri))
                                 .unwrap();
-                        });
+                                adw::prelude::AdwDialogExt::close(&this);
+                        }));
                     }
                 }
             });
