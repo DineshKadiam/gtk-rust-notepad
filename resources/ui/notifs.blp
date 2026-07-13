@@ -26,19 +26,13 @@ template $NotificationsView: Adw.Bin {
 						"boxed-list",
 					]
 
-					ListBoxRow {
-						activatable: false;
-						Button clear_button {
-							styles [
-								"pill"
-							]
-							action-name: "default.activate";
-							label: _("Clear all");
-							margin-bottom: 8;
-							margin-top: 8;
-							margin-start: 8;
-							margin-end: 8;
-						}
+					Adw.ButtonRow clear_button {
+						styles [
+							"destructive-action",
+						]
+
+						action-name: "notifs.clear";
+						title: _("Clear all");
 					}
 				}
 			}

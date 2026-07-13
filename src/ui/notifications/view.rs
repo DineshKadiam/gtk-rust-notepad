@@ -7,6 +7,8 @@ use gtk::glib;
 
 mod imp {
 
+    use gtk::gio::{ActionEntry, SimpleActionGroup};
+
     use crate::{
         notifications::{self, data::Event},
         ui::notifications::row::NotificationRow,
@@ -19,7 +21,7 @@ mod imp {
     #[properties(wrapper_type = super::NotificationsView)]
     pub struct NotificationsView {
         #[template_child]
-        pub clear_button: TemplateChild<gtk::Button>,
+        pub clear_button: TemplateChild<adw::ButtonRow>,
         #[template_child]
         pub notifs_list: TemplateChild<gtk::ListBox>,
         #[template_child]
@@ -48,26 +50,34 @@ mod imp {
 
             self.button.set_sensitive(false);
 
-            self.clear_button.connect_activate(clone!(
-                #[strong(rename_to=notifs_list)]
-                self.notifs_list,
-                move |_| {
-                    let mut _child = notifs_list.first_child();
-                    let mut ids: Vec<String> = vec![];
-                    while let Some(child) = _child {
-                        if let Some(row) = child.first_child().and_downcast_ref::<NotificationRow>()
-                        {
-                            ids.push(row.widget_name().into());
+            // Clear action
+            let action_group = SimpleActionGroup::new();
+            action_group.add_action_entries([ActionEntry::builder("clear")
+                .parameter_type(None)
+                .activate(clone!(
+                    #[strong(rename_to=notifs_list)]
+                    self.notifs_list,
+                    move |_, _, _| {
+                        let mut _child = notifs_list.first_child();
+                        let mut ids: Vec<String> = vec![];
+                        while let Some(child) = _child {
+                            if let Some(row) =
+                                child.first_child().and_downcast_ref::<NotificationRow>()
+                            {
+                                ids.push(row.widget_name().into());
+                            }
+                            _child = child.next_sibling();
                         }
-                        _child = child.next_sibling();
-                    }
-                    gtk::gio::spawn_blocking(move || {
-                        ids.iter().for_each(|id| {
-                            notifications::pop(id.to_string());
+                        gtk::gio::spawn_blocking(move || {
+                            ids.iter().for_each(|id| {
+                                notifications::pop(id.to_string());
+                            });
                         });
-                    });
-                }
-            ));
+                    }
+                ))
+                .build()]);
+            self.obj()
+                .insert_action_group("notifs", Some(&action_group));
 
             glib::spawn_future_local(clone!(
                 #[strong(rename_to=notifs_list)]
@@ -104,6 +114,13 @@ mod imp {
                     }
                 }
             ));
+
+            for _ in 0..10 {
+                notifications::push(notifications::data::Notification {
+                    summary: "wa".to_string(),
+                    ..Default::default()
+                });
+            }
         }
     }
     impl WidgetImpl for NotificationsView {}
@@ -129,5 +146,5 @@ mod imp {
 glib::wrapper! {
 pub struct NotificationsView(ObjectSubclass<imp::NotificationsView>)
     @extends adw::Bin, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable, gtk::Actionable;
 }
