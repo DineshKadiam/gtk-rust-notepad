@@ -29,8 +29,14 @@ macro_rules! action_entry {
 
 /// New tab
 pub fn tab_new(window: &EditorWindow, _: &SimpleAction, param: Option<&Variant>) {
-    let path = param.unwrap().to_string();
-    window.imp().new_tab(Some(&path[1..(path.len() - 1)]));
+    let path = {
+        let p = param.unwrap().to_string();
+        p[1..(p.len() - 1)].to_string()
+    };
+    window.imp().new_tab(Some(&path));
+    // add to recents
+    let recents = gtk::RecentManager::default();
+    recents.add_item(&format!("file://{path}"));
 }
 
 /// New empty tab aka. scratch buffer
@@ -190,13 +196,19 @@ pub fn open_folder(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>)
 
 /// Sets a folder (open_folder but not interactive)
 pub fn set_folder(window: &EditorWindow, _: &SimpleAction, param: Option<&Variant>) {
-    let path = param.unwrap().to_string();
-    window.update_folder(&path[1..(path.len() - 1)]);
+    let path = {
+        let p = param.unwrap().to_string();
+        p[1..(p.len() - 1)].to_string()
+    };
+    window.update_folder(&path);
     // close tabs + open sidebar
     window.imp().split_view.set_show_sidebar(true);
     for page in window.imp().tab_view.pages().iter::<TabPage>() {
         window.imp().tab_view.close_page(&page.unwrap());
     }
+    // add to recents
+    let recents = gtk::RecentManager::default();
+    recents.add_item(&format!("file://{path}"));
 }
 
 /// Opens the preferences dialog

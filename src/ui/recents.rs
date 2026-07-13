@@ -49,7 +49,10 @@ mod imp {
             let files = self.files.clone();
             let folders = self.folders.clone();
             let this = self.obj().clone();
-            recents.items().iter().for_each(|item| {
+            let mut items = recents.items().into_iter().collect::<Vec<gtk::RecentInfo>>();
+            items.sort_by(|a, b| {
+            a.age().cmp(&b.age())});
+            items.iter().for_each(|item| {
                 if item.exists() && item.is_local() {
                     let row = adw::ActionRow::new();
                     let button = gtk::Button::new();
