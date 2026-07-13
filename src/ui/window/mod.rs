@@ -45,6 +45,7 @@ impl EditorWindow {
             action_entry!("search.files.toggle", None, search_files_toggle),
             action_entry!("sidebar.toggle", None, sidebar_toggle),
             action_entry!("show_prefs", None, show_prefs),
+            action_entry!("show_recents", None, show_recents),
             action_entry!(
                 "status.set_file",
                 Some(VariantTy::STRING_ARRAY),

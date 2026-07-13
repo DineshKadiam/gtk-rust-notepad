@@ -2,172 +2,177 @@ using Gtk 4.0;
 using Adw 1;
 
 template $Sidebar: Adw.Bin {
-  PopoverMenu folder_popover {
-    position: right;
+	PopoverMenu folder_popover {
+		position: right;
 
-    menu-model: menu {
-      section {
-        item (_("New file…"), "win.tree.new_file")
-        item (_("Rename"), "win.tree.rename_file")
-      }
+		menu-model: menu {
+			section {
+				item (_("New file…"), "win.tree.new_file")
+				item (_("Rename"), "win.tree.rename_file")
+			}
 
-      section {
-        item (_("Open folder"), "win.tree.open_folder")
-        item (_("Toggle expanded"), "win.tree.toggle_expand")
-      }
-    };
-  }
+			section {
+				item (_("Open folder"), "win.tree.open_folder")
+				item (_("Toggle expanded"), "win.tree.toggle_expand")
+			}
+		};
+	}
 
-  PopoverMenu file_popover {
-    position: right;
+	PopoverMenu file_popover {
+		position: right;
 
-    menu-model: menu {
-      item (_("New file…"), "win.tree.new_file")
-      item (_("Rename"), "win.tree.rename_file")
-      item (_("Delete"), "win.tree.delete_file")
-    };
-  }
+		menu-model: menu {
+			item (_("New file…"), "win.tree.new_file")
+			item (_("Rename"), "win.tree.rename_file")
+			item (_("Delete"), "win.tree.delete_file")
+		};
+	}
 
-  Adw.ToolbarView {
-    [top]
-    Adw.HeaderBar {
-      title-widget: Adw.WindowTitle sidebar_title {
-        title: _("waf?");
-      };
+	Adw.ToolbarView {
+		[top]
+		Adw.HeaderBar {
+			title-widget: Adw.WindowTitle sidebar_title {
+				title: _("waf?");
+			};
 
-      [end]
-      MenuButton {
-        icon-name: "open-menu-symbolic";
+			[end]
+			MenuButton {
+				icon-name: "open-menu-symbolic";
 
-        menu-model: menu {
-          section {
-            label: _("File");
+				menu-model: menu {
+					section {
+						label: _("File");
 
-            item {
-              label: _("New window");
-              action: "win.new_window";
-            }
+						item {
+							label: _("New window");
+							action: "win.new_window";
+						}
 
-            item {
-              label: _("New terminal tab");
-              action: "win.tab.new_terminal";
-            }
+						item {
+							label: _("New terminal tab");
+							action: "win.tab.new_terminal";
+						}
 
-            item {
-              label: _("New scratch buffer");
-              action: "win.tab.new_scratch";
-            }
+						item {
+							label: _("New scratch buffer");
+							action: "win.tab.new_scratch";
+						}
 
-            item {
-              label: _("Reload buffer");
-              action: "win.tab.reload";
-            }
+						item {
+							label: _("Reload buffer");
+							action: "win.tab.reload";
+						}
 
-            item {
-              label: _("Open file");
-              icon: "document-open-symbolic";
-              action: "win.open.file";
-            }
+						item {
+							label: _("Open file");
+							icon: "document-open-symbolic";
+							action: "win.open.file";
+						}
 
-            item {
-              label: _("Open folder");
-              icon: "folder-open-symbolic";
-              action: "win.open.folder";
-            }
+						item {
+							label: _("Open folder");
+							icon: "folder-open-symbolic";
+							action: "win.open.folder";
+						}
 
-            item {
-              label: _("Save");
-              icon: "document-save-symbolic";
-              action: "win.save";
-            }
+						item {
+							label: _("Save");
+							icon: "document-save-symbolic";
+							action: "win.save";
+						}
 
-            item {
-              label: _("Save as...");
-              icon: "document-save-as-symbolic";
-              action: "win.save_as";
-            }
-          }
+						item {
+							label: _("Save as...");
+							icon: "document-save-as-symbolic";
+							action: "win.save_as";
+						}
+					}
 
-          section {
-            label: _("Edit");
+					section {
+						label: _("Edit");
 
-            item {
-              label: _("Close current tab");
-              action: "win.tab.close";
-            }
+						item {
+							label: _("Close current tab");
+							action: "win.tab.close";
+						}
 
-            item {
-              label: _("Search for text");
-              action: "win.search.toggle";
-            }
+						item {
+							label: _("Search for text");
+							action: "win.search.toggle";
+						}
 
-            item {
-              label: _("Search for files");
-              action: "win.search.files.toggle";
-            }
+						item {
+							label: _("Search for files");
+							action: "win.search.files.toggle";
+						}
 
-            item {
-              label: _("Preferences");
-              action: "win.show_prefs";
-            }
-          }
-        };
-      }
-    }
+						item {
+							label: _("Preferences");
+							action: "win.show_prefs";
+						}
 
-    Box {
-      vexpand: true;
-      orientation: vertical;
+						item {
+							label: _("Recent files");
+							action: "win.show_recents";
+						}
+					}
+				};
+			}
+		}
 
-      Stack file_stack {
-        StackPage {
-          name: "tree_page";
+		Box {
+			vexpand: true;
+			orientation: vertical;
 
-          child: ScrolledWindow {
-            hscrollbar-policy: external;
-            vexpand: true;
+			Stack file_stack {
+				StackPage {
+					name: "tree_page";
 
-            Adw.ClampScrollable {
-              [child]
-              ListView file_tree {
-                styles [
-                  "navigation-sidebar",
-                ]
-              }
-            }
-          };
-        }
+					child: ScrolledWindow {
+						hscrollbar-policy: external;
+						vexpand: true;
 
-        StackPage {
-          name: "list_page";
+						Adw.ClampScrollable {
+							[child]
+							ListView file_tree {
+								styles [
+									"navigation-sidebar",
+								]
+							}
+						}
+					};
+				}
 
-          child: ScrolledWindow {
-            hscrollbar-policy: external;
-            vexpand: true;
+				StackPage {
+					name: "list_page";
 
-            Adw.ClampScrollable {
-              [child]
-              ListView file_list {
-                styles [
-                  "navigation-sidebar",
-                ]
-              }
-            }
-          };
-        }
-      }
+					child: ScrolledWindow {
+						hscrollbar-policy: external;
+						vexpand: true;
 
-      Separator {
-        orientation: horizontal;
-      }
+						Adw.ClampScrollable {
+							[child]
+							ListView file_list {
+								styles [
+									"navigation-sidebar",
+								]
+							}
+						}
+					};
+				}
+			}
 
-      SearchEntry file_search {
-        styles [
-          "statusbar",
-        ]
+			Separator {
+				orientation: horizontal;
+			}
 
-        placeholder-text: _("Filter…");
-      }
-    }
-  }
+			SearchEntry file_search {
+				styles [
+					"statusbar",
+				]
+
+				placeholder-text: _("Filter…");
+			}
+		}
+	}
 }

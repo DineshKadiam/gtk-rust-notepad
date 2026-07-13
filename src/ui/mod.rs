@@ -3,6 +3,7 @@ pub mod completion;
 pub mod dialog;
 pub mod notifications;
 pub mod preferences;
+pub mod recents;
 pub mod sidebar;
 pub mod terminal;
 pub mod welcome;

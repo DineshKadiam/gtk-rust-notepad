@@ -1,0 +1,81 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $RecentsDialog: Adw.Dialog {
+	height-request: 600;
+	width-request: 600;
+
+	Adw.ToolbarView {
+		[top]
+		Adw.HeaderBar {
+			title-widget: Adw.ViewSwitcher {
+				stack: stack;
+				policy: wide;
+			};
+		}
+
+		content: Adw.ViewStack stack {
+			Adw.ViewStackPage {
+				name: "files";
+				title: _("Files");
+				icon-name: "text-x-generic-symbolic";
+
+				child: Gtk.ScrolledWindow {
+					Adw.Clamp {
+						maximum-size: 600;
+						tightening-threshold: 400;
+
+						Box {
+							margin-top: 16;
+							margin-bottom: 16;
+							orientation: vertical;
+
+							styles [
+								"large",
+							]
+
+							ListBox files {
+								selection-mode: none;
+
+								styles [
+									"boxed-list",
+								]
+							}
+						}
+					}
+				};
+			}
+
+			Adw.ViewStackPage {
+				name: "folders";
+				title: _("Folders");
+				icon-name: "folder-symbolic";
+
+				child: Gtk.ScrolledWindow {
+					Adw.Clamp {
+						maximum-size: 600;
+						tightening-threshold: 400;
+
+						Box {
+							margin-top: 16;
+							margin-bottom: 16;
+							orientation: vertical;
+
+							styles [
+								"large",
+							]
+
+							ListBox folders {
+								selection-mode: none;
+
+								styles [
+									"boxed-list",
+								]
+							}
+						}
+					}
+				};
+			}
+		};
+	}
+}

@@ -10,6 +10,7 @@ use vte4::prelude::*;
 
 use crate::ui::dialog::rename_file;
 use crate::ui::preferences::PreferencesDialog;
+use crate::ui::recents::RecentsDialog;
 use crate::utils;
 use crate::{
     lsp,
@@ -190,6 +191,12 @@ pub fn open_folder(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>)
 /// Opens the preferences dialog
 pub fn show_prefs(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     let prefs = PreferencesDialog::new();
+    prefs.present(&window.clone().into());
+}
+
+/// Opens the recents dialog
+pub fn show_recents(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    let prefs = RecentsDialog::new();
     prefs.present(&window.clone().into());
 }
 

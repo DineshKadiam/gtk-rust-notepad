@@ -1,7 +1,10 @@
 use gtk::gio::FileInfo;
 
 pub fn from_file_info(file_info: &FileInfo) -> String {
-    let mime_type = file_info.content_type().unwrap();
+    from_mime_type(file_info.content_type().unwrap().to_string())
+}
+
+pub fn from_mime_type(mime_type: String) -> String {
     // audio, video, images
     if mime_type.contains("audio") {
         return "audio-x-generic-symbolic".into();
