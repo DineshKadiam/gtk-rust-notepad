@@ -114,13 +114,6 @@ mod imp {
                     }
                 }
             ));
-
-            for _ in 0..10 {
-                notifications::push(notifications::data::Notification {
-                    summary: "wa".to_string(),
-                    ..Default::default()
-                });
-            }
         }
     }
     impl WidgetImpl for NotificationsView {}
