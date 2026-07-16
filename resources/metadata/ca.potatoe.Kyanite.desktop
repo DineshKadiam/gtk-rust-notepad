@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Kyanite
-Generic Name=Text Editor
+GenericName=Text Editor
 Comment=A lightweight, graphical text editor.
 Type=Application
 Exec=ky %u
