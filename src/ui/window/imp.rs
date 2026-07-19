@@ -111,6 +111,19 @@ impl EditorWindow {
     }
 
     pub fn new_tab(&self, path: Option<&str>) -> TabPage {
+        // Switch to tab if it already exists...
+        if let Some(path) = path {
+            for page in self.tab_view.pages().iter::<TabPage>() {
+                if let Ok(page) = page
+                    && let Some(buffer) = page.child().downcast_ref::<Buffer>()
+                    && let Some(buf_path) = buffer.file_path()
+                    && buf_path == path
+                {
+                    self.tab_view.set_selected_page(&page);
+                    return page;
+                }
+            }
+        }
         // Get rid of welcome page
         self.stack.set_visible_child_name("tabs");
         // Buffer
