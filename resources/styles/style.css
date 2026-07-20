@@ -168,7 +168,10 @@ separator {
 }
 
 /* Flat (sharp corners) window styling */
-window.flat,
+window.flat.csd {
+    --window-radius: min(var(--window-radius), 4px);
+}
+
 .flat button,
 .flat button *,
 .flat row,
