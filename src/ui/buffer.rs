@@ -642,8 +642,7 @@ impl Buffer {
                             Cancellable::NONE,
                         )
                     {
-                        let icon_name = sidebar::icons::from_file_info(&info);
-                        let icon = gio::ThemedIcon::from_names(&[&icon_name]);
+                        let icon = sidebar::icons::from_file_info(&info);
                         page.set_icon(Some(&icon));
                     }
                     if page.is_selected() {

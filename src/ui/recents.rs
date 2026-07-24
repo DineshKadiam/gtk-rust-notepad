@@ -49,9 +49,11 @@ mod imp {
             let files = self.files.clone();
             let folders = self.folders.clone();
             let this = self.obj().clone();
-            let mut items = recents.items().into_iter().collect::<Vec<gtk::RecentInfo>>();
-            items.sort_by(|a, b| {
-            a.age().cmp(&b.age())});
+            let mut items = recents
+                .items()
+                .into_iter()
+                .collect::<Vec<gtk::RecentInfo>>();
+            items.sort_by(|a, b| a.age().cmp(&b.age()));
             items.iter().for_each(|item| {
                 if item.exists() && item.is_local() {
                     let row = adw::ActionRow::new();
@@ -69,7 +71,7 @@ mod imp {
                     };
                     if item.mime_type().starts_with("text") {
                         files.append(&row);
-                        row.set_icon_name(Some(&sidebar::icons::from_mime_type(
+                        row.add_prefix(&gtk::Image::from_gicon(&sidebar::icons::from_mime_type(
                             item.mime_type().into(),
                         )));
                         // FIXME gtk bug(?): connect_activate doesn't work anymore???
@@ -78,14 +80,15 @@ mod imp {
                         });
                     } else if item.mime_type() == "inode/directory" {
                         folders.append(&row);
-                        row.set_icon_name(Some("folder-symbolic"));
+                        row.add_prefix(&gtk::Image::from_icon_name("folder-symbolic"));
                         button.connect_clicked(clone!(
-                        #[strong]
-                        this,move |b| {
-                            b.activate_action("win.set_folder", Some(&uri))
-                                .unwrap();
+                            #[strong]
+                            this,
+                            move |b| {
+                                b.activate_action("win.set_folder", Some(&uri)).unwrap();
                                 adw::prelude::AdwDialogExt::close(&this);
-                        }));
+                            }
+                        ));
                     }
                 }
             });

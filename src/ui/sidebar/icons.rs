@@ -1,27 +1,29 @@
-use gtk::gio::FileInfo;
+use gtk::gio::{FileInfo, ThemedIcon};
 
-pub fn from_file_info(file_info: &FileInfo) -> String {
+pub fn from_file_info(file_info: &FileInfo) -> ThemedIcon {
     from_mime_type(file_info.content_type().unwrap().to_string())
 }
 
-pub fn from_mime_type(mime_type: String) -> String {
+pub fn from_mime_type(mime_type: String) -> ThemedIcon {
     // audio, video, images
     if mime_type.contains("audio") {
-        return "audio-x-generic-symbolic".into();
+        return ThemedIcon::new("audio-x-generic-symbolic");
     }
     if mime_type.contains("video") {
-        return "video-x-generic-symbolic".into();
+        return ThemedIcon::new("video-x-generic-symbolic");
     }
     if mime_type.contains("image") {
-        return "image-x-generic-symbolic".into();
+        return ThemedIcon::new("image-x-generic-symbolic");
     }
     // text types (works best with custom icons; see gnome builder symbolic icons)
     if mime_type.contains("text") {
-        let icon = format!("text-{}-symbolic", mime_type.split("/").last().unwrap());
-        if gtk::IconTheme::default().has_icon(&icon) {
-            return icon;
-        }
+        let last = mime_type.split("/").last().unwrap();
+        return ThemedIcon::from_names(&[
+            &format!("text-{}-symbolic", last),
+            &format!("text-{}", last),
+            &"text-x-generic-symbolic",
+        ]);
     }
     // default
-    "text-x-generic-symbolic".into()
+    ThemedIcon::new("text-x-generic-symbolic")
 }

@@ -138,7 +138,7 @@ pub fn update(
                     container.parent().unwrap().add_controller(tree_click);
                 } else {
                     label.set_text(&file_info.display_name());
-                    image.set_icon_name(Some(&icons::from_file_info(&file_info)));
+                    image.set_from_gicon(&icons::from_file_info(&file_info));
                     // Context menus
                     let tree_click = GestureClick::new();
                     tree_click.set_button(3);
