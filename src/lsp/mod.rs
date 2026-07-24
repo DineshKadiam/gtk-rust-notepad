@@ -218,8 +218,10 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
             ..InitializeParams::default()
         })
         .await
-        .unwrap();
-    server.initialized(InitializedParams {}).unwrap();
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::ConnectionAborted, e))?;
+    server
+        .initialized(InitializedParams {})
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::ConnectionAborted, e))?;
 
     Ok(server)
 }
