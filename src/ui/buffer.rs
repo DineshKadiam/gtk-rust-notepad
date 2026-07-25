@@ -149,6 +149,11 @@ mod imp {
             self.source_view
                 .completion()
                 .add_provider(&self.completion_provider.borrow().clone().unwrap());
+            // Scroll to the bottom when new lines are added; with a margin (unlike by default)
+            super::Buffer::override_scrolling(
+                self.obj().get_sourceview_buffer(),
+                self.source_view.clone(),
+            );
         }
     }
     impl WidgetImpl for Buffer {}
@@ -176,6 +181,11 @@ impl Buffer {
     pub fn with_source(buf: sourceview5::Buffer) -> Self {
         let widget = glib::Object::builder::<Self>().build();
         widget.imp().source_view.set_buffer(Some(&buf));
+        // Scroll to the bottom when new lines are added; with a margin (unlike by default)
+        Buffer::override_scrolling(
+            widget.get_sourceview_buffer(),
+            widget.imp().source_view.clone(),
+        );
         widget
     }
 
@@ -669,5 +679,33 @@ impl Buffer {
             save.set_flags(FileSaverFlags::IGNORE_MODIFICATION_TIME);
             save.save_future(glib::Priority::default()).0.await.unwrap();
         }
+    }
+
+    /// Custom automatic line scrolling that overrides gtktextview's default.
+    /// god, when will this suffering end.
+    /// There's a few problems(?) with this but I'm too tired to give a shit so if someone wants to fix this. Please.
+    /// Basically I read through gtktextview's source code (hell) and realised that it determines if you should scroll when
+    /// content is modified (e.g. pasting in new content, adding new lines...) which is awesome! but. holy fuck did they not realise
+    /// the visual accessibility issue of only scrolling the baree minimum amount. Like it's just so the glyphs can be in view, nothing
+    /// with margins at all. That fucking sucks. I *would* open an issue and even gladly patch this but the maintainers will probably tell
+    /// me to fuck off again (as with every other fucking GTK hack in this program). God I fucking hate this.
+    fn override_scrolling(buffer: sourceview5::Buffer, source_view: sourceview5::View) {
+        buffer.connect_cursor_moved(move |buf| {
+            gtk::glib::timeout_add_local(
+                std::time::Duration::from_millis(100),
+                clone!(
+                    #[strong]
+                    source_view,
+                    #[strong]
+                    buf,
+                    move || {
+                        let mut pos = buf.start_iter();
+                        pos.forward_chars(buf.cursor_position());
+                        source_view.scroll_to_iter(&mut pos, 0.4, true, 0.5, 0.5);
+                        ControlFlow::Break
+                    }
+                ),
+            );
+        });
     }
 }
