@@ -683,7 +683,6 @@ impl Buffer {
 
     /// Custom automatic line scrolling that overrides gtktextview's default.
     /// god, when will this suffering end.
-    /// There's a few problems(?) with this but I'm too tired to give a shit so if someone wants to fix this. Please.
     /// Basically I read through gtktextview's source code (hell) and realised that it determines if you should scroll when
     /// content is modified (e.g. pasting in new content, adding new lines...) which is awesome! but. holy fuck did they not realise
     /// the visual accessibility issue of only scrolling the baree minimum amount. Like it's just so the glyphs can be in view, nothing
@@ -701,7 +700,7 @@ impl Buffer {
                     move || {
                         let mut pos = buf.start_iter();
                         pos.forward_chars(buf.cursor_position());
-                        source_view.scroll_to_iter(&mut pos, 0.4, true, 0.5, 0.5);
+                        source_view.scroll_to_iter(&mut pos, 0.3, false, 0., 0.);
                         ControlFlow::Break
                     }
                 ),
