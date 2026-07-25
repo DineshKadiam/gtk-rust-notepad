@@ -25,8 +25,14 @@ pub async fn completion(
             })
             .await
             .unwrap(),
+        Err(error::Error::NotConfigured(_)) => None,
+        Err(error::Error::NotFound(_)) => None,
         Err(error) => {
-            eprintln!("{}", error);
+            notifications::push(Notification {
+                summary: format!("{error}"),
+                priority: notifications::data::Priority::High,
+                ..Notification::default()
+            });
             None
         }
     }
