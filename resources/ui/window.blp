@@ -222,11 +222,8 @@ template $EditorWindow: Adw.ApplicationWindow {
 						orientation: horizontal;
 						visible: false;
 
-						Adw.Spinner {}
-
-						Label {
-							label: _("LSP loading...");
-							ellipsize: end;
+						Adw.Spinner {
+							tooltip-text: _("Language server is loading…");
 						}
 					}
 
