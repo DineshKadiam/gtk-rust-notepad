@@ -700,7 +700,7 @@ impl Buffer {
                     move || {
                         let mut pos = buf.start_iter();
                         pos.forward_chars(buf.cursor_position());
-                        source_view.scroll_to_iter(&mut pos, 0.3, false, 0., 0.);
+                        source_view.scroll_to_iter(&mut pos, 0.2, false, 0., 0.);
                         ControlFlow::Break
                     }
                 ),
