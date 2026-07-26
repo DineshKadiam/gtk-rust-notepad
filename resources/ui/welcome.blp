@@ -18,26 +18,41 @@ template $WelcomeScreen: Adw.Bin {
                     "pill",
                 ]
 
-                label: _("Open a file");
-                action-name: "win.open.file";
+                label: _("Recent files...");
+                action-name: "win.show_recents";
+            }
+
+            Box {
+                styles[
+                    "linked"
+                ]
+
+                Button {
+                    styles [
+                        "pill",
+                    ]
+
+                    label: _("Open a file");
+                    action-name: "win.open.file";
+                }
+
+
+                Button {
+                    styles [
+                        "pill",
+                    ]
+
+                    label: _("Open a folder");
+                    action-name: "win.open.folder";
+                }
             }
 
             Button {
                 styles [
-                    "suggested-action",
                     "pill",
                 ]
 
-                label: _("Open a folder");
-                action-name: "win.open.folder";
-            }
-
-            Button {
-                styles [
-                    "pill",
-                ]
-
-                label: _("Start with an empty buffer");
+                label: _("New empty buffer…");
                 action-name: "win.tab.new_scratch";
             }
         };
