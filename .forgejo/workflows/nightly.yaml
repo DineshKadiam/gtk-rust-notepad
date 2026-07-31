@@ -13,7 +13,7 @@ jobs:
     steps:
       # Install deps, Clang for linking
       - name: Install dependencies
-        run: pacman -Sy rustup git clang pkgconf gtk4 vte4 libadwaita libpanel gtksourceview5 blueprint-compiler musl nodejs
+        run: pacman -Sy --noconfirm rustup git clang pkgconf gtk4 vte4 libadwaita libpanel gtksourceview5 blueprint-compiler musl nodejs
       - name: Set up rustup
         run: |
           rustup toolchain install stable
