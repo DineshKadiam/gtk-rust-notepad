@@ -11,6 +11,7 @@ use async_lsp::LanguageServer;
 use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
+use async_lsp::lsp_types::request::{Request, WorkDoneProgressCreate};
 use async_lsp::lsp_types::{
     ClientCapabilities, DidChangeWorkspaceFoldersParams, DidCloseTextDocumentParams,
     DidOpenTextDocumentParams, InitializeParams, InitializedParams, MessageType,
@@ -87,9 +88,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                             format!("{command}: loading")
                         };
                         match prog.value {
-                            ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => {
-                                loading::add(1)
-                            }
+                            ProgressParamsValue::WorkDone(WorkDoneProgress::Begin(_)) => {}
                             ProgressParamsValue::WorkDone(WorkDoneProgress::End(_)) => {
                                 loading::sub(1);
                                 notifications::push(Notification {
@@ -147,6 +146,10 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                         ControlFlow::Continue(())
                     }
                 ))
+                .request::<WorkDoneProgressCreate, _>(|_, request| async move {
+                    loading::add(1);
+                    return Ok(());
+                })
                 .event(|_, _: Stop| ControlFlow::Break(Ok(())));
 
             ServiceBuilder::new()
@@ -265,17 +268,18 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
             },
             Entry::Occupied(mut entry) => {
                 let mut server = entry.get_mut().clone();
-                server
-                    .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
-                        event: WorkspaceFoldersChangeEvent {
-                            added: vec![WorkspaceFolder {
-                                uri: Url::from_file_path(workspace_uri).unwrap(),
-                                name: "root".into(),
-                            }],
-                            removed: vec![],
-                        },
-                    })
-                    .unwrap();
+                // TODO why am I doing this, again?
+                // server
+                //     .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
+                //         event: WorkspaceFoldersChangeEvent {
+                //             added: vec![WorkspaceFolder {
+                //                 uri: Url::from_file_path(workspace_uri).unwrap(),
+                //                 name: "root".into(),
+                //             }],
+                //             removed: vec![],
+                //         },
+                //     })
+                //     .unwrap();
                 Ok(server)
             }
         }
