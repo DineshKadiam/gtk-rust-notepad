@@ -1,5 +1,3 @@
-use crate::config::Config;
-use crate::utils;
 use adw::prelude::*;
 use adw::subclass::prelude::*;
 use glib::Properties;
@@ -53,7 +51,7 @@ mod imp {
                 .items()
                 .into_iter()
                 .collect::<Vec<gtk::RecentInfo>>();
-            items.sort_by(|a, b| a.age().cmp(&b.age()));
+            items.sort_by_key(|a| a.age());
             items.iter().for_each(|item| {
                 if item.exists() && item.is_local() {
                     let row = adw::ActionRow::new();

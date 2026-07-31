@@ -1,6 +1,5 @@
 use async_lsp::lsp_types::{
-    CodeActionContext, CodeActionParams, CodeActionResponse, CompletionParams, CompletionResponse,
-    NumberOrString, PartialResultParams, Position, Range, TextDocumentPositionParams,
+    CodeActionContext, CodeActionParams, CodeActionResponse, CompletionParams, CompletionResponse, PartialResultParams, Position, Range, TextDocumentPositionParams,
     WorkDoneProgressParams,
 };
 

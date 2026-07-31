@@ -11,13 +11,13 @@ use async_lsp::LanguageServer;
 use async_lsp::ServerSocket;
 use async_lsp::concurrency::ConcurrencyLayer;
 use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
-use async_lsp::lsp_types::request::{Request, WorkDoneProgressCreate};
+use async_lsp::lsp_types::request::WorkDoneProgressCreate;
 use async_lsp::lsp_types::{
-    ClientCapabilities, DidChangeWorkspaceFoldersParams, DidCloseTextDocumentParams,
+    ClientCapabilities, DidCloseTextDocumentParams,
     DidOpenTextDocumentParams, InitializeParams, InitializedParams, MessageType,
     ProgressParamsValue, ProgressToken, PublishDiagnosticsParams, TextDocumentIdentifier,
     TextDocumentItem, Url, WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport,
-    WorkspaceFolder, WorkspaceFoldersChangeEvent,
+    WorkspaceFolder,
 };
 use async_lsp::panic::CatchUnwindLayer;
 use async_lsp::router::Router;
@@ -83,7 +83,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     move |_this, prog| {
                         let id = format!("{command}_progress_{:?}", prog.token);
                         let summary = if let ProgressToken::String(token_string) = prog.token {
-                            format!("{token_string}")
+                            token_string.to_string()
                         } else {
                             format!("{command}: loading")
                         };
@@ -146,9 +146,9 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                         ControlFlow::Continue(())
                     }
                 ))
-                .request::<WorkDoneProgressCreate, _>(|_, request| async move {
+                .request::<WorkDoneProgressCreate, _>(|_, _request| async move {
                     loading::add(1);
-                    return Ok(());
+                    Ok(())
                 })
                 .event(|_, _: Stop| ControlFlow::Break(Ok(())));
 
@@ -181,8 +181,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                 let err = String::from_utf8(
                     BufReader::new(stderr)
                         .buffer()
-                        .iter()
-                        .map(|n| *n)
+                        .iter().copied()
                         .collect::<Vec<u8>>(),
                 )
                 .unwrap();
@@ -267,7 +266,7 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
                 }
             },
             Entry::Occupied(mut entry) => {
-                let mut server = entry.get_mut().clone();
+                let server = entry.get_mut().clone();
                 // TODO why am I doing this, again?
                 // server
                 //     .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {

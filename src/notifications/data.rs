@@ -1,13 +1,17 @@
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub enum Status {
+    #[default]
     Normal,
     Progress(f32),
     Done,
 }
 
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub enum Priority {
     Low,
+    #[default]
     Medium,
     High,
 }
@@ -27,14 +31,4 @@ pub enum Event {
     Pop(String),
 }
 
-impl Default for Status {
-    fn default() -> Self {
-        Status::Normal
-    }
-}
 
-impl Default for Priority {
-    fn default() -> Self {
-        Priority::Medium
-    }
-}

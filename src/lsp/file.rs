@@ -1,5 +1,5 @@
 use async_lsp::lsp_types::{
-    DidChangeTextDocumentParams, DidSaveTextDocumentParams, Position, Range,
+    DidChangeTextDocumentParams, DidSaveTextDocumentParams,
     TextDocumentContentChangeEvent, VersionedTextDocumentIdentifier,
 };
 

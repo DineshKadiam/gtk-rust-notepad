@@ -21,7 +21,7 @@ pub fn from_mime_type(mime_type: String) -> ThemedIcon {
         return ThemedIcon::from_names(&[
             &format!("text-{}-symbolic", last),
             &format!("text-{}", last),
-            &"text-x-generic-symbolic",
+            "text-x-generic-symbolic",
         ]);
     }
     // default
