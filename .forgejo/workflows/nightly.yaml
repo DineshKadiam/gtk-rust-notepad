@@ -23,15 +23,15 @@ jobs:
       # Build
       - name: Build for Linux glibc x64
         run: cargo build --target=x86_64-unknown-linux-gnu --release
-      # TODO. too burned out to cross compile, man
-      #- name: Build for Linux musl x64
-      #  run: RUSTFLAGS="-Ctarget-feature=-crt-static" cargo build --target=x86_64-unknown-linux-musl --release
+      # NOTE: fuck you fuck you fuck you fuck you fuck you !!!!!!!
+      - name: Build for Linux musl x64
+        run: RUSTFLAGS="-Clink-arg=-fuse-ld=lld -Ctarget-feature=-crt-static -lm" PKG_CONFIG_SYSROOT_DIR=/  cargo build --target=x86_64-unknown-linux-musl --release
       # Upload
       - uses: actions/upload-artifact@v3
         with:
           name: kyanite_x86_64-unknown-linux-gnu
           path: target/x86_64-unknown-linux-gnu/release/ky
-      #- uses: actions/upload-artifact@v3
-      #  with:
-      #    name: kyanite_x86_64-unknown-linux-musl
-      #    path: target/x86_64-unknown-linux-musl/release/ky
+      - uses: actions/upload-artifact@v3
+        with:
+          name: kyanite_x86_64-unknown-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/ky
