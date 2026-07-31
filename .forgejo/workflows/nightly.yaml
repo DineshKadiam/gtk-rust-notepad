@@ -8,30 +8,29 @@ jobs:
   build:
     runs-on: codeberg-medium
     container:
-      image: docker.io/rust:alpine3.24
+      image: docker.io/archlinux:latest
     steps:
       # Install deps, Clang for linking
       - name: Install dependencies
-        run: apk update && apk add gtk4.0-dev vte3-dev vte3-gtk4 libadwaita-dev libpanel-dev gtksourceview5-dev blueprint-compiler git clang 
+        run: pacman -Sy rustup git clang pkgconf gtk4 vte4 libadwaita libpanel gtksourceview5 blueprint-compiler musl nodejs
+      - name: Set up rustup
+        run: |
+          rustup toolchain install stable
+          rustup target add x86_64-unknown-linux-musl
       # clone
       - run: git clone https://codeberg.org/pastthepixels/kyanite .
       # Build
-      # - name: Build for Linux glibc x64
-      #   run: |
-      #     rustup target add x86_64-unknown-linux-gnu
-      #     cargo build --target=x86_64-unknown-linux-gnu --release
-      - name: Build for Linux musl x64
-        run: |
-          rustup target add x86_64-unknown-linux-musl
-          RUSTFLAGS="-Ctarget-feature=-crt-static" cargo build --target=x86_64-unknown-linux-musl --release
-      # Upload 
-      - name: (sigh) Install node
-        run: apk add nodejs
-      # - uses: actions/upload-artifact@v3
-      #   with:
-      #     name: kyanite_x86_64-unknown-linux-gnu
-      #     path: target/x86_64-unknown-linux-gnu/release/kyanite
+      - name: Build for Linux glibc x64
+        run: cargo build --target=x86_64-unknown-linux-gnu --release
+      # TODO. too burned out to cross compile, man
+      #- name: Build for Linux musl x64
+      #  run: RUSTFLAGS="-Ctarget-feature=-crt-static" cargo build --target=x86_64-unknown-linux-musl --release
+      # Upload
       - uses: actions/upload-artifact@v3
         with:
-          name: kyanite_x86_64-unknown-linux-musl
-          path: target/x86_64-unknown-linux-musl/release/ky
+          name: kyanite_x86_64-unknown-linux-gnu
+          path: target/x86_64-unknown-linux-gnu/release/ky
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: kyanite_x86_64-unknown-linux-musl
+      #    path: target/x86_64-unknown-linux-musl/release/ky
