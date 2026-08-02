@@ -15,6 +15,7 @@ pub enum Priority {
 }
 
 #[derive(Default, Debug, Clone)]
+#[allow(dead_code)]
 pub struct Notification {
     pub status: Status,
     pub priority: Priority,
