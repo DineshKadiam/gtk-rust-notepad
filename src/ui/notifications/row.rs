@@ -1,7 +1,6 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
-use gtk::CompositeTemplate;
-use gtk::glib;
+use gtk::{CompositeTemplate, glib};
 use vte4::prelude::*;
 
 mod imp {
@@ -10,9 +9,8 @@ mod imp {
 
     use gtk::{Button, Label, ProgressBar, glib::clone};
 
-    use crate::notifications;
-
     use super::*;
+    use crate::notifications;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
     #[template(file = "resources/ui/notif_row.blp")]

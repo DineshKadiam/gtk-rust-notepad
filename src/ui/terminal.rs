@@ -1,13 +1,7 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
-use gtk::CompositeTemplate;
-use gtk::gdk::RGBA;
-use gtk::gio::Cancellable;
-use gtk::glib;
-use gtk::glib::SpawnFlags;
-use vte4::PtyFlags;
-use vte4::Terminal;
-use vte4::prelude::*;
+use gtk::{CompositeTemplate, gdk::RGBA, gio::Cancellable, glib, glib::SpawnFlags};
+use vte4::{PtyFlags, Terminal, prelude::*};
 
 use crate::utils;
 
@@ -16,9 +10,8 @@ const DEFAULT_SCHEME_LIGHT: &str = include_str!("../../resources/styles/TERM_DEF
 
 mod imp {
 
-    use crate::config::Config;
-
     use super::*;
+    use crate::config::Config;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
     #[template(file = "resources/ui/terminal.blp")]

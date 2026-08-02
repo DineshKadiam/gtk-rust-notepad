@@ -1,35 +1,38 @@
-use std::collections::hash_map::Entry;
-use std::fs;
-use std::hash::{BuildHasherDefault, DefaultHasher};
-use std::ops::ControlFlow;
-use std::process::Stdio;
-use std::sync::LazyLock;
-use std::{collections::HashMap, sync::RwLock};
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    fs,
+    hash::{BuildHasherDefault, DefaultHasher},
+    ops::ControlFlow,
+    process::Stdio,
+    sync::{LazyLock, RwLock},
+};
 
 use async_channel::{Receiver, Sender};
-use async_lsp::LanguageServer;
-use async_lsp::ServerSocket;
-use async_lsp::concurrency::ConcurrencyLayer;
-use async_lsp::lsp_types::notification::{Progress, PublishDiagnostics, ShowMessage};
-use async_lsp::lsp_types::request::WorkDoneProgressCreate;
-use async_lsp::lsp_types::{
-    ClientCapabilities, DidCloseTextDocumentParams,
-    DidOpenTextDocumentParams, InitializeParams, InitializedParams, MessageType,
-    ProgressParamsValue, ProgressToken, PublishDiagnosticsParams, TextDocumentIdentifier,
-    TextDocumentItem, Url, WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport,
-    WorkspaceFolder,
+use async_lsp::{
+    LanguageServer, ServerSocket,
+    concurrency::ConcurrencyLayer,
+    lsp_types::{
+        ClientCapabilities, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+        InitializeParams, InitializedParams, MessageType, ProgressParamsValue, ProgressToken,
+        PublishDiagnosticsParams, TextDocumentIdentifier, TextDocumentItem, Url,
+        WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
+        notification::{Progress, PublishDiagnostics, ShowMessage},
+        request::WorkDoneProgressCreate,
+    },
+    panic::CatchUnwindLayer,
+    router::Router,
+    tracing::TracingLayer,
 };
-use async_lsp::panic::CatchUnwindLayer;
-use async_lsp::router::Router;
-use async_lsp::tracing::TracingLayer;
 use futures::io::BufReader;
 use gtk::glib::clone;
 use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
-use crate::config::{self, Config};
-use crate::notifications;
-use crate::notifications::data::Notification;
+use crate::{
+    config::{self, Config},
+    notifications,
+    notifications::data::Notification,
+};
 
 /// Stores language servers globally, and marks their names along with a socket.
 /// > [!NOTE]
@@ -181,7 +184,8 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                 let err = String::from_utf8(
                     BufReader::new(stderr)
                         .buffer()
-                        .iter().copied()
+                        .iter()
+                        .copied()
                         .collect::<Vec<u8>>(),
                 )
                 .unwrap();

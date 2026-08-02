@@ -1,10 +1,7 @@
 use std::path::Path;
 
-use adw::AlertDialog;
-use adw::ResponseAppearance;
-use adw::prelude::*;
-use gtk::Entry;
-use gtk::glib::clone;
+use adw::{AlertDialog, ResponseAppearance, prelude::*};
+use gtk::{Entry, glib::clone};
 
 #[derive(Default, Debug)]
 pub enum Kind {

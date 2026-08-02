@@ -1,16 +1,17 @@
 use std::any::Any;
 
-use adw::prelude::*;
-use adw::subclass::prelude::*;
-use adw::{OverlaySplitView, TabPage, TabView, WindowTitle};
-use gtk::gio::ActionEntry;
-use gtk::glib::{self, Properties, VariantTy, clone};
-use gtk::{CompositeTemplate, gio};
+use adw::{OverlaySplitView, TabPage, TabView, WindowTitle, prelude::*, subclass::prelude::*};
+use gtk::{
+    CompositeTemplate, gio,
+    gio::ActionEntry,
+    glib::{self, Properties, VariantTy, clone},
+};
 use sourceview5::prelude::*;
 
-use crate::ui::buffer::Buffer;
-use crate::ui::dialog::save;
-use crate::{action_entry, lsp};
+use crate::{
+    action_entry, lsp,
+    ui::{buffer::Buffer, dialog::save},
+};
 
 mod actions;
 mod imp;

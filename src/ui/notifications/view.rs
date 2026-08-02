@@ -1,20 +1,16 @@
-use adw::prelude::*;
-use adw::subclass::prelude::*;
-use glib::Properties;
-use glib::clone;
-use gtk::CompositeTemplate;
-use gtk::glib;
+use adw::{prelude::*, subclass::prelude::*};
+use glib::{Properties, clone};
+use gtk::{CompositeTemplate, glib};
 
 mod imp {
 
     use gtk::gio::{ActionEntry, SimpleActionGroup};
 
+    use super::*;
     use crate::{
         notifications::{self, data::Event},
         ui::notifications::row::NotificationRow,
     };
-
-    use super::*;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
     #[template(file = "resources/ui/notifs.blp")]

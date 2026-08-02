@@ -4,9 +4,10 @@ use sourceview5::subclass::prelude::*;
 
 mod imp {
 
+    use std::sync::RwLock;
+
     use gtk::glib::Properties;
     use sourceview5::CompletionProposal;
-    use std::sync::RwLock;
 
     use super::*;
     #[derive(Debug, Default, Properties)]

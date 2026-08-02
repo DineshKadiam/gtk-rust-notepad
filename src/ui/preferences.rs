@@ -1,11 +1,8 @@
-use crate::config::Config;
-use crate::utils;
-use adw::prelude::*;
-use adw::subclass::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::CompositeTemplate;
-use gtk::glib;
-use gtk::glib::clone;
+use gtk::{CompositeTemplate, glib, glib::clone};
+
+use crate::{config::Config, utils};
 
 mod imp {
 

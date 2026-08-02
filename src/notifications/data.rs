@@ -1,5 +1,4 @@
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub enum Status {
     #[default]
     Normal,
@@ -7,8 +6,7 @@ pub enum Status {
     Done,
 }
 
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub enum Priority {
     Low,
     #[default]
@@ -30,5 +28,3 @@ pub enum Event {
     Push(Notification),
     Pop(String),
 }
-
-

@@ -1,15 +1,16 @@
-use crate::ui::completion::proposal::LspCompletionProposal;
+use std::cell::RefCell;
+
 use adw::subclass::prelude::*;
-use gtk::glib;
-use gtk::prelude::*;
 use gtk::{
     ClosureExpression, Expression, FilterListModel, StringFilter,
     gio::{ListModel, ListStore},
+    glib,
     glib::closure,
+    prelude::*,
 };
-use sourceview5::CompletionProvider;
-use sourceview5::subclass::prelude::*;
-use std::cell::RefCell;
+use sourceview5::{CompletionProvider, subclass::prelude::*};
+
+use crate::ui::completion::proposal::LspCompletionProposal;
 
 mod imp {
 
@@ -22,9 +23,8 @@ mod imp {
         pango::{AttrFontDesc, AttrList, FontDescription},
     };
 
-    use crate::lsp;
-
     use super::*;
+    use crate::lsp;
 
     #[derive(Debug, Default)]
     pub struct LspCompletionProvider {

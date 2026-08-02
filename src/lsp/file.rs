@@ -1,6 +1,6 @@
 use async_lsp::lsp_types::{
-    DidChangeTextDocumentParams, DidSaveTextDocumentParams,
-    TextDocumentContentChangeEvent, VersionedTextDocumentIdentifier,
+    DidChangeTextDocumentParams, DidSaveTextDocumentParams, TextDocumentContentChangeEvent,
+    VersionedTextDocumentIdentifier,
 };
 
 use super::*;

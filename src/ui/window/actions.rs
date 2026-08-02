@@ -1,20 +1,19 @@
-use adw::subclass::prelude::*;
-use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*};
-use gtk::{Label, gio};
+use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*, subclass::prelude::*};
 use gtk::{
+    Label, gio,
     gio::{Cancellable, SimpleAction},
     glib::{self, Variant, clone},
 };
 use sourceview5::prelude::*;
 use vte4::prelude::*;
 
-use crate::ui::dialog::rename_file;
-use crate::ui::preferences::PreferencesDialog;
-use crate::ui::recents::RecentsDialog;
-use crate::utils;
 use crate::{
     lsp,
-    ui::{buffer::Buffer, terminal::TerminalView, window::EditorWindow},
+    ui::{
+        buffer::Buffer, dialog::rename_file, preferences::PreferencesDialog,
+        recents::RecentsDialog, terminal::TerminalView, window::EditorWindow,
+    },
+    utils,
 };
 
 #[macro_export]

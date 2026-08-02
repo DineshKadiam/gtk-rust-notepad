@@ -4,9 +4,11 @@ use async_lsp::lsp_types::DiagnosticSeverity;
 use gtk::{
     Button, CssProvider, SearchBar, SearchEntry, Stack, ToggleButton,
     gio::{Cancellable, FileQueryInfoFlags},
+    prelude::*,
 };
 use sourceview5::StyleSchemeManager;
 
+use super::*;
 use crate::{
     config::Config,
     ui::{
@@ -18,10 +20,6 @@ use crate::{
     },
     utils,
 };
-
-use gtk::prelude::*;
-
-use super::*;
 
 #[derive(Debug, Default, Properties, CompositeTemplate)]
 #[template(file = "resources/ui/window.blp")]

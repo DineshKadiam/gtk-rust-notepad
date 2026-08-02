@@ -1,17 +1,13 @@
-use adw::prelude::*;
-use adw::subclass::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::CompositeTemplate;
-use gtk::glib;
-use gtk::glib::clone;
+use gtk::{CompositeTemplate, glib, glib::clone};
 
 mod imp {
 
     use gtk::ListBox;
 
-    use crate::ui::sidebar;
-
     use super::*;
+    use crate::ui::sidebar;
 
     #[derive(Debug, Default, Properties, CompositeTemplate)]
     #[template(file = "resources/ui/recents.blp")]

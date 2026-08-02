@@ -1,17 +1,10 @@
 use adw::subclass::prelude::*;
 use glib::Properties;
-use gtk::CompositeTemplate;
-use gtk::TreeExpander;
-use gtk::TreeListRow;
-use gtk::gio;
-use gtk::gio::FileInfo;
-use gtk::glib;
-use gtk::glib::clone;
-use gtk::prelude::*;
+use gtk::{
+    CompositeTemplate, TreeExpander, TreeListRow, gio, gio::FileInfo, glib, glib::clone, prelude::*,
+};
 
-use crate::config::Config;
-use crate::ui::window::EditorWindow;
-use crate::utils;
+use crate::{config::Config, ui::window::EditorWindow, utils};
 
 mod file_tree;
 pub mod icons;
