@@ -24,7 +24,7 @@ mod imp {
     };
 
     use super::*;
-    use crate::lsp;
+    use crate::{iter_position, lsp};
 
     #[derive(Debug, Default)]
     pub struct LspCompletionProvider {
@@ -131,15 +131,8 @@ mod imp {
                 let list = ListStore::new::<LspCompletionProposal>();
                 if let Some(uri) = uri
                     && let Some(workspace_uri) = workspace_uri
-                    && let Some(CompletionResponse::List(completion)) = lsp::request::completion(
-                        &uri,
-                        &workspace_uri,
-                        Position {
-                            line: iter.line() as u32,
-                            character: iter.line_offset() as u32,
-                        },
-                    )
-                    .await
+                    && let Some(CompletionResponse::List(completion)) =
+                        lsp::request::completion(&uri, &workspace_uri, iter_position!(iter)).await
                 {
                     for item in completion.items {
                         let p = LspCompletionProposal::new();

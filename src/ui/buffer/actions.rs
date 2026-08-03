@@ -3,6 +3,8 @@
 use async_lsp::lsp_types::Position;
 use gtk::gio::{ActionEntry, SimpleActionGroup};
 
+use crate::iter_position;
+
 use super::*;
 
 impl Buffer {
@@ -19,27 +21,33 @@ impl Buffer {
                         && let Some(workspace_path) = provider.imp().workspace_uri.borrow().clone()
                     {
                         let s_buffer = buffer.get_sourceview_buffer();
-                        let iter = s_buffer.selection_bounds().unwrap();
-                        let diags = buffer.imp().diagnostics.borrow().clone();
-                        let start = Position {
-                            line: iter.0.line() as u32,
-                            character: iter.0.line_offset() as u32,
-                        };
-                        let end = Position {
-                            line: iter.1.line() as u32,
-                            character: iter.1.line_offset() as u32,
-                        };
-                        println!("{:?}, {:?}", start, end);
-                        glib::spawn_future(async move {
-                            if let Some(actions) =
-                                lsp::request::actions(&path, &workspace_path, start, end, diags)
-                                    .await
-                            {
-                                dbg!(actions);
-                            } else {
-                                println!("actions are a None");
-                            }
+                        let iter = s_buffer.selection_bounds().unwrap_or_else(|| {
+                            (
+                                s_buffer.iter_at_offset(s_buffer.cursor_position()),
+                                s_buffer.iter_at_offset(s_buffer.cursor_position() + 1),
+                            )
                         });
+                        let start = iter_position!(iter.0);
+                        let end = iter_position!(iter.1);
+                        glib::spawn_future_local(clone!(
+                            #[strong]
+                            buffer,
+                            async move {
+                                lsp::loading::add(1);
+                                if let Some(actions) = lsp::request::actions(
+                                    &path,
+                                    &workspace_path,
+                                    start,
+                                    end,
+                                    buffer.imp().diagnostics.borrow().clone(),
+                                )
+                                .await
+                                {
+                                    buffer.show_code_actions(actions);
+                                }
+                                lsp::loading::sub(1);
+                            }
+                        ));
                     }
                 }
             ))

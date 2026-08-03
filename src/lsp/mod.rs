@@ -155,10 +155,6 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     loading::add(1);
                     Ok(())
                 })
-                .event(|_, _: CodeActionResponse| {
-                    println!("what");
-                    ControlFlow::Continue(())
-                })
                 .event(|_, _: Stop| ControlFlow::Break(Ok(())));
 
             ServiceBuilder::new()
