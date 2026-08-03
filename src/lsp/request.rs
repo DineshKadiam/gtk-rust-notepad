@@ -1,6 +1,7 @@
 use async_lsp::lsp_types::{
-    CodeActionContext, CodeActionParams, CodeActionResponse, CompletionParams, CompletionResponse,
-    PartialResultParams, Position, Range, TextDocumentPositionParams, WorkDoneProgressParams,
+    CodeActionContext, CodeActionKind, CodeActionParams, CodeActionResponse, CodeActionTriggerKind,
+    CompletionParams, CompletionResponse, Diagnostic, PartialResultParams, Position, Range,
+    TextDocumentPositionParams, WorkDoneProgressParams,
 };
 
 use crate::lsp::*;
@@ -41,7 +42,9 @@ pub async fn completion(
 pub async fn actions(
     uri: &str,
     workspace_uri: &str,
-    position: Position,
+    start: Position,
+    end: Position,
+    diagnostics: Vec<Diagnostic>,
 ) -> Option<CodeActionResponse> {
     match get_server(uri, workspace_uri) {
         Ok(mut server) => server
@@ -49,14 +52,21 @@ pub async fn actions(
                 text_document: TextDocumentIdentifier {
                     uri: Url::from_file_path(uri).unwrap(),
                 },
-                range: Range {
-                    start: position,
-                    end: position,
-                },
+                range: Range { start, end },
                 context: CodeActionContext {
-                    diagnostics: vec![],
-                    only: None,
-                    trigger_kind: None,
+                    diagnostics: diagnostics,
+                    only: Some(vec![
+                        CodeActionKind::EMPTY,
+                        CodeActionKind::QUICKFIX,
+                        CodeActionKind::REFACTOR,
+                        CodeActionKind::REFACTOR_EXTRACT,
+                        CodeActionKind::REFACTOR_INLINE,
+                        CodeActionKind::REFACTOR_REWRITE,
+                        CodeActionKind::SOURCE,
+                        CodeActionKind::SOURCE_ORGANIZE_IMPORTS,
+                        CodeActionKind::SOURCE_FIX_ALL,
+                    ]),
+                    trigger_kind: Some(CodeActionTriggerKind::INVOKED),
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
                 partial_result_params: PartialResultParams::default(),

@@ -215,6 +215,7 @@ impl EditorWindow {
                     {
                         buffer.clear_diagnostics();
                         let mut start_lines = vec![];
+                        buffer.store_diagnostics(diagnostics.diagnostics.clone());
                         diagnostics.diagnostics.iter().for_each(|diag| {
                             buffer.highlight_diagnostic(
                                 &diag.range,

@@ -9,7 +9,7 @@ use std::{
 };
 
 use adw::{AlertDialog, ResponseAppearance, prelude::*, subclass::prelude::*};
-use async_lsp::lsp_types::{DiagnosticSeverity, Range};
+use async_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Range};
 use gtk::{
     CompositeTemplate, EventControllerMotion, Revealer, TextSearchFlags,
     gio::{self, Cancellable, FileQueryInfoFlags, Icon},
@@ -112,6 +112,11 @@ impl Buffer {
                 buffer.remove_tag_by_name("diag_error", &bounds.0, &bounds.1);
             }
         }
+    }
+
+    /// ???
+    pub fn store_diagnostics(&self, diagnostics: Vec<Diagnostic>) {
+        self.imp().diagnostics.replace(diagnostics);
     }
 
     /// Highlight diaganostic
@@ -325,5 +330,6 @@ impl Buffer {
     }
 }
 
+mod actions;
 mod hacks;
 mod io;

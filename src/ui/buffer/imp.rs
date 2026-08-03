@@ -1,3 +1,5 @@
+use async_lsp::lsp_types::Diagnostic;
+
 use super::*;
 
 #[derive(Debug, Default, Properties, CompositeTemplate)]
@@ -14,6 +16,7 @@ pub struct Buffer {
     pub diagnostic_provider: RefCell<AnnotationProvider>,
 
     // Variables
+    pub diagnostics: RefCell<Vec<Diagnostic>>,
     pub completion_provider: RefCell<Option<LspCompletionProvider>>,
     pub file: RefCell<Option<sourceview5::File>>,
     pub mmap_timer: RefCell<Option<SourceId>>,
@@ -109,6 +112,9 @@ impl ObjectImpl for Buffer {
             self.obj().get_sourceview_buffer(),
             self.source_view.clone(),
         );
+
+        // Set up actions
+        self.obj().setup_actions();
     }
 }
 impl WidgetImpl for Buffer {}
