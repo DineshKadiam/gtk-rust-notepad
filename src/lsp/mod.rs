@@ -12,11 +12,12 @@ use async_lsp::{
     LanguageServer, ServerSocket,
     concurrency::ConcurrencyLayer,
     lsp_types::{
-        ClientCapabilities, CodeActionResponse, DidCloseTextDocumentParams,
-        DidOpenTextDocumentParams, InitializeParams, InitializedParams, MessageType,
-        ProgressParamsValue, ProgressToken, PublishDiagnosticsParams, TextDocumentIdentifier,
-        TextDocumentItem, Url, WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport,
-        WorkspaceFolder,
+        ClientCapabilities, CodeActionClientCapabilities, CodeActionKind,
+        CodeActionKindLiteralSupport, CodeActionLiteralSupport, CodeActionResponse,
+        DidCloseTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializedParams,
+        MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
+        TextDocumentClientCapabilities, TextDocumentIdentifier, TextDocumentItem, Url,
+        WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
         notification::{Progress, PublishDiagnostics, ShowMessage},
         request::{CodeActionRequest, WorkDoneProgressCreate},
     },
@@ -154,6 +155,10 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     loading::add(1);
                     Ok(())
                 })
+                .event(|_, _: CodeActionResponse| {
+                    println!("what");
+                    ControlFlow::Continue(())
+                })
                 .event(|_, _: Stop| ControlFlow::Break(Ok(())));
 
             ServiceBuilder::new()
@@ -219,6 +224,27 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                 window: Some(WindowClientCapabilities {
                     work_done_progress: Some(true),
                     ..WindowClientCapabilities::default()
+                }),
+                text_document: Some(TextDocumentClientCapabilities {
+                    code_action: Some(CodeActionClientCapabilities {
+                        code_action_literal_support: Some(CodeActionLiteralSupport {
+                            code_action_kind: CodeActionKindLiteralSupport {
+                                value_set: vec![
+                                    "".to_string(),
+                                    "quickfix".to_string(),
+                                    "refactor".to_string(),
+                                    "refactor.extract".to_string(),
+                                    "refactor.inline".to_string(),
+                                    "refactor.rewrite".to_string(),
+                                    "source".to_string(),
+                                    "source.organizeImports".to_string(),
+                                    "source.fixAll".to_string(),
+                                ],
+                            },
+                        }),
+                        ..CodeActionClientCapabilities::default()
+                    }),
+                    ..TextDocumentClientCapabilities::default()
                 }),
                 ..ClientCapabilities::default()
             },

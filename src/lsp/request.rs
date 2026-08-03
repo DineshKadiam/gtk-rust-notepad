@@ -66,7 +66,7 @@ pub async fn actions(
                         CodeActionKind::SOURCE_ORGANIZE_IMPORTS,
                         CodeActionKind::SOURCE_FIX_ALL,
                     ]),
-                    trigger_kind: Some(CodeActionTriggerKind::INVOKED),
+                    trigger_kind: Some(CodeActionTriggerKind::AUTOMATIC),
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
                 partial_result_params: PartialResultParams::default(),
