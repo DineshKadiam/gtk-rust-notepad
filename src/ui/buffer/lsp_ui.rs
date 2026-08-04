@@ -117,11 +117,15 @@ impl Buffer {
             }
         ));
         // Create dialog
-        let container = adw::PreferencesPage::new();
+        let container = gtk::Box::new(gtk::Orientation::Vertical, 16);
         let cancel_group = adw::PreferencesGroup::new();
         let cancel = adw::ButtonRow::new();
-        container.add(&group);
-        container.add(&cancel_group);
+        container.set_margin_top(16);
+        container.set_margin_bottom(16);
+        container.set_margin_start(16);
+        container.set_margin_end(16);
+        container.append(&group);
+        container.append(&cancel_group);
         cancel_group.add(&cancel);
         cancel.set_title("Cancel");
         cancel.add_css_class("destructive-action");
