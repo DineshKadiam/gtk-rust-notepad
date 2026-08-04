@@ -12,14 +12,14 @@ use async_lsp::{
     LanguageServer, ServerSocket,
     concurrency::ConcurrencyLayer,
     lsp_types::{
-        ClientCapabilities, CodeActionClientCapabilities, CodeActionKind,
-        CodeActionKindLiteralSupport, CodeActionLiteralSupport, CodeActionResponse,
+        ClientCapabilities, CodeActionClientCapabilities,
+        CodeActionKindLiteralSupport, CodeActionLiteralSupport,
         DidCloseTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializedParams,
         MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
         TextDocumentClientCapabilities, TextDocumentIdentifier, TextDocumentItem, Url,
         WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
         notification::{Progress, PublishDiagnostics, ShowMessage},
-        request::{CodeActionRequest, WorkDoneProgressCreate},
+        request::WorkDoneProgressCreate,
     },
     panic::CatchUnwindLayer,
     router::Router,
@@ -185,10 +185,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                 // Read stderr
                 let err = String::from_utf8(
                     BufReader::new(stderr)
-                        .buffer()
-                        .iter()
-                        .copied()
-                        .collect::<Vec<u8>>(),
+                        .buffer().to_vec(),
                 )
                 .unwrap();
                 // Send notification

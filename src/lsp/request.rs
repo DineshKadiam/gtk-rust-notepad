@@ -55,7 +55,7 @@ pub async fn actions(
                     },
                     range: Range { start, end },
                     context: CodeActionContext {
-                        diagnostics: diagnostics,
+                        diagnostics,
                         only: Some(vec![
                             CodeActionKind::EMPTY,
                             CodeActionKind::QUICKFIX,

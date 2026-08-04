@@ -2,7 +2,6 @@ use adw::Dialog;
 use async_lsp::lsp_types::{
     AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, OneOf, WorkspaceEdit,
 };
-use gtk::{Align, CheckButton};
 
 use crate::position_iter;
 
