@@ -19,3 +19,14 @@ macro_rules! iter_position {
         }
     };
 }
+
+/// LSP position to iter
+#[macro_export]
+macro_rules! position_iter {
+    ($buf: expr, $pos: expr) => {
+        $buf.iter_at_line_offset(
+            $pos.line.try_into().unwrap(),
+            $pos.character.try_into().unwrap(),
+        )
+    };
+}

@@ -1,5 +1,10 @@
-use async_lsp::lsp_types::CodeActionOrCommand;
+use adw::Dialog;
+use async_lsp::lsp_types::{
+    AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, OneOf, WorkspaceEdit,
+};
 use gtk::{Align, CheckButton};
+
+use crate::position_iter;
 
 use super::*;
 
@@ -24,6 +29,7 @@ impl Buffer {
     }
 
     /// ???
+    // TODO get rid of this and see if code actions works fine. lsp says i have to do this. i don't want to.
     pub fn store_diagnostics(&self, diagnostics: Vec<Diagnostic>) {
         self.imp().diagnostics.replace(diagnostics);
     }
@@ -81,22 +87,86 @@ impl Buffer {
 
     /// Shows code actions in an alert dialog
     pub fn show_code_actions(&self, actions: Vec<CodeActionOrCommand>) {
+        let dialog = Dialog::new();
         // Create list of actions
         let group = adw::PreferencesGroup::new();
-        actions.iter().for_each(|action| {
-            if let CodeActionOrCommand::CodeAction(action) = action {
-                let row = adw::ButtonRow::new();
-                row.set_width_request(320);
-                row.set_title(&action.title);
-                group.add(&row);
+        actions.iter().for_each(clone!(
+            #[strong]
+            dialog,
+            #[strong]
+            group,
+            #[strong(rename_to=buffer)]
+            self,
+            move |action| {
+                // TODO handle command
+                if let CodeActionOrCommand::CodeAction(action) = action {
+                    let row = adw::ButtonRow::new();
+                    let action = action.clone();
+                    let dialog = dialog.clone();
+                    let buffer = buffer.clone();
+                    row.set_width_request(320);
+                    row.set_title(&action.title);
+                    row.connect_activated(move |_| {
+                        if let Some(ref edit) = action.edit {
+                            buffer.apply_edit(edit.clone());
+                        }
+                        dialog.close();
+                    });
+                    group.add(&row);
+                }
             }
-        });
+        ));
         // Create dialog
-        let dialog = AlertDialog::new(Some("Code Actions"), None);
-        dialog.add_responses(&[("cancel", "_Cancel")]);
-        dialog.set_default_response(Some("cancel"));
-        dialog.set_close_response("cancel");
-        dialog.set_extra_child(Some(&group));
-        adw::prelude::AdwDialogExt::present(&dialog, Some(&self.clone()));
+        let container = adw::PreferencesPage::new();
+        let cancel_group = adw::PreferencesGroup::new();
+        let cancel = adw::ButtonRow::new();
+        container.add(&group);
+        container.add(&cancel_group);
+        cancel_group.add(&cancel);
+        cancel.set_title("Cancel");
+        cancel.add_css_class("destructive-action");
+        cancel.connect_activated(clone!(
+            #[strong]
+            dialog,
+            move |_| {
+                dialog.close();
+            }
+        ));
+        dialog.set_title("Code actions…");
+        dialog.set_child(Some(&container));
+        dialog.present(Some(&self.clone()));
+    }
+
+    /// Applies LSP workspace edits
+    pub fn apply_edit(&self, edit: WorkspaceEdit) {
+        // TODO: "But Spike, aren't these *workspace* edits?" Yeah..............
+        // TODO: Having this globally handled by e.g. a window would be much preferred, but
+        // TODO: right now this is just a proof-of-concept.
+        // TODO: Handle DocumentChanges::Operations
+        let buffer = self.get_sourceview_buffer();
+        if let Some(DocumentChanges::Edits(edits)) = edit.document_changes {
+            for edit in edits {
+                let path = edit.text_document.uri.path();
+                if path == self.file_path().unwrap() {
+                    for edit in edit.edits {
+                        match edit {
+                            OneOf::Left(edit) => {
+                                let mut start = position_iter!(buffer, edit.range.start).unwrap(); // TODO: panics if the range isn't valid. it should be, so this should be fine?
+                                let mut end = position_iter!(buffer, edit.range.end).unwrap();
+                                buffer.delete(&mut start, &mut end);
+                                start = position_iter!(buffer, edit.range.start).unwrap();
+                                buffer.insert(&mut start, &edit.new_text);
+                            }
+                            OneOf::Right(_edit) => {
+                                todo!();
+                            }
+                        }
+                    }
+                } else {
+                    todo!();
+                    // "[fatal] WorkspaceEdit external file paths not supported (see src/ui/buffer/lsp_ui.rs::apply_edit)"
+                }
+            }
+        }
     }
 }
