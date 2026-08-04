@@ -99,12 +99,21 @@ mod imp {
                                 label.set_summary(notif.summary);
                                 label.set_progress(progress);
                                 label.set_widget_name(&notif.id);
+                                if let notifications::data::Priority::High = notif.priority {
+                                    button.add_css_class("error");
+                                    label.add_css_class("error");
+                                }
                                 notifs_list.prepend(&label);
                                 labels.push(label);
                             }
                             Event::Pop(id) => {
-                                remove(notifs_list.clone(), &mut labels, id);
+                                let row = remove(notifs_list.clone(), &mut labels, id);
                                 button.set_sensitive(!labels.is_empty());
+                                if let Some(row) = row
+                                    && row.has_css_class("error")
+                                {
+                                    button.remove_css_class("error");
+                                }
                             }
                         }
                     }
@@ -115,20 +124,26 @@ mod imp {
     impl WidgetImpl for NotificationsView {}
     impl BinImpl for NotificationsView {}
 
-    fn remove(notifs_list: gtk::ListBox, labels: &mut Vec<NotificationRow>, id: String) {
+    fn remove(
+        notifs_list: gtk::ListBox,
+        labels: &mut Vec<NotificationRow>,
+        id: String,
+    ) -> Option<NotificationRow> {
         let mut _child = notifs_list.first_child();
         while let Some(child) = _child {
             if let Some(row) = child.first_child()
                 && row.widget_name() == id
             {
+                let row_type = row.clone().downcast::<NotificationRow>().ok();
                 if let Some(p) = labels.iter().position(|l| l.widget_name() == id) {
                     labels.remove(p);
                 }
                 notifs_list.remove(&child);
-                break;
+                return row_type;
             }
             _child = child.next_sibling();
         }
+        None
     }
 }
 
