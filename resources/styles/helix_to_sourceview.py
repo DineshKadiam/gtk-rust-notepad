@@ -26,6 +26,8 @@ def fill_palette(hx):
 def compat(hx):
     if "ui.cursorline.primary" not in hx:
         hx["ui.cursorline.primary"] = hx["ui.cursorline"]
+    if "markup.link.url" not in hx:
+        hx["markup.link.url"] = hx["markup.link.text"]
     if "ui.gutter" not in hx:
         hx["ui.gutter"] = { "bg": hx["ui.background"]["bg"] }
     if "ui.selection.primary" not in hx:
@@ -36,7 +38,9 @@ def compat(hx):
         hx["constant.builtin.boolean"] = hx["constant.builtin"]
     if "markup.raw.inline" not in hx:
         hx["markup.raw.inline"] = hx["markup.raw"]
-
+        
+    if "bg" not in hx["ui.gutter"]:
+        hx["ui.gutter"]["bg"] = hx["ui.background"]["bg"]
     if "bg" not in hx["ui.cursor.match"]:
         hx["ui.cursor.match"]["bg"] = hx["ui.background"]["bg"]
     if "bg" not in hx["ui.linenr"]:
