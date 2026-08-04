@@ -149,18 +149,19 @@ impl Buffer {
                 let path = edit.text_document.uri.path();
                 if path == self.file_path().unwrap() {
                     for edit in edit.edits {
-                        match edit {
-                            OneOf::Left(edit) => {
-                                let mut start = position_iter!(buffer, edit.range.start).unwrap(); // TODO: panics if the range isn't valid. it should be, so this should be fine?
-                                let mut end = position_iter!(buffer, edit.range.end).unwrap();
-                                buffer.delete(&mut start, &mut end);
-                                start = position_iter!(buffer, edit.range.start).unwrap();
-                                buffer.insert(&mut start, &edit.new_text);
-                            }
-                            OneOf::Right(_edit) => {
-                                todo!();
-                            }
-                        }
+                        let edit = match edit {
+                            OneOf::Left(text_edit) => text_edit,
+                            OneOf::Right(AnnotatedTextEdit {
+                                text_edit,
+                                annotation_id: _,
+                            }) => text_edit,
+                        };
+                        // TODO: panics if the range isn't valid. it should be, so this should be fine?
+                        let mut start = position_iter!(buffer, edit.range.start).unwrap();
+                        let mut end = position_iter!(buffer, edit.range.end).unwrap();
+                        buffer.delete(&mut start, &mut end);
+                        start = position_iter!(buffer, edit.range.start).unwrap();
+                        buffer.insert(&mut start, &edit.new_text);
                     }
                 } else {
                     todo!();
