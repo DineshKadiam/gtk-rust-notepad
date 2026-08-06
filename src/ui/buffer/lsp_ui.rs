@@ -1,11 +1,10 @@
 use adw::Dialog;
 use async_lsp::lsp_types::{
-    AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, OneOf, WorkspaceEdit,
+    AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, Hover, OneOf, WorkspaceEdit,
 };
 
-use crate::position_iter;
-
 use super::*;
+use crate::position_iter;
 
 impl Buffer {
     /// Clear diagnostics
@@ -159,7 +158,7 @@ impl Buffer {
                                 annotation_id: _,
                             }) => text_edit,
                         };
-                        // TODO: panics if the range isn't valid. it should be, so this should be fine?
+                        // FIXME: panics if the range isn't valid, which happens sometimes, for some reason
                         let mut start = position_iter!(buffer, edit.range.start).unwrap();
                         let mut end = position_iter!(buffer, edit.range.end).unwrap();
                         buffer.delete(&mut start, &mut end);
@@ -172,5 +171,28 @@ impl Buffer {
                 }
             }
         }
+    }
+
+    /// Shows LSP hover resutls in an alert dialog
+    pub fn show_lsp_hover(&self, actions: Hover) {
+        // Get contents
+        let contents = match actions.contents {
+            async_lsp::lsp_types::HoverContents::Scalar(_marked_string) => todo!(),
+            async_lsp::lsp_types::HoverContents::Array(_marked_strings) => todo!(),
+            async_lsp::lsp_types::HoverContents::Markup(markup_content) => markup_content.value,
+        };
+        // Create dialog
+        let dialog = Dialog::new();
+        let toolbar = adw::ToolbarView::new();
+        let text = gtk::Label::new(Some(&contents));
+        text.set_margin_top(16);
+        text.set_margin_bottom(16);
+        text.set_margin_start(16);
+        text.set_margin_end(16);
+        text.add_css_class("monospace");
+        toolbar.set_content(Some(&text));
+        toolbar.add_top_bar(&adw::HeaderBar::new());
+        dialog.set_child(Some(&toolbar));
+        dialog.present(Some(&self.clone()));
     }
 }

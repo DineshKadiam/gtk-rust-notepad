@@ -26,7 +26,10 @@ template $Buffer: Box {
       auto-indent: true;
       // Extra options
       extra-menu: menu {
-        item (_("Code actions…"), "buffer.lsp.actions")
+        section {
+          item (_("Code actions…"), "buffer.lsp.actions")
+          item (_("LSP hover…"), "buffer.lsp.hover")
+        }
       };
     }
   }
