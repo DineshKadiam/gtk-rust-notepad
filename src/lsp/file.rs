@@ -3,6 +3,8 @@ use async_lsp::lsp_types::{
     VersionedTextDocumentIdentifier,
 };
 
+use crate::lsp::error::Error;
+
 use super::*;
 
 /// Add files to a workspace.
