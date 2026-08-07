@@ -60,6 +60,7 @@ pub fn save(uri: &str, workspace_uri: &str) {
                 text: fs::read_to_string(uri).unwrap().into(),
             })
             .unwrap(),
+        Err(Error::NotConfigured(_)) => (),
         Err(error) => {
             notifications::push(Notification {
                 summary: format!("{error}"),
