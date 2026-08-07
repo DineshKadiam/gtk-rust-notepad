@@ -4,7 +4,7 @@ use async_lsp::lsp_types::{
 };
 
 use super::*;
-use crate::position_iter;
+use crate::{position_iter, ui::dialog::hover::HoverDialog};
 
 impl Buffer {
     /// Clear diagnostics
@@ -182,17 +182,7 @@ impl Buffer {
             async_lsp::lsp_types::HoverContents::Markup(markup_content) => markup_content.value,
         };
         // Create dialog
-        let dialog = Dialog::new();
-        let toolbar = adw::ToolbarView::new();
-        let text = gtk::Label::new(Some(&contents));
-        text.set_margin_top(16);
-        text.set_margin_bottom(16);
-        text.set_margin_start(16);
-        text.set_margin_end(16);
-        text.add_css_class("monospace");
-        toolbar.set_content(Some(&text));
-        toolbar.add_top_bar(&adw::HeaderBar::new());
-        dialog.set_child(Some(&toolbar));
-        dialog.present(Some(&self.clone()));
+        let dialog = HoverDialog::new(&contents);
+        dialog.present(&self.clone());
     }
 }

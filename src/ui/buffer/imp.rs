@@ -1,5 +1,3 @@
-use async_lsp::lsp_types::Diagnostic;
-
 use super::*;
 
 #[derive(Debug, Default, Properties, CompositeTemplate)]

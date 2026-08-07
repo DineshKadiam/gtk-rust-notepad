@@ -12,10 +12,10 @@ use async_lsp::{
     LanguageServer, ServerSocket,
     concurrency::ConcurrencyLayer,
     lsp_types::{
-        ClientCapabilities, CodeActionClientCapabilities,
-        CodeActionKindLiteralSupport, CodeActionLiteralSupport,
-        DidCloseTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializedParams,
-        MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
+        ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
+        CodeActionLiteralSupport, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+        HoverClientCapabilities, InitializeParams, InitializedParams, MarkupKind, MessageType,
+        ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
         TextDocumentClientCapabilities, TextDocumentIdentifier, TextDocumentItem, Url,
         WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
         notification::{Progress, PublishDiagnostics, ShowMessage},
@@ -183,11 +183,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
             Ok(_) => (),
             Err(_) => {
                 // Read stderr
-                let err = String::from_utf8(
-                    BufReader::new(stderr)
-                        .buffer().to_vec(),
-                )
-                .unwrap();
+                let err = String::from_utf8(BufReader::new(stderr).buffer().to_vec()).unwrap();
                 // Send notification
                 notifications::push(Notification {
                     summary: format!("{command_full} crashed"),
@@ -236,6 +232,10 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                             },
                         }),
                         ..CodeActionClientCapabilities::default()
+                    }),
+                    hover: Some(HoverClientCapabilities {
+                        dynamic_registration: None,
+                        content_format: Some(vec![MarkupKind::Markdown]),
                     }),
                     ..TextDocumentClientCapabilities::default()
                 }),
