@@ -2,6 +2,8 @@ use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
 use gtk::{CompositeTemplate, Label, glib};
 
+use crate::ui::gmark;
+
 mod imp {
 
     use super::*;
@@ -11,7 +13,7 @@ mod imp {
     #[properties(wrapper_type = super::HoverDialog)]
     pub struct HoverDialog {
         #[template_child]
-        pub label: TemplateChild<Label>,
+        pub bin: TemplateChild<adw::Bin>,
     }
 
     #[glib::object_subclass]
@@ -46,7 +48,7 @@ pub struct HoverDialog(ObjectSubclass<imp::HoverDialog>)
 impl HoverDialog {
     pub fn new(text: &str) -> Self {
         let dialog = glib::Object::builder::<Self>().build();
-        dialog.imp().label.set_text(text);
+        dialog.imp().bin.set_child(Some(&gmark::parse(&text)));
         dialog
     }
 

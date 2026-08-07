@@ -3,36 +3,19 @@ using Adw 1;
 
 template $HoverDialog: Adw.Dialog {
   title: _("Details");
+  height-request: 400;
+  width-request: 600;
 
   Adw.ToolbarView {
     [top]
     Adw.HeaderBar {}
 
     content: Gtk.ScrolledWindow {
-      max-content-height: 600;
-      max-content-width: 600;
-      propagate-natural-width: true;
-      propagate-natural-height: true;
-      margin-top: 2;
-      margin-bottom: 18;
-      margin-start: 18;
-      margin-end: 18;
-      focusable: false;
+      Adw.Clamp {
+        maximum-size: 600;
+        tightening-threshold: 400;
 
-      styles [
-        "card",
-      ]
-
-      Label label {
-        label: _("");
-        margin-bottom: 18;
-        margin-top: 18;
-        margin-start: 18;
-        margin-end: 18;
-
-        styles [
-          "monospace",
-        ]
+        Adw.Bin bin {}
       }
     };
   }

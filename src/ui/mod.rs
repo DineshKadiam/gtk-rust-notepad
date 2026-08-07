@@ -1,6 +1,7 @@
 pub mod buffer;
 pub mod completion;
 pub mod dialog;
+pub mod gmark;
 pub mod notifications;
 pub mod preferences;
 pub mod recents;
