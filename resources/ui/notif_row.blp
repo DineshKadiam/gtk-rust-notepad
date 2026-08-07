@@ -14,10 +14,15 @@ template $NotificationRow: Adw.Bin {
 
 		CenterBox {
 			[start]
-			Label label_summary {}
+			Label label_summary {
+				wrap: true;
+			}
 
 			[end]
 			Button close_button {
+				accessibility {
+				  label: "Close notification";
+				}
 				icon-name: "window-close-symbolic";
 				valign: center;
 				vexpand: false;

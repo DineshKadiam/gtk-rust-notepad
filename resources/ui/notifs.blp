@@ -15,7 +15,9 @@ template $NotificationsView: Adw.Bin {
 			ScrolledWindow {
 				width-request: 400;
 				max-content-height: 512;
+				max-content-width: 400;
 				propagate-natural-height: true;
+				hscrollbar-policy: never;
 
 				ListBox notifs_list {
 					selection-mode: none;
