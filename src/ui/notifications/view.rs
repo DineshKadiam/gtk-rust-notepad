@@ -44,8 +44,6 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            self.button.set_sensitive(false);
-
             // Clear action
             let action_group = SimpleActionGroup::new();
             action_group.add_action_entries([ActionEntry::builder("clear")
@@ -86,7 +84,6 @@ mod imp {
                     while let Ok(event) = rx.recv().await {
                         match event {
                             Event::Push(notif) => {
-                                button.set_sensitive(!labels.is_empty());
                                 let progress = if let notifications::data::Status::Progress(p) =
                                     notif.status
                                 {
@@ -108,13 +105,18 @@ mod imp {
                             }
                             Event::Pop(id) => {
                                 let row = remove(notifs_list.clone(), &mut labels, id);
-                                button.set_sensitive(!labels.is_empty());
                                 if let Some(row) = row
                                     && row.has_css_class("error")
                                 {
                                     button.remove_css_class("error");
                                 }
                             }
+                        }
+                        button.set_visible(!labels.is_empty());
+                        if button.is_visible() {
+                            button.add_css_class("visible");
+                        } else {
+                            button.remove_css_class("visible");
                         }
                     }
                 }

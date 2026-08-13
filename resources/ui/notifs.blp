@@ -2,43 +2,48 @@ using Gtk 4.0;
 using Adw 1;
 
 template $NotificationsView: Adw.Bin {
-	MenuButton button {
-		icon-name: "notifications-symbolic";
+  MenuButton button {
+    icon-name: "notifications-symbolic";
+    visible: false;
 
-		popover: Popover {
-			has-arrow: false;
+    styles [
+      "notifs-button",
+    ]
 
-			styles [
-				"notifs-popover",
-			]
+    popover: Popover {
+      has-arrow: false;
 
-			ScrolledWindow {
-				width-request: 400;
-				max-content-height: 512;
-				max-content-width: 400;
-				propagate-natural-height: true;
-				hscrollbar-policy: never;
+      styles [
+        "notifs-popover",
+      ]
 
-				ListBox notifs_list {
-					selection-mode: none;
-					accept-unpaired-release: true;
+      ScrolledWindow {
+        width-request: 400;
+        max-content-height: 512;
+        max-content-width: 400;
+        propagate-natural-height: true;
+        hscrollbar-policy: never;
 
-					styles [
-						"notifs-list",
-						"boxed-list",
-					]
+        ListBox notifs_list {
+          selection-mode: none;
+          accept-unpaired-release: true;
 
-					Adw.ButtonRow clear_button {
-						styles [
-							"destructive-action",
-						]
+          styles [
+            "notifs-list",
+            "boxed-list",
+          ]
 
-						action-name: "notifs.clear";
-						start-icon-name: "edit-clear-all-symbolic";
-						title: _("Clear all");
-					}
-				}
-			}
-		};
-	}
+          Adw.ButtonRow clear_button {
+            styles [
+              "destructive-action",
+            ]
+
+            action-name: "notifs.clear";
+            start-icon-name: "edit-clear-all-symbolic";
+            title: _("Clear all");
+          }
+        }
+      }
+    };
+  }
 }

@@ -146,6 +146,17 @@ separator {
 }
 
 /* Notifications */
+@keyframes wiggle {
+	0%   { transform: rotate(0deg);   }
+	10%  { transform: rotate(30deg);  }
+	20%  { transform: rotate(-30deg); }
+	100% { transform: rotate(0deg);   }
+}
+
+.notifs-button.visible {
+	animation: wiggle 0.3s ease;
+}
+
 .notifs-popover > * {
 	padding: 0;
 	border: 1px solid var(--border-color);
