@@ -192,3 +192,8 @@ window.flat.csd {
 .flat tabbox * {
   border-radius: 4px;
 }
+
+/* Gutter */
+gutter > gutterrenderer:last-child {
+	min-width: 12px;
+}

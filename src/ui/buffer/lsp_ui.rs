@@ -2,6 +2,7 @@ use adw::Dialog;
 use async_lsp::lsp_types::{
     AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, Hover, OneOf, WorkspaceEdit,
 };
+use sourceview5::{GutterRendererPixbuf, GutterRendererText, MarkAttributes};
 
 use super::*;
 use crate::{position_iter, ui::dialog::hover::HoverDialog};
@@ -14,15 +15,15 @@ impl Buffer {
         let buffer = self.get_sourceview_buffer();
         let bounds = buffer.bounds();
         {
-            let mut exists = false;
-            buffer.tag_table().foreach(|t| {
-                if t.name().is_some_and(|n| n == "diag_error") {
-                    exists = true;
-                }
-            });
-            if exists {
+            if  buffer.tag_table().lookup("diag_error").is_some() {
                 buffer.remove_tag_by_name("diag_error", &bounds.0, &bounds.1);
             }
+        }
+        // Clear source marks
+        for i in 0..buffer.line_count() {
+            buffer.source_marks_at_line(i, None).iter().for_each(|mark| {
+                buffer.delete_mark(mark);
+            });
         }
     }
 
@@ -40,46 +41,44 @@ impl Buffer {
         severity: DiagnosticSeverity,
         create_annotation: bool,
     ) {
+        let buffer = self.get_sourceview_buffer();
         // Add annotation
         if create_annotation {
-            self.imp()
-                .diagnostic_provider
-                .borrow()
-                .add_annotation(&Annotation::new(
-                    Some(&message.replace("\n", " / ")),
-                    Some(
-                        Icon::for_string(match severity {
-                            DiagnosticSeverity::ERROR => "dialog-error-symbolic",
-                            DiagnosticSeverity::WARNING => "dialog-warning-symbolic",
-                            _ => "dialog-information-symbolic",
-                        })
-                        .unwrap(),
-                    ),
+            let annotation = Annotation::new(
+                    Some(&(message.replace("\n", "  ") + "\t\t")),
+                    None::<Icon>,
                     range.start.line as i32,
                     match severity {
                         DiagnosticSeverity::ERROR => sourceview5::AnnotationStyle::Error,
                         DiagnosticSeverity::WARNING => sourceview5::AnnotationStyle::Warning,
                         _ => sourceview5::AnnotationStyle::Accent,
                     },
-                ));
+                );
+            self.imp()
+                .diagnostic_provider
+                .borrow()
+                .add_annotation(&annotation);
         }
         // Add tag
-        let buffer = self.get_sourceview_buffer();
-        if let Some(start) =
-            buffer.iter_at_line_offset(range.start.line as i32, range.start.character as i32)
-            && let Some(end) =
-                buffer.iter_at_line_offset(range.end.line as i32, range.end.character as i32)
+        if let Some(start) = position_iter!(buffer, range.start)
+            && let Some(end) = position_iter!(buffer, range.end)
         {
-            let mut exists = false;
-            buffer.tag_table().foreach(|t| {
-                if t.name().is_some_and(|n| n == "diag_error") {
-                    exists = true;
-                }
-            });
-            if !exists {
+            if buffer.tag_table().lookup("diag_error").is_none() {
                 buffer.create_tag(Some("diag_error"), &[("underline", &Underline::Error)]);
             }
             buffer.apply_tag_by_name("diag_error", &start, &end);
+            // Create gutter mark
+            if buffer.source_marks_at_line(range.start.line as i32, None).is_empty() {
+                buffer.create_source_mark(
+                    None,
+                    match severity {
+                        DiagnosticSeverity::ERROR => "error",
+                        DiagnosticSeverity::WARNING => "warn",
+                        _ => "info",
+                    },
+                    &buffer.iter_at_line(range.start.line as i32).unwrap()
+                );
+            }
         }
     }
 
@@ -186,3 +185,182 @@ impl Buffer {
         dialog.present(&self.clone());
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

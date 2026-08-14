@@ -1,3 +1,5 @@
+use sourceview5::MarkAttributes;
+
 use super::*;
 
 #[derive(Debug, Default, Properties, CompositeTemplate)]
@@ -95,10 +97,12 @@ impl ObjectImpl for Buffer {
             }
         ));
         self.obj().add_controller(motion_controller);
-        // Set up source view
+        // Set up sourceview annotations
         self.source_view
             .annotations()
             .add_provider(&self.diagnostic_provider.borrow().clone());
+        // Set up gutter mark attributes (fancy words for icons in your line number bar)
+        self.obj().unfuck_gutters();
         // Set up completion
         self.completion_provider
             .replace(Some(LspCompletionProvider::new()));

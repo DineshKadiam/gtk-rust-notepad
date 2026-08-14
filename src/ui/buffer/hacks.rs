@@ -1,3 +1,5 @@
+use sourceview5::MarkAttributes;
+
 // Shitty GTK hacks that I hate
 use super::*;
 
@@ -88,5 +90,41 @@ impl Buffer {
         }
         scroll!(scroll_window.clone().vadjustment(), scroll_y);
         scroll!(scroll_window.clone().hadjustment(), scroll_x);
+    }
+
+    // Unfuck gutters (sidebar things that have icons)
+    pub fn unfuck_gutters(&self) {
+        let gutter = sourceview5::prelude::ViewExt::gutter(
+            &self.imp().source_view.clone(),
+            gtk::TextWindowType::Left,
+        );
+        gutter.reorder(
+            &gutter
+                .last_child()
+                .and_downcast::<sourceview5::GutterRenderer>()
+                .unwrap(),
+            -100,
+        );
+        self.imp().source_view.set_mark_attributes(
+            "info",
+            &MarkAttributes::builder()
+                .icon_name("dialog-information-symbolic")
+                .build(),
+            3,
+        );
+        self.imp().source_view.set_mark_attributes(
+            "warn",
+            &MarkAttributes::builder()
+                .icon_name("dialog-warning-symbolic")
+                .build(),
+            2,
+        );
+        self.imp().source_view.set_mark_attributes(
+            "error",
+            &MarkAttributes::builder()
+                .icon_name("dialog-error-symbolic")
+                .build(),
+            1,
+        );
     }
 }
