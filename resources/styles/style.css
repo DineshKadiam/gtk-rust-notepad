@@ -96,6 +96,7 @@ panelstatusbar button image {
     min-height: 0;
     padding: 6px 8px;
     font-size: 13px;
+    background-color: alpha(currentColor, 0.05);
 }
 
 /* Terminal padding */
