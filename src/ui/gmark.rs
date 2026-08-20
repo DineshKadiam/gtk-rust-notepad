@@ -1,8 +1,12 @@
 use gtk::Align;
 // TODO: this should be its own rust crate, actually...
 use gtk::Orientation;
+use gtk::TextBuffer;
+use gtk::TextIter;
 use gtk::WrapMode;
+use gtk::pango::Underline;
 use gtk::prelude::*;
+use markdown::mdast::LinkReference;
 use markdown::mdast::{
     Code, Heading, InlineCode, Link, Node, Paragraph, Strong, Text, ThematicBreak,
 };
@@ -25,26 +29,27 @@ pub fn parse(input: &str) -> gtk::Box {
 
 fn parse_node(node: Node) -> gtk::Widget {
     let out = match node {
-        // Regular text
-        Node::Text(Text { value, position: _ }) => {
-            gtk::Label::new(Some(&value)).upcast::<gtk::Widget>()
-        }
-
         // Paragraph
         Node::Paragraph(Paragraph {
             children,
             position: _,
         }) => {
-            let out = gtk::Box::new(Orientation::Vertical, 16);
+            let out = gtk::TextView::new();
+            let mut end = out.buffer().bounds().1;
+            out.set_wrap_mode(WrapMode::Word);
+            out.add_css_class("flat");
+            out.set_editable(false);
+            out.set_pixels_below_lines(8);
+            create_tags(out.buffer());
             for child in children {
-                out.append(&parse_node(child));
+                parse_node_paragraph(out.buffer(), &mut end, child, &[]);
             }
             out.upcast::<gtk::Widget>()
         }
 
-        // Spacer
-        Node::ThematicBreak(ThematicBreak { position: _ }) => {
-            gtk::Separator::new(Orientation::Horizontal).upcast::<gtk::Widget>()
+        // Regular text
+        Node::Text(Text { value, position: _ }) => {
+            gtk::Label::new(Some(&value)).upcast::<gtk::Widget>()
         }
 
         // Bolded text
@@ -59,10 +64,15 @@ fn parse_node(node: Node) -> gtk::Widget {
             out.upcast::<gtk::Widget>()
         }
 
-        // Inline code
-        Node::InlineCode(InlineCode { value, position: _ }) => gtk::Label::builder()
-            .label(&value)
-            .css_classes(["monospace"])
+        // Links
+        Node::Link(Link {
+            children: _,
+            position: _,
+            url,
+            title,
+        }) => gtk::LinkButton::builder()
+            .label(&title.unwrap_or(url.clone()))
+            .uri(url)
             .build()
             .upcast::<gtk::Widget>(),
 
@@ -75,6 +85,7 @@ fn parse_node(node: Node) -> gtk::Widget {
         }) => {
             let view = sourceview5::View::new();
             let buffer = view.buffer().downcast::<sourceview5::Buffer>().unwrap();
+            view.add_css_class("flat");
             view.add_css_class("monospace");
             view.set_editable(false);
             view.set_wrap_mode(WrapMode::Word);
@@ -113,17 +124,12 @@ fn parse_node(node: Node) -> gtk::Widget {
             out.upcast::<gtk::Widget>()
         }
 
-        // Links
-        Node::Link(Link {
-            children: _,
-            position: _,
-            url,
-            title,
-        }) => gtk::LinkButton::builder()
-            .label(&title.unwrap_or(url.clone()))
-            .uri(url)
-            .build()
-            .upcast::<gtk::Widget>(),
+        // Spacer
+        Node::ThematicBreak(ThematicBreak { position: _ }) => {
+            gtk::Separator::new(Orientation::Horizontal).upcast::<gtk::Widget>()
+        }
+
+        // Default
         _ => adw::Bin::new().upcast::<gtk::Widget>(),
     };
     if out.downcast_ref::<gtk::Label>().is_some() || out.downcast_ref::<gtk::LinkButton>().is_some()
@@ -131,4 +137,84 @@ fn parse_node(node: Node) -> gtk::Widget {
         out.set_halign(Align::Start);
     }
     out
+}
+
+fn parse_node_paragraph(
+    buffer: TextBuffer,
+    end: &mut TextIter,
+    node: Node,
+    additional_tags: &[&str],
+) {
+    match node {
+        Node::Text(Text { value, position: _ }) => {
+            if additional_tags.is_empty() {
+                buffer.insert(end, &value);
+            } else {
+                buffer.insert_with_tags_by_name(end, &value, additional_tags);
+            }
+        }
+        // Inline code
+        Node::InlineCode(InlineCode { value, position: _ }) => {
+            let mut tags = additional_tags.to_vec();
+            tags.push("monospace");
+            buffer.insert_with_tags_by_name(end, &value, &tags);
+        }
+        // Links
+        Node::Link(Link {
+            children: _,
+            position: _,
+            url,
+            title,
+        }) => {
+            let text = if let Some(title) = title {
+                format!("{title} ({url})")
+            } else {
+                url
+            };
+            buffer.insert_with_tags_by_name(end, &text, &["link"]);
+        }
+        Node::LinkReference(LinkReference {
+            children,
+            position,
+            reference_kind,
+            identifier,
+            label,
+        }) => {
+            for child in children {
+                parse_node_paragraph(buffer.clone(), end, child, &["link"]);
+            }
+        }
+        _ => {
+            dbg!(node);
+        }
+    };
+}
+
+fn create_tags(buffer: TextBuffer) {
+    // Inline monospace
+    buffer.create_tag(
+        Some("monospace"),
+        &[
+            ("family", &"monospace".to_string()),
+            (
+                "foreground",
+                &adw::StyleManager::default().accent_color_rgba().to_string(),
+            ),
+        ],
+    );
+    // Links
+    buffer.create_tag(
+        Some("link"),
+        &[
+            ("underline", &Underline::Single),
+            (
+                "foreground",
+                &adw::StyleManager::default().accent_color_rgba().to_string(),
+            ),
+        ],
+    ); // Headers
+    buffer.create_tag(
+        Some("header"),
+        &[("font", &"Sans Bold".to_string()), ("scale", &2.0)],
+    );
 }

@@ -222,3 +222,8 @@ gutter > gutterrenderer:last-child {
     margin-top: 1px;
     -gtk-icon-size: 10px;
 }
+
+/* Markup rendering */
+textview.flat {
+    background-color: transparent;
+}
