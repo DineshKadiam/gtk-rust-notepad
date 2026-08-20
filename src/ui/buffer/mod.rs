@@ -12,13 +12,12 @@ use adw::{AlertDialog, ResponseAppearance, prelude::*, subclass::prelude::*};
 use async_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Range};
 use gtk::{
     CompositeTemplate, EventControllerMotion, Revealer, TextSearchFlags,
-    gio::{self, Cancellable, FileQueryInfoFlags, Icon},
+    gio::{self, Cancellable, FileQueryInfoFlags},
     glib::{self, ControlFlow, Properties, SourceId, clone},
     pango::{FontDescription, FontMap, Underline},
 };
 use sourceview5::{
-    Annotation, AnnotationProvider, BackgroundPatternType, FileSaverFlags, StyleSchemeManager,
-    prelude::*,
+    AnnotationProvider, BackgroundPatternType, FileSaverFlags, StyleSchemeManager, prelude::*,
 };
 
 use crate::{
@@ -51,6 +50,7 @@ impl Buffer {
     pub fn with_source(buf: sourceview5::Buffer) -> Self {
         let widget = glib::Object::builder::<Self>().build();
         widget.imp().source_view.set_buffer(Some(&buf));
+        widget.setup_annotations();
         // Scroll to the bottom when new lines are added; with a margin (unlike by default)
         Buffer::override_scrolling(
             widget.get_sourceview_buffer(),
@@ -256,6 +256,7 @@ impl Buffer {
 }
 
 mod actions;
+mod annotations;
 mod hacks;
 mod io;
 mod lsp_ui;

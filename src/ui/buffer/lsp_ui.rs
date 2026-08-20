@@ -2,7 +2,6 @@ use adw::Dialog;
 use async_lsp::lsp_types::{
     AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, Hover, OneOf, WorkspaceEdit,
 };
-use sourceview5::{GutterRendererPixbuf, GutterRendererText, MarkAttributes};
 
 use super::*;
 use crate::{position_iter, ui::dialog::hover::HoverDialog};
@@ -10,20 +9,29 @@ use crate::{position_iter, ui::dialog::hover::HoverDialog};
 impl Buffer {
     /// Clear diagnostics
     pub fn clear_diagnostics(&self) {
-        self.imp().diagnostic_provider.borrow().remove_all();
         // Clear tags
         let buffer = self.get_sourceview_buffer();
         let bounds = buffer.bounds();
         {
-            if  buffer.tag_table().lookup("diag_error").is_some() {
+            if buffer.tag_table().lookup("diag_error").is_some() {
                 buffer.remove_tag_by_name("diag_error", &bounds.0, &bounds.1);
             }
+            if buffer.tag_table().lookup("inlay").is_some() {
+                buffer.remove_tag_by_name("inlay", &bounds.0, &bounds.1);
+            }
         }
+        // Clear annotations
+        self.clear_annotations();
         // Clear source marks
         for i in 0..buffer.line_count() {
-            buffer.source_marks_at_line(i, None).iter().for_each(|mark| {
-                buffer.delete_mark(mark);
-            });
+            buffer
+                .source_marks_at_line(i, None)
+                .iter()
+                .for_each(|mark| {
+                    if !mark.is_deleted() {
+                        buffer.delete_mark(mark);
+                    }
+                });
         }
     }
 
@@ -42,23 +50,18 @@ impl Buffer {
         create_annotation: bool,
     ) {
         let buffer = self.get_sourceview_buffer();
-        // Add annotation
+
         if create_annotation {
-            let annotation = Annotation::new(
-                    Some(&(message.replace("\n", "  ") + "\t\t")),
-                    None::<Icon>,
-                    range.start.line as i32,
-                    match severity {
-                        DiagnosticSeverity::ERROR => sourceview5::AnnotationStyle::Error,
-                        DiagnosticSeverity::WARNING => sourceview5::AnnotationStyle::Warning,
-                        _ => sourceview5::AnnotationStyle::Accent,
-                    },
-                );
-            self.imp()
-                .diagnostic_provider
-                .borrow()
-                .add_annotation(&annotation);
+            let annotation = self
+                .new_annotation(&message, range.end.line as i32)
+                .unwrap();
+            match severity {
+                DiagnosticSeverity::ERROR => annotation.add_css_class("error"),
+                DiagnosticSeverity::WARNING => annotation.add_css_class("warning"),
+                _ => (),
+            };
         }
+
         // Add tag
         if let Some(start) = position_iter!(buffer, range.start)
             && let Some(end) = position_iter!(buffer, range.end)
@@ -68,7 +71,10 @@ impl Buffer {
             }
             buffer.apply_tag_by_name("diag_error", &start, &end);
             // Create gutter mark
-            if buffer.source_marks_at_line(range.start.line as i32, None).is_empty() {
+            if buffer
+                .source_marks_at_line(range.start.line as i32, None)
+                .is_empty()
+            {
                 buffer.create_source_mark(
                     None,
                     match severity {
@@ -76,7 +82,7 @@ impl Buffer {
                         DiagnosticSeverity::WARNING => "warn",
                         _ => "info",
                     },
-                    &buffer.iter_at_line(range.start.line as i32).unwrap()
+                    &buffer.iter_at_line(range.start.line as i32).unwrap(),
                 );
             }
         }
@@ -185,182 +191,3 @@ impl Buffer {
         dialog.present(&self.clone());
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

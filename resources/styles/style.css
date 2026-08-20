@@ -7,9 +7,15 @@
 }
 
 @keyframes blink {
-   0% { background: var(--accent-bg-color); }
-   30% { background: color-mix(var(--accent-bg-color), transparent, 40%); }
-   100% { background: transparent; }
+    0% {
+        background: var(--accent-bg-color);
+    }
+    30% {
+        background: color-mix(var(--accent-bg-color), transparent, 40%);
+    }
+    100% {
+        background: transparent;
+    }
 }
 
 /* Theme sidebar/source */
@@ -128,7 +134,8 @@ flowboxchild {
 }
 
 /* Styling headerbars to look like GNOME Builder's (libpanel header) */
-toolbarview .top-bar, toolbarview .bottom-bar {
+toolbarview .top-bar,
+toolbarview .bottom-bar {
     background-color: @window_bg_color;
     --headerbar-darker-shade-color: var(--border-light-color);
 }
@@ -148,35 +155,43 @@ separator {
 
 /* Notifications */
 @keyframes wiggle {
-	0%   { transform: rotate(0deg);   }
-	10%  { transform: rotate(30deg);  }
-	20%  { transform: rotate(-30deg); }
-	100% { transform: rotate(0deg);   }
+    0% {
+        transform: rotate(0deg);
+    }
+    10% {
+        transform: rotate(30deg);
+    }
+    20% {
+        transform: rotate(-30deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
 }
 
 .notifs-button.visible {
-	animation: wiggle 0.3s ease;
+    animation: wiggle 0.3s ease;
 }
 
 .notifs-popover > * {
-	padding: 0;
-	border: 1px solid var(--border-color);
+    padding: 0;
+    border: 1px solid var(--border-color);
 }
 
 .notifs-popover {
-	padding: 8px 0;
+    padding: 8px 0;
 }
 
 .notif-row > box > box {
-	padding: 4px 12px;
+    padding: 4px 12px;
 }
 
 .notif-row button {
-	padding: 0;
+    padding: 0;
 }
 
 .notifs-popover row {
-	padding: 0;
+    padding: 0;
 }
 
 /* Flat (sharp corners) window styling */
@@ -191,10 +206,19 @@ window.flat.csd {
 .flat sheet,
 .flat list,
 .flat tabbox * {
-  border-radius: 4px;
+    border-radius: 4px;
 }
 
 /* Gutter */
 gutter > gutterrenderer:last-child {
-	min-width: 12px;
+    min-width: 12px;
+}
+
+/* Inlay hints/diagnostics */
+.inlay {
+    font-size: 10pt;
+    padding: 1px 8px;
+    min-height: 0;
+    margin-top: 1px;
+    -gtk-icon-size: 10px;
 }

@@ -128,3 +128,48 @@ impl Buffer {
         );
     }
 }
+
+pub mod text_view_child {
+    use std::ffi::{c_int, c_void};
+
+    use gtk::glib::ffi::*;
+    use gtk::prelude::*;
+    use gtk::{Widget, ffi::*};
+
+    #[repr(C)]
+    pub struct _GtkTextViewChild {
+        pub parent_instance: GtkWidget,
+        pub window_type: GtkTextWindowType,
+        pub overlays: GQueue,
+        pub xoffset: c_int,
+        pub yoffset: c_int,
+        pub child: *mut GtkWidget,
+    }
+
+    #[repr(C)]
+    pub struct Overlay {
+        pub link: GList,
+        pub widget: *mut GtkWidget,
+        pub x: c_int,
+        pub y: c_int,
+    }
+
+    pub type GtkTextViewChild = _GtkTextViewChild;
+
+    pub fn remove_overlay(widget: Widget, overlay_child: Widget) {
+        unsafe {
+            let wah = widget.as_ptr().cast::<GtkTextViewChild>();
+            let mut iter = (*wah).overlays.head;
+            while !iter.is_null() {
+                let data = iter.read().data.cast::<Overlay>();
+                if (*data).widget == overlay_child.as_ptr() {
+                    gtk::ffi::gtk_widget_unparent((*data).widget);
+                    gtk::glib::ffi::g_queue_unlink(&mut (*wah).overlays, iter);
+                    gtk::glib::ffi::g_free(data as *mut c_void);
+                    break;
+                }
+                iter = (*iter).next;
+            }
+        }
+    }
+}

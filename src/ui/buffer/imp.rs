@@ -1,4 +1,4 @@
-use sourceview5::MarkAttributes;
+use crate::ui::buffer::annotations::Annotation;
 
 use super::*;
 
@@ -12,11 +12,10 @@ pub struct Buffer {
     pub source_map: TemplateChild<sourceview5::Map>,
     #[template_child]
     pub map_revealer: TemplateChild<Revealer>,
-    #[property(get, set)]
-    pub diagnostic_provider: RefCell<AnnotationProvider>,
 
     // Variables
     pub diagnostics: RefCell<Vec<Diagnostic>>,
+    pub annotations: RefCell<Vec<Annotation>>,
     pub completion_provider: RefCell<Option<LspCompletionProvider>>,
     pub file: RefCell<Option<sourceview5::File>>,
     pub mmap_timer: RefCell<Option<SourceId>>,
@@ -97,10 +96,6 @@ impl ObjectImpl for Buffer {
             }
         ));
         self.obj().add_controller(motion_controller);
-        // Set up sourceview annotations
-        self.source_view
-            .annotations()
-            .add_provider(&self.diagnostic_provider.borrow().clone());
         // Set up gutter mark attributes (fancy words for icons in your line number bar)
         self.obj().unfuck_gutters();
         // Set up completion
@@ -114,6 +109,8 @@ impl ObjectImpl for Buffer {
             self.obj().get_sourceview_buffer(),
             self.source_view.clone(),
         );
+        // Set up annotations
+        self.obj().setup_annotations();
 
         // Set up actions
         self.obj().setup_actions();
