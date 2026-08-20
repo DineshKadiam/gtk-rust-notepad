@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use gtk::{Button, Image, Label, Orientation};
 
 use crate::ui::dialog::hover::HoverDialog;
@@ -10,20 +12,25 @@ const MARGIN: i32 = 16;
 pub struct Annotation {
     widget: gtk::Widget,
     line: i32,
-    messages: Vec<String>,
+    messages: Rc<RefCell<Vec<String>>>,
 }
 
 impl Annotation {
     pub fn new(message: &str, line: i32) -> Self {
+        let messages = Rc::new(RefCell::new(vec![message.to_string()]));
         let widget = {
             let message_line = message.split("\n").next().unwrap();
-            let message = message.to_string();
+            let messages = messages.clone();
             let button = Button::new();
             let contents = gtk::Box::builder()
                 .orientation(Orientation::Horizontal)
                 .spacing(8)
                 .build();
-            contents.append(&Label::new(Some(&message_line)));
+            contents.append(&Label::new(Some(if message_line.len() < 24 {
+                &message_line
+            } else {
+                "1 message"
+            })));
             contents.append(
                 &Image::builder()
                     .icon_name("view-fullscreen-symbolic")
@@ -33,7 +40,12 @@ impl Annotation {
             button.set_css_classes(&["inlay", "pill"]);
             button.set_cursor(Some(&gtk::gdk::Cursor::from_name("default", None).unwrap()));
             button.connect_clicked(move |btn| {
-                HoverDialog::new(&message).present(btn);
+                let messages = messages.borrow();
+                if messages.len() == 1 {
+                    HoverDialog::new(&messages[0]).present(btn);
+                } else {
+                    HoverDialog::new_multiple(&messages).present(btn);
+                }
             });
             button
         }
@@ -41,7 +53,7 @@ impl Annotation {
         Annotation {
             widget,
             line,
-            messages: vec![message.to_string()],
+            messages,
         }
     }
 
@@ -52,26 +64,46 @@ impl Annotation {
             self.widget.add_css_class(class)
         }
     }
+
+    pub fn update_label(&self) {
+        if let Some(contents) = self.widget.first_child().and_downcast::<gtk::Box>()
+            && let Some(label) = contents.first_child().and_downcast::<gtk::Label>()
+        {
+            label.set_label(&format!("{} messages", self.messages.borrow().len()));
+        }
+    }
+
+    pub fn push(&self, msg: &str) {
+        self.messages.borrow_mut().push(msg.to_string());
+    }
 }
 
 impl super::Buffer {
     pub fn new_annotation(&self, message: &str, line: i32) -> Result<Annotation, ()> {
-        let annotation = Annotation::new(message, line);
-        let buffer = self.get_sourceview_buffer();
-        if let Some(mut iter) = buffer.iter_at_line(line) {
-            iter.forward_to_line_end();
-            let location = self.imp().source_view.iter_location(&iter);
-            let mut annotations = self.imp().annotations.borrow().clone();
-            self.imp().source_view.add_overlay(
-                &annotation.widget,
-                location.x() + MARGIN,
-                location.y(),
-            );
-            annotations.push(annotation.clone());
-            self.imp().annotations.replace(annotations);
-            Ok(annotation)
+        let mut annotations = self.imp().annotations.borrow_mut();
+        if let Some(annotation) = annotations.iter_mut().find(|a| a.line == line) {
+            annotation.push(message);
+            annotation.update_label();
+            Ok(annotation.clone())
         } else {
-            Err(())
+            drop(annotations);
+            let annotation = Annotation::new(message, line);
+            let buffer = self.get_sourceview_buffer();
+            if let Some(mut iter) = buffer.iter_at_line(line) {
+                iter.forward_to_line_end();
+                let location = self.imp().source_view.iter_location(&iter);
+                let mut annotations = self.imp().annotations.borrow().clone();
+                self.imp().source_view.add_overlay(
+                    &annotation.widget,
+                    location.x() + MARGIN,
+                    location.y(),
+                );
+                annotations.push(annotation.clone());
+                self.imp().annotations.replace(annotations);
+                Ok(annotation.clone())
+            } else {
+                Err(())
+            }
         }
     }
 

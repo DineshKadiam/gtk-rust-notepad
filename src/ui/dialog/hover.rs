@@ -1,6 +1,6 @@
 use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::{CompositeTemplate, Label, glib};
+use gtk::{Align, CompositeTemplate, Label, Orientation, glib};
 
 use crate::ui::gmark;
 
@@ -52,7 +52,30 @@ impl HoverDialog {
         dialog
     }
 
+    pub fn new_multiple(text: &[String]) -> Self {
+        let dialog = glib::Object::builder::<Self>().build();
+        let contents = gtk::Box::builder()
+            .orientation(Orientation::Vertical)
+            .spacing(16)
+            .build();
+        contents.set_valign(Align::Start);
+        for msg in text {
+            let out = gmark::parse(msg);
+            out.set_css_classes(&["card", "padded"]);
+            out.queue_resize();
+            contents.append(&out);
+        }
+        dialog.imp().bin.set_child(Some(&contents));
+        dialog
+    }
+
     pub fn present(&self, parent: &impl IsA<gtk::Widget>) {
         AdwDialogExt::present(self, Some(parent));
+        // Hack to make sure children are properly sized, Because Gtk
+        let bin = self.imp().bin.clone();
+        glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+            bin.queue_resize();
+            glib::ControlFlow::Break
+        });
     }
 }

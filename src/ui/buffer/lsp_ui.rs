@@ -47,20 +47,17 @@ impl Buffer {
         range: &Range,
         message: String,
         severity: DiagnosticSeverity,
-        create_annotation: bool,
     ) {
         let buffer = self.get_sourceview_buffer();
 
-        if create_annotation {
-            let annotation = self
-                .new_annotation(&message, range.end.line as i32)
-                .unwrap();
-            match severity {
-                DiagnosticSeverity::ERROR => annotation.add_css_class("error"),
-                DiagnosticSeverity::WARNING => annotation.add_css_class("warning"),
-                _ => (),
-            };
-        }
+        let annotation = self
+            .new_annotation(&message, range.end.line as i32)
+            .unwrap();
+        match severity {
+            DiagnosticSeverity::ERROR => annotation.add_css_class("error"),
+            DiagnosticSeverity::WARNING => annotation.add_css_class("warning"),
+            _ => (),
+        };
 
         // Add tag
         if let Some(start) = position_iter!(buffer, range.start)

@@ -214,18 +214,13 @@ impl EditorWindow {
                         && path == uri
                     {
                         buffer.clear_diagnostics();
-                        let mut start_lines = vec![];
                         buffer.store_diagnostics(diagnostics.diagnostics.clone());
                         diagnostics.diagnostics.iter().for_each(|diag| {
                             buffer.highlight_diagnostic(
                                 &diag.range,
                                 diag.message.clone(),
                                 diag.severity.unwrap_or(DiagnosticSeverity::INFORMATION),
-                                !start_lines.contains(&diag.range.start.line),
                             );
-                            if !start_lines.contains(&diag.range.start.line) {
-                                start_lines.push(diag.range.start.line);
-                            }
                         });
                     }
                 });

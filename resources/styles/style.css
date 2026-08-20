@@ -226,4 +226,9 @@ gutter > gutterrenderer:last-child {
 /* Markup rendering */
 textview.flat {
     background-color: transparent;
+    line-height: 18pt;
+}
+
+box.padded {
+    padding: 8px 12px;
 }

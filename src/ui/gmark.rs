@@ -24,6 +24,7 @@ pub fn parse(input: &str) -> gtk::Box {
             out.append(&parse_node(node));
         }
     }
+    out.set_valign(Align::Start);
     out
 }
 
@@ -39,7 +40,7 @@ fn parse_node(node: Node) -> gtk::Widget {
             out.set_wrap_mode(WrapMode::Word);
             out.add_css_class("flat");
             out.set_editable(false);
-            out.set_pixels_below_lines(8);
+            out.set_valign(Align::Start);
             create_tags(out.buffer());
             for child in children {
                 parse_node_paragraph(out.buffer(), &mut end, child, &[]);

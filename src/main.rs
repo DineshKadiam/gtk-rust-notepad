@@ -25,6 +25,7 @@ fn main() {
     application.connect_startup(load_css);
     application.connect_open(open);
     application.connect_activate(activate);
+    
     // Set up accels
     application.set_accels_for_action("win.tab.close", &["<Ctrl>W"]);
     application.set_accels_for_action("win.tab.new_scratch", &["<Ctrl>T"]);
@@ -80,3 +81,5 @@ fn load_css(_: &Application) {
         );
     }
 }
+
+
