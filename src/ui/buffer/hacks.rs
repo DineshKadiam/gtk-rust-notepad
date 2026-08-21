@@ -132,9 +132,7 @@ impl Buffer {
 pub mod text_view_child {
     use std::ffi::{c_int, c_void};
 
-    use gtk::glib::ffi::*;
-    use gtk::prelude::*;
-    use gtk::{Widget, ffi::*};
+    use gtk::{Widget, ffi::*, glib::ffi::*, prelude::*};
 
     #[repr(C)]
     pub struct _GtkTextViewChild {

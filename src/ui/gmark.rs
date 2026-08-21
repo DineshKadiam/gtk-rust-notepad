@@ -1,25 +1,18 @@
-use gtk::Align;
 // TODO: this should be its own rust crate, actually...
 use gtk::Orientation;
-use gtk::TextBuffer;
-use gtk::TextIter;
-use gtk::WrapMode;
-use gtk::pango::Underline;
-use gtk::prelude::*;
-use markdown::mdast::LinkReference;
+use gtk::{Align, TextBuffer, TextIter, WrapMode, pango::Underline, prelude::*};
 use markdown::mdast::{
-    Code, Heading, InlineCode, Link, Node, Paragraph, Strong, Text, ThematicBreak,
+    Code, Heading, InlineCode, Link, LinkReference, Node, Paragraph, Strong, Text, ThematicBreak,
 };
 use sourceview5::prelude::BufferExt;
 use vte4::BoxExt;
 
-use crate::config::Config;
-use crate::utils;
+use crate::{config::Config, utils};
 
 /// Parses Markdown to GTK objects.
 pub fn parse(input: &str) -> gtk::Box {
     let out = gtk::Box::new(Orientation::Vertical, 16);
-    if let Ok(Node::Root(mdast)) = markdown::to_mdast(&input, &markdown::ParseOptions::gfm()) {
+    if let Ok(Node::Root(mdast)) = markdown::to_mdast(input, &markdown::ParseOptions::gfm()) {
         for node in mdast.children {
             out.append(&parse_node(node));
         }
@@ -72,7 +65,7 @@ fn parse_node(node: Node) -> gtk::Widget {
             url,
             title,
         }) => gtk::LinkButton::builder()
-            .label(&title.unwrap_or(url.clone()))
+            .label(title.unwrap_or(url.clone()))
             .uri(url)
             .build()
             .upcast::<gtk::Widget>(),
@@ -176,10 +169,10 @@ fn parse_node_paragraph(
         }
         Node::LinkReference(LinkReference {
             children,
-            position,
-            reference_kind,
-            identifier,
-            label,
+            position: _,
+            reference_kind: _,
+            identifier: _,
+            label: _,
         }) => {
             for child in children {
                 parse_node_paragraph(buffer.clone(), end, child, &["link"]);

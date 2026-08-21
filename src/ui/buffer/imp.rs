@@ -1,6 +1,5 @@
-use crate::ui::buffer::annotations::Annotation;
-
 use super::*;
+use crate::ui::buffer::annotations::Annotation;
 
 #[derive(Debug, Default, Properties, CompositeTemplate)]
 #[template(file = "resources/ui/tab.blp")]

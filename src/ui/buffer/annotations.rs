@@ -2,9 +2,8 @@ use std::rc::Rc;
 
 use gtk::{Button, Image, Label, Orientation};
 
-use crate::ui::dialog::hover::HoverDialog;
-
 use super::*;
+use crate::ui::dialog::hover::HoverDialog;
 
 const MARGIN: i32 = 16;
 
@@ -27,7 +26,7 @@ impl Annotation {
                 .spacing(8)
                 .build();
             contents.append(&Label::new(Some(if message_line.len() < 24 {
-                &message_line
+                message_line
             } else {
                 "1 message"
             })));

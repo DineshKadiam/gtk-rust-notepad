@@ -16,9 +16,7 @@ use gtk::{
     glib::{self, ControlFlow, Properties, SourceId, clone},
     pango::{FontDescription, FontMap, Underline},
 };
-use sourceview5::{
-    AnnotationProvider, BackgroundPatternType, FileSaverFlags, StyleSchemeManager, prelude::*,
-};
+use sourceview5::{BackgroundPatternType, FileSaverFlags, StyleSchemeManager, prelude::*};
 
 use crate::{
     config::Config,

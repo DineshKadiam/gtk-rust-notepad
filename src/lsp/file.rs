@@ -3,9 +3,8 @@ use async_lsp::lsp_types::{
     VersionedTextDocumentIdentifier,
 };
 
-use crate::lsp::error::Error;
-
 use super::*;
+use crate::lsp::error::Error;
 
 /// Add files to a workspace.
 pub fn open(uri: &str, workspace_uri: &str) {

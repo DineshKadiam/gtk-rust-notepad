@@ -1,6 +1,6 @@
 use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::{Align, CompositeTemplate, Label, Orientation, glib};
+use gtk::{Align, CompositeTemplate, Orientation, glib};
 
 use crate::ui::gmark;
 
@@ -48,7 +48,7 @@ pub struct HoverDialog(ObjectSubclass<imp::HoverDialog>)
 impl HoverDialog {
     pub fn new(text: &str) -> Self {
         let dialog = glib::Object::builder::<Self>().build();
-        dialog.imp().bin.set_child(Some(&gmark::parse(&text)));
+        dialog.imp().bin.set_child(Some(&gmark::parse(text)));
         dialog
     }
 
