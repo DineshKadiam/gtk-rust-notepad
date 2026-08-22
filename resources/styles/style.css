@@ -211,7 +211,14 @@ window.flat.csd {
 
 /* Gutter */
 gutter > gutterrenderer:last-child {
+    padding: 0;
+    margin-right: 0;
     min-width: 12px;
+}
+
+gutterrenderer:first-child {
+    padding-right: 24px;
+    margin: 0;
 }
 
 /* Inlay hints/diagnostics */
