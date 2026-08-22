@@ -38,6 +38,8 @@ def compat(hx):
         hx["constant.builtin.boolean"] = hx["constant.builtin"]
     if "markup.raw.inline" not in hx:
         hx["markup.raw.inline"] = hx["markup.raw"]
+    if "ui.virtual.whitespace" not in hx:
+        hx["ui.virtual.whitespace"] = hx["ui.virtual"]
         
     if "bg" not in hx["ui.gutter"]:
         hx["ui.gutter"]["bg"] = hx["ui.background"]["bg"]
