@@ -91,7 +91,7 @@ pub fn tab_reload(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) 
     if let Some(page) = window.imp().tab_view.selected_page()
         && let Some(buffer) = page.child().downcast_ref::<Buffer>()
     {
-        buffer.reload_file();
+        buffer.reload_file(false);
     }
 }
 

@@ -20,7 +20,7 @@ impl Buffer {
                 lsp::file::save(&path, &workspace_uri);
                 // Format and reload buffer
                 if lsp::format::format(&path, &workspace_uri).await {
-                    buffer.reload_file();
+                    buffer.reload_file(true);
                 }
                 // Set window/tab title
                 if let Some(page) = selected_page {
@@ -103,7 +103,7 @@ impl Buffer {
                         #[weak(rename_to=buffer)]
                         self,
                         move |_, _| {
-                            buffer.reload_file();
+                            buffer.reload_file(true);
                         }
                     ),
                 );
@@ -115,9 +115,9 @@ impl Buffer {
     }
 
     /// Reloads current file
-    pub fn reload_file(&self) {
+    pub fn reload_file(&self, reversible: bool) {
         if let Some(path) = self.file_path() {
-            self.set_buffer_text(&fs::read_to_string(&path).unwrap());
+            self.set_buffer_text(&fs::read_to_string(&path).unwrap(), reversible);
             self.set_file(&path);
         }
     }

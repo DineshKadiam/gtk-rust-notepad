@@ -34,7 +34,7 @@ impl Buffer {
     /// Modifies the buffer text in place, and then attempts to both set the cursor back to its
     /// original position and scroll to the original position. Good for reloading files, or formatting
     /// files.
-    pub fn set_buffer_text(&self, text: &str) {
+    pub fn set_buffer_text(&self, text: &str, reversible: bool) {
         // Save cursor/scroll positions
         let cursor = self.get_sourceview_buffer().cursor_position();
         let scroll_window = self
@@ -50,7 +50,15 @@ impl Buffer {
         // Get buffer
         let buffer = self.get_sourceview_buffer();
         // Reload manually, blocking
-        buffer.set_text(text);
+        if reversible {
+            let mut bounds = buffer.bounds();
+            buffer.begin_user_action();
+            buffer.delete(&mut bounds.0, &mut bounds.1);
+            buffer.insert(&mut buffer.bounds().0, text);
+            buffer.end_user_action();
+        } else {
+            buffer.set_text(text);
+        }
         buffer.set_modified(false);
         // Move cursor back if that position still exists
         let mut start = buffer.start_iter();
