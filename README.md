@@ -100,8 +100,6 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 - link to open kyanite config
 
 ### lsp integration (the horrors)
-- code actions
-- lsp hover
 - gracefully close lsp when window closes
 
 ### keybinds
