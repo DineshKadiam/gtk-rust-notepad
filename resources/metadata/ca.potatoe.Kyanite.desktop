@@ -2,8 +2,9 @@
 Name=Kyanite
 GenericName=Text Editor
 Comment=A lightweight, graphical text editor.
+Categoires=Utility;TextEditor
 Type=Application
 Exec=ky %u
 Terminal=false
 Icon=ca.potatoe.Kyanite
-MimeType=x-scheme-handler/text
+MimeType=x-scheme-handler/text;inode/directory;
