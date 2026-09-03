@@ -19,7 +19,10 @@ fn main() {
     #[cfg(not(debug_assertions))]
     let id = Some("ca.potatoe.Kyanite");
     #[cfg(debug_assertions)]
-    let id = Some("ca.potatoe.Kyanite.Debug");
+    let id = Some("ca.potatoe.Kyanite.Devel");
+
+    // Include built gresource
+    gtk::gio::resources_register_include!("gresource/ca.potatoe.Kyanite.gresource").unwrap();
 
     let application = adw::Application::new(id, ApplicationFlags::HANDLES_OPEN);
     application.connect_startup(load_css);
