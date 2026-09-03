@@ -154,10 +154,9 @@ impl EditorWindow {
         }
         // Add tab
         page.set_title(&buffer_ui.tab_name());
-        if page.is_selected() {
-            self.window_title.set_title(&page.title());
-            buffer_ui.set_status(&self.workspace_uri.borrow());
-        }
+        self.tab_view.set_selected_page(&page);
+        self.window_title.set_title(&page.title());
+        buffer_ui.set_status(&self.workspace_uri.borrow());
         // Connect modified
         buffer.connect_modified_changed(clone!(
             #[strong]
