@@ -23,6 +23,10 @@ pub fn update(
     let tree_factory = SignalListItemFactory::new();
     let list_factory = SignalListItemFactory::new();
 
+    // Unparent/free popovers
+    folder_popover.unparent();
+    file_popover.unparent();
+
     // Create directory list/tree list model
     let list_model = {
         let directory_list = SortListModel::new(
