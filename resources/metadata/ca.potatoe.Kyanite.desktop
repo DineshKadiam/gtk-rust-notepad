@@ -2,7 +2,7 @@
 Name=Kyanite
 GenericName=Text Editor
 Comment=A lightweight, graphical text editor.
-Categoires=Utility;TextEditor
+Categories=Utility;TextEditor
 Type=Application
 Exec=ky %u
 Terminal=false
