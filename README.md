@@ -71,8 +71,7 @@ Running `cargo install --path .` will build Kyanite and install the editor comma
 
 ### Installing metadata
 
-If you're on Linux, copy the icons at `resources/icons` to `~/.local/share/icons/`, and `resources/metadata/ca.potatoe.Kyanite.desktop` to `~/.local/share/applications/`.
-The latter sets up a shortcut for Kyanite that's locally installed in your home directory (you can remove it any time).
+If you're on Linux, `resources/metadata/ca.potatoe.Kyanite.desktop` to `~/.local/share/applications/` to set up a shortcut for Kyanite that's locally installed in your home directory (you can remove it any time). You may wish to copy the application icon `resources/icons/scalable/apps/ca.potatoe.Kyanite.svg` to `~/.local/share/icons` if you want an icon to show up on the shortcut.
 
 ## Contribute
 This is a huge work-in-progress and I'm still working together core features.
