@@ -3,14 +3,19 @@ using Adw 1;
 
 template $HoverDialog: Adw.Dialog {
   title: _("Details");
-  height-request: 400;
   width-request: 600;
+  follows-content-size: true;
+  //presentation-mode: bottom_sheet;
 
   Adw.ToolbarView {
     [top]
     Adw.HeaderBar {}
 
     content: Gtk.ScrolledWindow {
+      propagate-natural-height: true;
+      max-content-height: 400;
+      margin-bottom: 16;
+
       Adw.Clamp {
         maximum-size: 600;
         tightening-threshold: 400;
