@@ -151,6 +151,9 @@ impl EditorWindow {
                 let icon = sidebar::icons::from_file_info(&info);
                 page.set_icon(Some(&icon));
             }
+            // add to recents
+            let recents = gtk::RecentManager::default();
+            recents.add_item(&format!("file://{path}"));
         }
         // Add tab
         page.set_title(&buffer_ui.tab_name());

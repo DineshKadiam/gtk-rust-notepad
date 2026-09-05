@@ -1,6 +1,6 @@
 use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::{CompositeTemplate, glib, glib::clone};
+use gtk::{glib, glib::clone, CompositeTemplate};
 
 mod imp {
 
@@ -49,7 +49,10 @@ mod imp {
                 .collect::<Vec<gtk::RecentInfo>>();
             items.sort_by_key(|a| a.age());
             items.iter().for_each(|item| {
-                if item.exists() && item.is_local() {
+                if item.exists()
+                    && item.is_local()
+                    && item.applications().contains(&"ky".to_string().into())
+                {
                     let row = adw::ActionRow::new();
                     let button = gtk::Button::new();
                     let uri = item.uri_display().unwrap().to_string().to_variant();

@@ -33,9 +33,6 @@ pub fn tab_new(window: &EditorWindow, _: &SimpleAction, param: Option<&Variant>)
         p[1..(p.len() - 1)].to_string()
     };
     window.imp().new_tab(Some(&path));
-    // add to recents
-    let recents = gtk::RecentManager::default();
-    recents.add_item(&format!("file://{path}"));
 }
 
 /// New empty tab aka. scratch buffer
@@ -160,9 +157,10 @@ pub fn open_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
             window,
             move |result| {
                 if let Ok(file) = result {
+                    let path = file.path().unwrap().to_str().unwrap().to_string();
                     window
                         .imp()
-                        .new_tab(Some(file.path().unwrap().to_str().unwrap()));
+                        .new_tab(Some(&path));
                 }
             }
         ),
@@ -203,9 +201,6 @@ pub fn set_folder(window: &EditorWindow, _: &SimpleAction, param: Option<&Varian
     for page in window.imp().tab_view.pages().iter::<TabPage>() {
         window.imp().tab_view.close_page(&page.unwrap());
     }
-    // add to recents
-    let recents = gtk::RecentManager::default();
-    recents.add_item(&format!("file://{path}"));
 }
 
 /// Opens the preferences dialog
@@ -379,3 +374,6 @@ pub async fn save_buffer_async(window: &EditorWindow, buffer: Buffer) {
         buffer.write().await;
     }
 }
+
+
+
