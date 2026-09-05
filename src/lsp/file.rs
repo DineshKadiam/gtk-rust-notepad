@@ -20,6 +20,7 @@ pub fn open(uri: &str, workspace_uri: &str) {
                 },
             })
             .unwrap(),
+        Err(Error::NotConfigured(error)) => eprintln!("[warn] {error}"),
         Err(error) => {
             notifications::push(Notification {
                 summary: format!("{error}"),
