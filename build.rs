@@ -13,7 +13,7 @@ const GRESOURCES_TEMPLATE: &'static str = r#"<?xml version="1.0" encoding="UTF-8
     </gresources>
 "#;
 #[cfg(debug_assertions)]
-const GRESOURCES_TEMPLATE: &'static str = r#"<?xml version="1.0" encoding="UTF-8"?>
+const GRESOURCES_TEMPLATE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
     <gresources>
       <gresource prefix="/ca/potatoe/Kyanite/Devel/">
         {}
@@ -21,7 +21,7 @@ const GRESOURCES_TEMPLATE: &'static str = r#"<?xml version="1.0" encoding="UTF-8
     </gresources>
 "#;
 
-const GRESOURCES_FILE_TEMPLATE: &'static str = r#"
+const GRESOURCES_FILE_TEMPLATE: &str = r#"
     <file compressed="true" preprocess="xml-stripblanks">{}</file>
 "#;
 
@@ -30,7 +30,7 @@ fn main() {
     // 1. Build ca.potatoe.Kyanite.gresources.xml. Include resources
     let strings = Arc::new(RefCell::new(vec![]));
     // 1.a. Walk directory for icons
-    visit_dirs(&Path::new("./resources/icons"), &|entry: &DirEntry| {
+    visit_dirs(Path::new("./resources/icons"), &|entry: &DirEntry| {
         let path = entry
             .path()
             .to_string_lossy()
@@ -47,7 +47,7 @@ fn main() {
     let _ = std::fs::create_dir_all(out.clone() + "/gresource");
     std::fs::write(
         out.clone() + "/gresource/ca.potatoe.Kyanite.gresource.xml",
-        &GRESOURCES_TEMPLATE.replace("{}", &strings.borrow().join("\n")),
+        GRESOURCES_TEMPLATE.replace("{}", &strings.borrow().join("\n")),
     )
     .expect("cargo::error=cannot write to gresource xml");
     // 2. Compile gresource
