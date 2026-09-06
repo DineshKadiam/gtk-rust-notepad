@@ -38,7 +38,7 @@ rustPlatform.buildRustPackage {
 
   postInstall = ''
     mkdir -p $out/share/icons
-    cp -r resources/icons/hicolor $out/share/icons
+    cp  resources/icons/scalable/apps/ca.potatoe.Kyanite.svg $out/share/icons
 
     mkdir -p $out/share/applications
     cp resources/metadata/ca.potatoe.Kyanite.desktop $out/share/applications
