@@ -8,6 +8,10 @@ template $Buffer: Box {
     vscrollbar-policy: external;
 
     GtkSource.View source_view {
+      styles[
+        "monospace"
+      ]
+      
       vexpand: true;
       hexpand: true;
       monospace: true;
@@ -26,7 +30,7 @@ template $Buffer: Box {
       extra-menu: menu {
         section {
           item (_("Code actions…"), "buffer.lsp.actions")
-          item (_("LSP hover…"), "buffer.lsp.hover")
+          item (_("Code details…"), "buffer.lsp.hover")
         }
       };
     }
