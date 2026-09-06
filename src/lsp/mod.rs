@@ -310,3 +310,22 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
         Err(error::Error::NotConfigured(uri.to_string()))
     }
 }
+
+/// Safe wrapper around get_server() which returns an Option of a server and handles errors by printing them with the Notifications API.
+/// Used in lsp::request -- lsp::file has its own error handling
+pub fn get_server_safe(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {
+    match get_server(uri, workspace_uri) {
+        Ok(server) => Some(server),
+        Err(error::Error::NotConfigured(_)) => None,
+        Err(error::Error::NotFound(_)) => None,
+        Err(error) => {
+            notifications::push(Notification {
+                summary: format!("{error}"),
+                priority: notifications::data::Priority::High,
+                ..Notification::default()
+            });
+            None
+        }
+    }
+}
+

@@ -11,8 +11,8 @@ pub async fn completion(
     workspace_uri: &str,
     position: Position,
 ) -> Option<CompletionResponse> {
-    match get_server(uri, workspace_uri) {
-        Ok(mut server) => match server
+    match get_server_safe(uri, workspace_uri) {
+        Some(mut server) => match server
             .completion(CompletionParams {
                 text_document_position: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier {
@@ -35,22 +35,13 @@ pub async fn completion(
                 None
             }
         },
-        Err(error::Error::NotConfigured(_)) => None,
-        Err(error::Error::NotFound(_)) => None,
-        Err(error) => {
-            notifications::push(Notification {
-                summary: format!("{error}"),
-                priority: notifications::data::Priority::High,
-                ..Notification::default()
-            });
-            None
-        }
+        None => None
     }
 }
 
 pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option<Hover> {
-    match get_server(uri, workspace_uri) {
-        Ok(mut server) => match server
+    match get_server_safe(uri, workspace_uri) {
+        Some(mut server) => match server
             .hover(HoverParams {
                 text_document_position_params: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier {
@@ -71,16 +62,7 @@ pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option
                 None
             }
         },
-        Err(error::Error::NotConfigured(_)) => None,
-        Err(error::Error::NotFound(_)) => None,
-        Err(error) => {
-            notifications::push(Notification {
-                summary: format!("{error}"),
-                priority: notifications::data::Priority::High,
-                ..Notification::default()
-            });
-            None
-        }
+        None => None
     }
 }
 
@@ -91,8 +73,8 @@ pub async fn actions(
     end: Position,
     diagnostics: Vec<Diagnostic>,
 ) -> Option<CodeActionResponse> {
-    match get_server(uri, workspace_uri) {
-        Ok(mut server) => {
+    match get_server_safe(uri, workspace_uri) {
+        Some(mut server) => {
             let result = server
                 .code_action(CodeActionParams {
                     text_document: TextDocumentIdentifier {
@@ -130,18 +112,12 @@ pub async fn actions(
                 }
             }
         }
-        Err(error::Error::NotConfigured(_)) => None,
-        Err(error::Error::NotFound(_)) => None,
-        Err(error) => {
-            notifications::push(Notification {
-                summary: format!("{error}"),
-                priority: notifications::data::Priority::High,
-                ..Notification::default()
-            });
-            None
-        }
+        None => None
     }
 }
+
+
+
 
 
 

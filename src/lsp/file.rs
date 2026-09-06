@@ -77,8 +77,7 @@ pub fn save(uri: &str, workspace_uri: &str) {
 /// Tell an LSP to stop caring about a file
 pub fn close(uri: &str, workspace_uri: &str) {
     match get_server(uri, workspace_uri) {
-        // TODO there should be a better way to do a match pattern?
-        Ok(mut server) => match server.did_close(DidCloseTextDocumentParams {
+        Some(mut server) => match server.did_close(DidCloseTextDocumentParams {
             text_document: TextDocumentIdentifier {
                 uri: Url::from_file_path(uri).unwrap(),
             },
