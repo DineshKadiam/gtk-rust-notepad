@@ -239,3 +239,8 @@ textview.flat {
 box.padded {
     padding: 8px 12px;
 }
+
+/* Thank you GTK on MacOS for this hack /s */
+.monospace {
+    font-family: Monospace;
+}

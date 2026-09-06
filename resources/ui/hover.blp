@@ -5,7 +5,7 @@ template $HoverDialog: Adw.Dialog {
   title: _("Details");
   width-request: 600;
   follows-content-size: true;
-  //presentation-mode: bottom_sheet;
+  presentation-mode: bottom_sheet;
 
   Adw.ToolbarView {
     [top]
@@ -13,7 +13,8 @@ template $HoverDialog: Adw.Dialog {
 
     content: Gtk.ScrolledWindow {
       propagate-natural-height: true;
-      max-content-height: 400;
+      min-content-height: 300;
+      max-content-height: 600;
       margin-bottom: 16;
 
       Adw.Clamp {
