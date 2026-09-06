@@ -1,38 +1,41 @@
 using Gtk 4.0;
 using GtkSource 5;
+using Adw 1;
 
 template $Buffer: Box {
   orientation: horizontal;
 
-  ScrolledWindow {
-    vscrollbar-policy: external;
+  Adw.ToastOverlay toast_overlay {
+    ScrolledWindow {
+      vscrollbar-policy: external;
 
-    GtkSource.View source_view {
-      styles[
-        "monospace"
-      ]
+      GtkSource.View source_view {
+        styles[
+          "monospace"
+        ]
       
-      vexpand: true;
-      hexpand: true;
-      monospace: true;
-      show-line-numbers: true;
-      show-line-marks: true;
-      top-margin: 6;
-      bottom-margin: 32;
-      pixels-below-lines: 4;
-      // Helix-like indentation
-      left-margin: 0;
-      tab-width: 4;
-      insert-spaces-instead-of-tabs: true;
-      indent-width: 4;
-      auto-indent: true;
-      // Extra options
-      extra-menu: menu {
-        section {
-          item (_("Code actions…"), "buffer.lsp.actions")
-          item (_("Code details…"), "buffer.lsp.hover")
-        }
-      };
+        vexpand: true;
+        hexpand: true;
+        monospace: true;
+        show-line-numbers: true;
+        show-line-marks: true;
+        top-margin: 6;
+        bottom-margin: 32;
+        pixels-below-lines: 4;
+        // Helix-like indentation
+        left-margin: 0;
+        tab-width: 4;
+        insert-spaces-instead-of-tabs: true;
+        indent-width: 4;
+        auto-indent: true;
+        // Extra options
+        extra-menu: menu {
+          section {
+            item (_("Code actions…"), "buffer.lsp.actions")
+            item (_("Code details…"), "buffer.lsp.hover")
+          }
+        };
+      }
     }
   }
 

@@ -11,6 +11,8 @@ pub struct Buffer {
     pub source_map: TemplateChild<sourceview5::Map>,
     #[template_child]
     pub map_revealer: TemplateChild<Revealer>,
+    #[template_child]
+    pub toast_overlay: TemplateChild<adw::ToastOverlay>,
 
     // Variables
     pub workspace_uri: RefCell<String>,
