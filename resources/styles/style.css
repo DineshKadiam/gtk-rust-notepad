@@ -241,6 +241,6 @@ box.padded {
 }
 
 /* Thank you GTK on MacOS for this hack /s */
-.monospace {
+.monospace:not(.GtkSourceMap) {
     font-family: Monospace;
 }
