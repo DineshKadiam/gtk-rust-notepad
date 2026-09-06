@@ -12,7 +12,7 @@ pub async fn completion(
     position: Position,
 ) -> Option<CompletionResponse> {
     match get_server(uri, workspace_uri) {
-        Ok(mut server) => server
+        Ok(mut server) => match server
             .completion(CompletionParams {
                 text_document_position: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier {
@@ -24,8 +24,17 @@ pub async fn completion(
                 partial_result_params: PartialResultParams::default(),
                 context: None,
             })
-            .await
-            .unwrap(),
+            .await {
+            Ok(compl) => compl,
+            Err(error) => {
+                notifications::push(Notification {
+                    summary: format!("{error}"),
+                    priority: notifications::data::Priority::High,
+                    ..Notification::default()
+                });
+                None
+            }
+        },
         Err(error::Error::NotConfigured(_)) => None,
         Err(error::Error::NotFound(_)) => None,
         Err(error) => {
@@ -41,7 +50,7 @@ pub async fn completion(
 
 pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option<Hover> {
     match get_server(uri, workspace_uri) {
-        Ok(mut server) => server
+        Ok(mut server) => match server
             .hover(HoverParams {
                 text_document_position_params: TextDocumentPositionParams {
                     text_document: TextDocumentIdentifier {
@@ -51,8 +60,17 @@ pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
             })
-            .await
-            .unwrap(),
+            .await {
+            Ok(hov) => hov,
+            Err(error) => {
+                notifications::push(Notification {
+                    summary: format!("{error}"),
+                    priority: notifications::data::Priority::High,
+                    ..Notification::default()
+                });
+                None
+            }
+        },
         Err(error::Error::NotConfigured(_)) => None,
         Err(error::Error::NotFound(_)) => None,
         Err(error) => {
@@ -124,3 +142,10 @@ pub async fn actions(
         }
     }
 }
+
+
+
+
+
+
+
