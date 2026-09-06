@@ -13,6 +13,7 @@ pub struct Buffer {
     pub map_revealer: TemplateChild<Revealer>,
 
     // Variables
+    pub workspace_uri: RefCell<String>,
     pub diagnostics: RefCell<Vec<Diagnostic>>,
     pub annotations: RefCell<Vec<Annotation>>,
     pub completion_provider: RefCell<Option<LspCompletionProvider>>,

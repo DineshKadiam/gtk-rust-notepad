@@ -22,7 +22,7 @@ pub fn is_loading() -> bool {
 
 /// New listener on if INDEXING_COUNT changes
 pub fn listen() -> Receiver<()> {
-    let (tx, rx) = async_channel::bounded(1);
+    let (tx, rx) = async_channel::unbounded();
     SENDERS.write().unwrap().push(tx);
     rx
 }

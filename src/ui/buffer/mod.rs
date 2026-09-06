@@ -214,6 +214,9 @@ impl Buffer {
     }
 
     pub fn update_uri(&self, uri: &str, workspace_uri: &str) {
+        // Replace inner workspace URI
+        self.imp().workspace_uri.replace(workspace_uri.to_string());
+        // Replace completion provider workspace URI
         if let Some(provider) = self.imp().completion_provider.borrow().clone() {
             let provider = provider.imp();
             provider.uri.replace(Some(uri.to_owned()));

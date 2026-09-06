@@ -16,12 +16,8 @@ impl Buffer {
                     #[strong(rename_to=buffer)]
                     self,
                     move |_, _, _| {
-                        if let Some(path) = buffer.file_path()
-                            && let Some(provider) =
-                                buffer.imp().completion_provider.borrow().clone()
-                            && let Some(workspace_path) =
-                                provider.imp().workspace_uri.borrow().clone()
-                        {
+                        if let Some(path) = buffer.file_path() {
+                            let workspace_path = buffer.imp().workspace_uri.borrow().clone();
                             let s_buffer = buffer.get_sourceview_buffer();
                             let iter = s_buffer.selection_bounds().unwrap_or_else(|| {
                                 (
@@ -60,12 +56,8 @@ impl Buffer {
                     #[strong(rename_to=buffer)]
                     self,
                     move |_, _, _| {
-                        if let Some(path) = buffer.file_path()
-                            && let Some(provider) =
-                                buffer.imp().completion_provider.borrow().clone()
-                            && let Some(workspace_path) =
-                                provider.imp().workspace_uri.borrow().clone()
-                        {
+                        if let Some(path) = buffer.file_path() {
+                            let workspace_path = buffer.imp().workspace_uri.borrow().clone();
                             let s_buffer = buffer.get_sourceview_buffer();
                             let position =
                                 iter_position!(s_buffer.iter_at_offset(s_buffer.cursor_position()));
