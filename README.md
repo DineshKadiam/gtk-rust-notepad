@@ -84,12 +84,12 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 
 ## Roadmap/TODO
 
-### quality-of-life
-- get rid of sidebar popover (right clicking on files/folders)
-  - yea it inherently has memory management issues; also file management introduces so much possible errors and points of failure
-  - better to just have a "open in file manager" button and let the actual dedicated program do it
+### to 0.5.0 aka "having a stable editor"
+- support all lsp workspace edits
+- undoing a formatting thingy actually scrolls to the top and it's annoying
 
-#### preferences menu
+
+### preferences menu
 - less choppy loading (oh my god)
 - tab indentation styles
 - language settings
