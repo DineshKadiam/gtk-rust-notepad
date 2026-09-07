@@ -76,9 +76,9 @@ pub fn update(
             .set_child(Some(
                 &TreeExpander::builder()
                     .child(&container)
-                    .hide_expander(true)
-                    .indent_for_icon(false)
-                    .margin_start(8)
+                    //.hide_expander(true)
+                    //.indent_for_icon(false)
+                    .margin_start(0) // 8
                     .build(),
             ));
     });
@@ -338,3 +338,6 @@ fn create_file_sorter() -> CustomSorter {
         }
     })
 }
+
+
+
