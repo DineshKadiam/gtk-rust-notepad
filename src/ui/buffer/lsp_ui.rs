@@ -1,6 +1,6 @@
 use adw::Dialog;
 use async_lsp::lsp_types::{
-    AnnotatedTextEdit, CodeActionOrCommand, DocumentChanges, Hover, OneOf, WorkspaceEdit,
+    AnnotatedTextEdit, CodeActionOrCommand, DocumentChangeOperation, DocumentChanges, Hover, OneOf, TextDocumentEdit, WorkspaceEdit,
 };
 
 use super::*;
@@ -146,41 +146,7 @@ impl Buffer {
             dialog.present(Some(&self.clone()));
         }
     }
-
-    /// Applies LSP workspace edits
-    pub fn apply_edit(&self, edit: WorkspaceEdit) {
-        // TODO: "But Spike, aren't these *workspace* edits?" Yeah..............
-        // TODO: Having this globally handled by e.g. a window would be much preferred, but
-        // TODO: right now this is just a proof-of-concept.
-        // TODO: Handle DocumentChanges::Operations
-        let buffer = self.get_sourceview_buffer();
-        if let Some(DocumentChanges::Edits(edits)) = edit.document_changes {
-            for edit in edits {
-                let path = edit.text_document.uri.path();
-                if path == self.file_path().unwrap() {
-                    for edit in edit.edits {
-                        let edit = match edit {
-                            OneOf::Left(text_edit) => text_edit,
-                            OneOf::Right(AnnotatedTextEdit {
-                                text_edit,
-                                annotation_id: _,
-                            }) => text_edit,
-                        };
-                        // FIXME: panics if the range isn't valid, which happens sometimes, for some reason
-                        let mut start = position_iter!(buffer, edit.range.start).unwrap();
-                        let mut end = position_iter!(buffer, edit.range.end).unwrap();
-                        buffer.delete(&mut start, &mut end);
-                        start = position_iter!(buffer, edit.range.start).unwrap();
-                        buffer.insert(&mut start, &edit.new_text);
-                    }
-                } else {
-                    todo!();
-                    // "[fatal] WorkspaceEdit external file paths not supported (see src/ui/buffer/lsp_ui.rs::apply_edit)"
-                }
-            }
-        }
-    }
-
+    
     /// Shows LSP hover resutls in an alert dialog
     pub fn show_lsp_hover(&self, actions: Hover) {
         // Get contents
@@ -193,4 +159,94 @@ impl Buffer {
         let dialog = HoverDialog::new(&contents);
         dialog.present(&self.clone());
     }
+
+    /// Applies LSP workspace edits
+    pub fn apply_edit(&self, edit: WorkspaceEdit) {
+        // TODO handle through a window action
+        match edit.document_changes {
+            Some(DocumentChanges::Edits(edits)) => {
+                for edit in edits {
+                    // TODO: get the window to apply text document edits -- look at the path, and then choose (or open) a buffer
+                    if edit.text_document.uri.path() == self.file_path().unwrap() {
+                        self.apply_document_edit(edit);
+                    } else {
+                        todo!();
+                        // "[fatal] WorkspaceEdit external file paths not supported (see src/ui/buffer/lsp_ui.rs::apply_edit)"
+                    }
+                }
+            }
+            Some(DocumentChanges::Operations(operations)) => {
+                for operation in operations {
+                    match operation {
+                        DocumentChangeOperation::Op(_) => todo!(), // TODO: We need to have an internal file management API before support for this
+                        DocumentChangeOperation::Edit(edit) => {
+                            // TODO: get the window to apply text document edits -- look at the path, and then choose (or open) a buffer
+                            if edit.text_document.uri.path() == self.file_path().unwrap() {
+                                self.apply_document_edit(edit);
+                            } else {
+                                todo!();
+                                // "[fatal] WorkspaceEdit external file paths not supported (see src/ui/buffer/lsp_ui.rs::apply_edit)"
+                            }
+                        }
+                    }
+                }
+            }
+            _ => ()
+        }
+    }
+    
+    /// Applies LSP document edits. Does not check for matching file paths.
+    pub fn apply_document_edit(&self, edit: TextDocumentEdit) {
+        let buffer = self.get_sourceview_buffer();
+        for edit in edit.edits {
+            let edit = match edit {
+                OneOf::Left(text_edit) => text_edit,
+                OneOf::Right(AnnotatedTextEdit {
+                    text_edit,
+                    annotation_id: _, // TODO, I don't understand this
+                }) => text_edit,
+            };
+            // FIXME: panics if the start range isn't valid, which happens sometimes, for some reason
+            if let Some(mut end) = position_iter!(buffer, edit.range.end) &&
+               edit.range.start != edit.range.end {
+                let mut start = position_iter!(buffer, edit.range.start).expect(&format!("Invalid position: {:?}", edit.range.start));
+                buffer.delete(&mut start, &mut end);
+            }
+            let mut start = position_iter!(buffer, edit.range.start).expect(&format!("Invalid position: {:?}", edit.range.start));
+            buffer.insert(&mut start, &edit.new_text);
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
