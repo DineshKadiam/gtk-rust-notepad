@@ -377,7 +377,7 @@ pub async fn save_buffer_async(window: &EditorWindow, buffer: Buffer) {
 }
 
 // Handle LSP workspace edits
-pub async fn lsp_edit(window: &EditorWindow, _: &SimpleAction, json: Option<&Variant>) {
+pub fn lsp_edit(window: &EditorWindow, _: &SimpleAction, json: Option<&Variant>) {
     let workspace_edit: WorkspaceEdit = {
         let json = json.unwrap().get::<String>().unwrap();
         serde_json::from_str(&json).unwrap()
