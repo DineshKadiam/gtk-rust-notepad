@@ -1,7 +1,6 @@
 use adw::Dialog;
 use async_lsp::lsp_types::{
-    AnnotatedTextEdit, CodeActionOrCommand, DocumentChangeOperation, DocumentChanges, Hover, OneOf,
-    TextDocumentEdit, WorkspaceEdit,
+    AnnotatedTextEdit, CodeActionOrCommand, Hover, OneOf, TextDocumentEdit, WorkspaceEdit,
 };
 
 use super::*;
