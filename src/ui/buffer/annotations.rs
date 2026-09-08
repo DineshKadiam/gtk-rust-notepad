@@ -25,10 +25,10 @@ impl Annotation {
                 .orientation(Orientation::Horizontal)
                 .spacing(8)
                 .build();
-            contents.append(&Label::new(Some(if message_line.len() < 24 {
-                message_line
+            contents.append(&Label::new(Some(&if message_line.len() < 48 {
+                message_line.to_string()
             } else {
-                "1 message"
+                format!("{}…", &message_line[..48])
             })));
             contents.append(
                 &Image::builder()
@@ -142,3 +142,10 @@ impl super::Buffer {
         ));
     }
 }
+
+
+
+
+
+
+
