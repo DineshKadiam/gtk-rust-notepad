@@ -63,6 +63,8 @@ impl EditorWindow {
             action_entry!("tree.new_file", None, tree_new_file),
             action_entry!("tree.open_folder", None, tree_open_folder),
             action_entry!("tree.toggle_expand", None, tree_toggle_expand),
+            // LSP things
+            action_entry!("lsp.edit", Some(VariantTy::STRING), lsp_edit),
             // Saves the buffer in the current tab
             ActionEntry::builder("save")
                 .parameter_type(None)

@@ -1,4 +1,7 @@
 use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*, subclass::prelude::*};
+use async_lsp::lsp_types::{
+    DocumentChangeOperation, DocumentChanges, TextDocumentEdit, WorkspaceEdit,
+};
 use gtk::{
     Label, gio,
     gio::{Cancellable, SimpleAction},
@@ -158,9 +161,7 @@ pub fn open_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
             move |result| {
                 if let Ok(file) = result {
                     let path = file.path().unwrap().to_str().unwrap().to_string();
-                    window
-                        .imp()
-                        .new_tab(Some(&path));
+                    window.imp().new_tab(Some(&path));
                 }
             }
         ),
@@ -375,5 +376,47 @@ pub async fn save_buffer_async(window: &EditorWindow, buffer: Buffer) {
     }
 }
 
+// Handle LSP workspace edits
+pub async fn lsp_edit(window: &EditorWindow, _: &SimpleAction, json: Option<&Variant>) {
+    let workspace_edit: WorkspaceEdit = {
+        let json = json.unwrap().get::<String>().unwrap();
+        serde_json::from_str(&json).unwrap()
+    };
+    match workspace_edit.document_changes {
+        Some(DocumentChanges::Edits(edits)) => {
+            for edit in edits {
+                lsp_document_edit(window, edit);
+            }
+        }
+        Some(DocumentChanges::Operations(operations)) => {
+            for operation in operations {
+                match operation {
+                    DocumentChangeOperation::Op(_) => todo!(), // TODO: We need to have an internal file management API before support for this
+                    DocumentChangeOperation::Edit(edit) => lsp_document_edit(window, edit),
+                }
+            }
+        }
+        _ => (),
+    }
+}
 
-
+fn lsp_document_edit(window: &EditorWindow, edit: TextDocumentEdit) {
+    let edit_path = edit.text_document.uri.path().to_string();
+    for page in window.imp().tab_view.pages().iter::<TabPage>() {
+        if let Ok(page) = page
+            && let Ok(buffer) = page.child().downcast::<Buffer>()
+            && buffer
+                .file_path()
+                .is_some_and(|ref path| &edit_path == path)
+        {
+            buffer.apply_document_edit(edit.clone());
+            return;
+        }
+    }
+    // If we reached this there wasn't a buffer open with the edit.
+    // Open a new buffer and apply the edit
+    let page = window.imp().new_tab(Some(&edit_path));
+    if let Ok(buffer) = page.child().downcast::<Buffer>() {
+        buffer.apply_document_edit(edit);
+    }
+}
