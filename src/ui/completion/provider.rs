@@ -84,7 +84,7 @@ mod imp {
                 sourceview5::CompletionColumn::Details => {
                     let scroll_window = gtk::ScrolledWindow::new();
                     let label = gtk::Label::new(None);
-                    label.set_markup(&proposal.comment_details().unwrap());
+                    label.set_markup(&proposal.documentation().unwrap());
                     scroll_window.set_child(Some(&label));
                     cell.set_hexpand(true);
                     cell.set_vexpand(true);
@@ -131,14 +131,19 @@ mod imp {
                 let list = ListStore::new::<LspCompletionProposal>();
                 if let Some(uri) = uri
                     && let Some(workspace_uri) = workspace_uri
-                    && let Some(CompletionResponse::List(completion)) =
+                    && let Some(response) =
                         lsp::request::completion(&uri, &workspace_uri, iter_position!(iter)).await
                 {
-                    for item in completion.items {
+                    let items = match response {
+                        CompletionResponse::List(list) => list.items,
+                        CompletionResponse::Array(array) => array
+                    };
+                    for item in items {
                         let p = LspCompletionProposal::new();
                         p.set_label(&item.label);
+                        p.set_item(Some(item.clone()));
                         p.set_comment(&item.detail.unwrap_or(item.label));
-                        p.set_comment_details(
+                        p.set_documentation(
                             &item
                                 .documentation
                                 .map(|d| {
@@ -156,17 +161,6 @@ mod imp {
                                     }
                                 })
                                 .unwrap_or_default(),
-                        );
-                        p.set_insert_text(
-                            if let Some(CompletionTextEdit::Edit(TextEdit {
-                                range: _,
-                                new_text: insert_text,
-                            })) = item.text_edit
-                            {
-                                Some(insert_text)
-                            } else {
-                                item.insert_text
-                            },
                         );
                         p.set_icon(&if let Some(kind) = item.kind {
                             format!("{:?}", kind).to_lowercase()
@@ -220,3 +214,15 @@ impl LspCompletionProvider {
         glib::Object::builder::<Self>().build()
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
