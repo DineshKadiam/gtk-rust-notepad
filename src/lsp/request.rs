@@ -24,7 +24,8 @@ pub async fn completion(
                 partial_result_params: PartialResultParams::default(),
                 context: None,
             })
-            .await {
+            .await
+        {
             Ok(compl) => compl,
             Err(error) => {
                 notifications::push(Notification {
@@ -35,7 +36,7 @@ pub async fn completion(
                 None
             }
         },
-        None => None
+        None => None,
     }
 }
 
@@ -51,7 +52,8 @@ pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option
                 },
                 work_done_progress_params: WorkDoneProgressParams::default(),
             })
-            .await {
+            .await
+        {
             Ok(hov) => hov,
             Err(error) => {
                 notifications::push(Notification {
@@ -62,7 +64,7 @@ pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option
                 None
             }
         },
-        None => None
+        None => None,
     }
 }
 
@@ -112,16 +114,6 @@ pub async fn actions(
                 }
             }
         }
-        None => None
+        None => None,
     }
 }
-
-
-
-
-
-
-
-
-
-

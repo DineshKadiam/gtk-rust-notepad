@@ -1,8 +1,4 @@
-use std::cell::RefCell;
-use std::fs::DirEntry;
-use std::path::Path;
-use std::sync::Arc;
-use std::{fs, io};
+use std::{cell::RefCell, fs, fs::DirEntry, io, path::Path, sync::Arc};
 
 #[cfg(not(debug_assertions))]
 const GRESOURCES_TEMPLATE: &'static str = r#"<?xml version="1.0" encoding="UTF-8"?>

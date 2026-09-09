@@ -338,6 +338,3 @@ fn create_file_sorter() -> CustomSorter {
         }
     })
 }
-
-
-

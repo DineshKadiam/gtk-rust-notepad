@@ -166,7 +166,7 @@ impl Buffer {
     }
 
     /// Applies LSP workspace edits
-    pub fn apply_edit(&self, edit: WorkspaceEdit) {}
+    pub fn apply_edit(&self, _edit: WorkspaceEdit) {}
 
     /// Applies LSP document edits. Does not check for matching file paths.
     pub fn apply_document_edit(&self, edit: TextDocumentEdit) {
@@ -190,11 +190,11 @@ impl Buffer {
             && edit.range.start != edit.range.end
         {
             let mut start = position_iter!(buffer, edit.range.start)
-                .expect(&format!("Invalid position: {:?}", edit.range.start));
+                .unwrap_or_else(|| panic!("Invalid position: {:?}", edit.range.start));
             buffer.delete(&mut start, &mut end);
         }
         let mut start = position_iter!(buffer, edit.range.start)
-            .expect(&format!("Invalid position: {:?}", edit.range.start));
+            .unwrap_or_else(|| panic!("Invalid position: {:?}", edit.range.start));
         buffer.insert(&mut start, &edit.new_text);
     }
 }

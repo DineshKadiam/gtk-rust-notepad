@@ -1,6 +1,5 @@
 // TODO: this should be its own rust crate, actually...
-use gtk::Orientation;
-use gtk::{Align, TextBuffer, TextIter, WrapMode, pango::Underline, prelude::*};
+use gtk::{Align, Orientation, TextBuffer, TextIter, WrapMode, pango::Underline, prelude::*};
 use markdown::mdast::{
     Code, Heading, InlineCode, Link, LinkReference, Node, Paragraph, Strong, Text, ThematicBreak,
 };

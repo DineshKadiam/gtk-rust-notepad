@@ -1,15 +1,11 @@
-use adw::prelude::*;
-use adw::subclass::prelude::*;
+use std::cell::RefCell;
+
+use adw::{prelude::*, subclass::prelude::*};
 use async_lsp::lsp_types::{
     CompletionItem, CompletionTextEdit, Documentation, InsertTextFormat, MarkupContent, MarkupKind,
 };
-use gtk::glib;
-use gtk::glib::Properties;
-use sourceview5::CompletionProposal;
-use sourceview5::subclass::prelude::*;
-use std::cell::RefCell;
-
-use crate::position_iter;
+use gtk::{glib, glib::Properties};
+use sourceview5::{CompletionProposal, subclass::prelude::*};
 
 mod imp {
 

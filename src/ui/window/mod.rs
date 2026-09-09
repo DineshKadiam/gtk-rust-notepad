@@ -312,7 +312,7 @@ impl EditorWindow {
         self.imp().terminal_view.setup(dir_path);
 
         self.set_property("workspace_uri", dir_path.to_string());
-        
+
         // add to recents
         let recents = gtk::RecentManager::default();
         recents.add_item(&format!("file://{dir_path}"));
