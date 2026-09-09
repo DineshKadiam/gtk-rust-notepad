@@ -85,9 +85,12 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 ## Roadmap/TODO
 
 ### to 0.5.0 aka "having a stable editor"
-- support all lsp workspace edits
+- support lsp code completion edits
+- bundle KyaniteBlocks in gresource
+- async loading of files. maybe with a popup
+    - having to wait to load a markdown file is really annoying
 - undoing a formatting thingy actually scrolls to the top and it's annoying
-
+- gracefully close lsp when window closes
 
 ### preferences menu
 - less choppy loading (oh my god)
@@ -97,9 +100,6 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 - link to open gtksourceview5 themes directory
 - link to open gtksourceview5 language defs directory
 - link to open kyanite config
-
-### lsp integration (the horrors)
-- gracefully close lsp when window closes
 
 ### keybinds
 - modal by design
@@ -112,19 +112,9 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 ### plugins
 - ask charlotte about this, she wants to do it and she has interesting ideas
 
-### git integration(?)
-  - maybe make this a plugin....
-  - highlight changed (git) lines(?)
-  - sidebar window to:
-    - make git commits
-    - pull
-    - push
-    - switch commits
-
-
-- mode line
-
-- plugins
+### Other stuff
+- Syntax highlighting with tree-sitter
+- Helix-compatible separate LSP config file
 
 -----
 
