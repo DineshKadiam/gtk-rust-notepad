@@ -92,6 +92,7 @@ pub fn close(uri: &str, workspace_uri: &str) {
                 });
             }
         },
+        Err(Error::NotConfigured(_)) => (),
         Err(error) => {
             notifications::push(Notification {
                 summary: format!("{error}"),
