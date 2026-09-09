@@ -136,16 +136,12 @@ mod imp {
                 {
                     let items = match response {
                         CompletionResponse::List(list) => list.items,
-                        CompletionResponse::Array(array) => array
+                        CompletionResponse::Array(array) => array,
                     };
                     for item in items {
-                        let p = LspCompletionProposal::new();
-                        p.set_label(&item.label);
-                        p.set_item(Some(item.clone()));
-                        p.set_comment(&item.detail.unwrap_or(item.label));
+                        let p = LspCompletionProposal::with_item(item.clone());
                         p.set_documentation(
-                            &item
-                                .documentation
+                            item.documentation
                                 .map(|d| {
                                     match d {
                                         Documentation::String(val) => val,
@@ -162,7 +158,7 @@ mod imp {
                                 })
                                 .unwrap_or_default(),
                         );
-                        p.set_icon(&if let Some(kind) = item.kind {
+                        p.set_icon(if let Some(kind) = item.kind {
                             format!("{:?}", kind).to_lowercase()
                         } else {
                             String::new()
@@ -214,15 +210,3 @@ impl LspCompletionProvider {
         glib::Object::builder::<Self>().build()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
