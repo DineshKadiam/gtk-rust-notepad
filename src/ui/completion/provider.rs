@@ -21,7 +21,7 @@ mod imp {
     };
 
     use super::*;
-    use crate::{iter_position, lsp};
+    use crate::{iter_position, lsp, ui::gmark};
 
     #[derive(Debug, Default)]
     pub struct LspCompletionProvider {
@@ -79,15 +79,16 @@ mod imp {
                     cell.set_text(Some(&proposal.comment().unwrap()))
                 }
                 sourceview5::CompletionColumn::Details => {
-                    let scroll_window = gtk::ScrolledWindow::new();
-                    let label = gtk::Label::new(proposal.documentation().as_deref());
-                    scroll_window.set_child(Some(&label));
-                    cell.set_hexpand(true);
-                    cell.set_vexpand(true);
-                    cell.set_halign(Align::Fill);
-                    cell.set_valign(Align::Start);
-                    cell.set_height_request(256);
-                    cell.set_widget(&scroll_window);
+                    if let Some(docs) = proposal.documentation() {
+                        let scroll_window = gtk::ScrolledWindow::new();
+                        scroll_window.set_child(Some(&gmark::parse(&docs)));
+                        cell.set_hexpand(true);
+                        cell.set_vexpand(true);
+                        cell.set_halign(Align::Fill);
+                        cell.set_valign(Align::Start);
+                        cell.set_height_request(256);
+                        cell.set_widget(&scroll_window);
+                    }
                 }
                 _ => (),
             }
