@@ -14,10 +14,7 @@ use crate::ui::completion::proposal::LspCompletionProposal;
 
 mod imp {
 
-    use async_lsp::lsp_types::{
-        CompletionResponse, CompletionTextEdit, Documentation, MarkupContent, MarkupKind, Position,
-        TextEdit,
-    };
+    use async_lsp::lsp_types::{CompletionResponse, Position};
     use gtk::{
         Align,
         pango::{AttrFontDesc, AttrList, FontDescription},
@@ -56,7 +53,7 @@ mod imp {
                 buffer.backspace(&mut cursor_iter, false, true);
             }
             // Insert
-            buffer.insert_at_cursor(&proposal.insert_text().unwrap_or(proposal.label().unwrap()));
+            proposal.apply(buffer);
         }
 
         fn display(
@@ -139,31 +136,7 @@ mod imp {
                         CompletionResponse::Array(array) => array,
                     };
                     for item in items {
-                        let p = LspCompletionProposal::with_item(item.clone());
-                        p.set_documentation(
-                            item.documentation
-                                .map(|d| {
-                                    match d {
-                                        Documentation::String(val) => val,
-                                        Documentation::MarkupContent(MarkupContent {
-                                            kind: MarkupKind::PlainText,
-                                            value: val,
-                                        }) => val,
-                                        // TODO Convert Markdown to Pango markup
-                                        Documentation::MarkupContent(MarkupContent {
-                                            kind: MarkupKind::Markdown,
-                                            value: val,
-                                        }) => val,
-                                    }
-                                })
-                                .unwrap_or_default(),
-                        );
-                        p.set_icon(if let Some(kind) = item.kind {
-                            format!("{:?}", kind).to_lowercase()
-                        } else {
-                            String::new()
-                        });
-                        list.append(&p);
+                        list.append(&LspCompletionProposal::with_item(item.clone()));
                     }
                 }
                 // Search list
@@ -172,7 +145,13 @@ mod imp {
                     Expression::NONE,
                     closure!(|object: glib::Object| {
                         if let Some(proposal) = object.downcast_ref::<LspCompletionProposal>() {
-                            Some(proposal.label().unwrap_or_default())
+                            Some(
+                                proposal
+                                    .item()
+                                    .unwrap_or_default()
+                                    .sort_text
+                                    .unwrap_or(proposal.label().unwrap_or_default()),
+                            )
                         } else {
                             Some(String::new())
                         }

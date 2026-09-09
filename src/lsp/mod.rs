@@ -13,9 +13,9 @@ use async_lsp::{
     concurrency::ConcurrencyLayer,
     lsp_types::{
         ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
-        CodeActionLiteralSupport, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-        HoverClientCapabilities, InitializeParams, InitializedParams, MarkupKind, MessageType,
-        ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
+        CodeActionLiteralSupport, CompletionClientCapabilities, DidCloseTextDocumentParams,
+        DidOpenTextDocumentParams, HoverClientCapabilities, InitializeParams, InitializedParams,
+        MarkupKind, MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
         TextDocumentClientCapabilities, TextDocumentIdentifier, TextDocumentItem, Url,
         WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
         notification::{Progress, PublishDiagnostics, ShowMessage},
@@ -216,6 +216,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                 }),
                 text_document: Some(TextDocumentClientCapabilities {
                     code_action: Some(CodeActionClientCapabilities {
+                        dynamic_registration: Some(false),
                         code_action_literal_support: Some(CodeActionLiteralSupport {
                             code_action_kind: CodeActionKindLiteralSupport {
                                 value_set: vec![
@@ -234,8 +235,13 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                         ..CodeActionClientCapabilities::default()
                     }),
                     hover: Some(HoverClientCapabilities {
-                        dynamic_registration: None,
+                        dynamic_registration: Some(false),
                         content_format: Some(vec![MarkupKind::Markdown]),
+                    }),
+                    completion: Some(CompletionClientCapabilities {
+                        dynamic_registration: Some(false),
+                        context_support: Some(false),
+                        ..CompletionClientCapabilities::default()
                     }),
                     ..TextDocumentClientCapabilities::default()
                 }),
@@ -328,4 +334,3 @@ pub fn get_server_safe(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {
         }
     }
 }
-
