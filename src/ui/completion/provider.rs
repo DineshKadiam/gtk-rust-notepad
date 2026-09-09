@@ -80,8 +80,7 @@ mod imp {
                 }
                 sourceview5::CompletionColumn::Details => {
                     let scroll_window = gtk::ScrolledWindow::new();
-                    let label = gtk::Label::new(None);
-                    label.set_markup(&proposal.documentation().unwrap());
+                    let label = gtk::Label::new(proposal.documentation().as_deref());
                     scroll_window.set_child(Some(&label));
                     cell.set_hexpand(true);
                     cell.set_vexpand(true);
