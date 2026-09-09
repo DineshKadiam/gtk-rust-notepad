@@ -9,6 +9,8 @@ use sourceview5::CompletionProposal;
 use sourceview5::subclass::prelude::*;
 use std::cell::RefCell;
 
+use crate::position_iter;
+
 mod imp {
 
     use super::*;
@@ -85,10 +87,12 @@ impl LspCompletionProposal {
         // TODO does it want me to replace the currently typed text to complete, or should I leave that, and the edit takes care of it??
         match item.text_edit {
             // Apply text edit with buffer.apply_text_edit
-            Some(CompletionTextEdit::Edit(edit)) => todo!(),
+            Some(CompletionTextEdit::Edit(edit)) => {
+                crate::ui::buffer::Buffer::apply_text_edit(&buffer, edit);
+            }
             // Remove the replace range, then insert in the insert range.
-            // TODO order matters or else one range will be incorrect
-            Some(CompletionTextEdit::InsertAndReplace(edit)) => todo!(),
+            // Not supported by Kyanite because What the Actual Fuck is the docs trying to tell me to do. (see: client capabilities)
+            Some(CompletionTextEdit::InsertAndReplace(_edit)) => (),
             // fallback: insert and replace with insert_text
             None => match item.insert_text_format {
                 // NOTE GtkSourceView doesn't have support for tabstops afaik

@@ -13,9 +13,10 @@ use async_lsp::{
     concurrency::ConcurrencyLayer,
     lsp_types::{
         ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
-        CodeActionLiteralSupport, CompletionClientCapabilities, DidCloseTextDocumentParams,
-        DidOpenTextDocumentParams, HoverClientCapabilities, InitializeParams, InitializedParams,
-        MarkupKind, MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
+        CodeActionLiteralSupport, CompletionClientCapabilities, CompletionItemCapability,
+        DidCloseTextDocumentParams, DidOpenTextDocumentParams, HoverClientCapabilities,
+        InitializeParams, InitializedParams, InsertTextMode, InsertTextModeSupport, MarkupKind,
+        MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
         TextDocumentClientCapabilities, TextDocumentIdentifier, TextDocumentItem, Url,
         WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
         notification::{Progress, PublishDiagnostics, ShowMessage},
@@ -241,6 +242,18 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     completion: Some(CompletionClientCapabilities {
                         dynamic_registration: Some(false),
                         context_support: Some(false),
+                        completion_item: Some(CompletionItemCapability {
+                            snippet_support: Some(true),
+                            documentation_format: Some(vec![MarkupKind::Markdown]),
+                            deprecated_support: Some(false),
+                            preselect_support: Some(false),
+                            insert_replace_support: Some(false),
+                            insert_text_mode_support: Some(InsertTextModeSupport {
+                                value_set: vec![InsertTextMode::AS_IS],
+                            }),
+                            label_details_support: Some(true),
+                            ..CompletionItemCapability::default()
+                        }),
                         ..CompletionClientCapabilities::default()
                     }),
                     ..TextDocumentClientCapabilities::default()

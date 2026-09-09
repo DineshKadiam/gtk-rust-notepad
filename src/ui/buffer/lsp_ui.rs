@@ -1,6 +1,6 @@
 use adw::Dialog;
 use async_lsp::lsp_types::{
-    AnnotatedTextEdit, CodeActionOrCommand, Hover, OneOf, TextDocumentEdit, WorkspaceEdit,
+    AnnotatedTextEdit, CodeActionOrCommand, Hover, OneOf, TextDocumentEdit, TextEdit, WorkspaceEdit,
 };
 
 use super::*;
@@ -103,21 +103,26 @@ impl Buffer {
                 #[strong(rename_to=buffer)]
                 self,
                 move |action| {
-                    // TODO handle command
-                    if let CodeActionOrCommand::CodeAction(action) = action {
-                        let row = adw::ButtonRow::new();
-                        let action = action.clone();
-                        let dialog = dialog.clone();
-                        let buffer = buffer.clone();
-                        row.set_width_request(320);
-                        row.set_title(&action.title);
-                        row.connect_activated(move |_| {
-                            if let Some(ref edit) = action.edit {
-                                buffer.apply_edit(edit.clone());
-                            }
-                            dialog.close();
-                        });
-                        group.add(&row);
+                    match action {
+                        CodeActionOrCommand::CodeAction(action) => {
+                            let row = adw::ButtonRow::new();
+                            let action = action.clone();
+                            let dialog = dialog.clone();
+                            let buffer = buffer.clone();
+                            row.set_width_request(320);
+                            row.set_title(&action.title);
+                            row.connect_activated(move |_| {
+                                if let Some(ref edit) = action.edit {
+                                    let serialized = serde_json::to_string(&edit).unwrap();
+                                    buffer
+                                        .activate_action("win.lsp.edit", Some(&serialized.into()))
+                                        .unwrap();
+                                }
+                                dialog.close();
+                            });
+                            group.add(&row);
+                        }
+                        _ => todo!(),
                     }
                 }
             ));
@@ -161,11 +166,7 @@ impl Buffer {
     }
 
     /// Applies LSP workspace edits
-    pub fn apply_edit(&self, edit: WorkspaceEdit) {
-        let serialized = serde_json::to_string(&edit).unwrap();
-        self.activate_action("win.lsp.edit", Some(&serialized.into()))
-            .unwrap();
-    }
+    pub fn apply_edit(&self, edit: WorkspaceEdit) {}
 
     /// Applies LSP document edits. Does not check for matching file paths.
     pub fn apply_document_edit(&self, edit: TextDocumentEdit) {
@@ -178,17 +179,22 @@ impl Buffer {
                     annotation_id: _, // TODO, I don't understand this
                 }) => text_edit,
             };
-            // FIXME: panics if the start range isn't valid, which happens sometimes, for some reason
-            if let Some(mut end) = position_iter!(buffer, edit.range.end)
-                && edit.range.start != edit.range.end
-            {
-                let mut start = position_iter!(buffer, edit.range.start)
-                    .expect(&format!("Invalid position: {:?}", edit.range.start));
-                buffer.delete(&mut start, &mut end);
-            }
+            Buffer::apply_text_edit(&buffer, edit);
+        }
+    }
+
+    /// Applies LSP TextEdit edits
+    pub fn apply_text_edit(buffer: &sourceview5::Buffer, edit: TextEdit) {
+        // FIXME: panics if the start range isn't valid, which happens sometimes, for some reason
+        if let Some(mut end) = position_iter!(buffer, edit.range.end)
+            && edit.range.start != edit.range.end
+        {
             let mut start = position_iter!(buffer, edit.range.start)
                 .expect(&format!("Invalid position: {:?}", edit.range.start));
-            buffer.insert(&mut start, &edit.new_text);
+            buffer.delete(&mut start, &mut end);
         }
+        let mut start = position_iter!(buffer, edit.range.start)
+            .expect(&format!("Invalid position: {:?}", edit.range.start));
+        buffer.insert(&mut start, &edit.new_text);
     }
 }
