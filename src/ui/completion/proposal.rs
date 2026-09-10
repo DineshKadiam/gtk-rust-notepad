@@ -108,23 +108,21 @@ impl LspCompletionProposal {
             // TODO fully support tabstop syntax. with all its quirks (what have I gotten myself into)
             // TODO https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax
             // Replace placeholders
+            while let Some((mut tabstop_start, _)) =
+                buffer.iter_at_offset(initial_cursor).forward_search(
+                    "${",
+                    TextSearchFlags::empty(),
+                    Some(&buffer.iter_at_offset(buffer.cursor_position())),
+                )
+                && let Some((_, mut tabstop_end)) = tabstop_start.forward_search(
+                    "}",
+                    TextSearchFlags::empty(),
+                    Some(&buffer.iter_at_offset(buffer.cursor_position())),
+                )
             {
-                while let Some((mut tabstop_start, _)) =
-                    buffer.iter_at_offset(initial_cursor).forward_search(
-                        "${",
-                        TextSearchFlags::empty(),
-                        Some(&buffer.iter_at_offset(buffer.cursor_position())),
-                    )
-                    && let Some((_, mut tabstop_end)) = tabstop_start.forward_search(
-                        "}",
-                        TextSearchFlags::empty(),
-                        Some(&buffer.iter_at_offset(buffer.cursor_position())),
-                    )
-                {
-                    let text = buffer.text(&tabstop_start, &tabstop_end, false);
-                    buffer.delete(&mut tabstop_start, &mut tabstop_end);
-                    buffer.insert(&mut tabstop_start, &text[4..(text.len() - 1)]);
-                }
+                let text = buffer.text(&tabstop_start, &tabstop_end, false);
+                buffer.delete(&mut tabstop_start, &mut tabstop_end);
+                buffer.insert(&mut tabstop_start, &text[4..(text.len() - 1)]);
             }
             // finish -- Place cursor at $0
             let start = buffer.iter_at_offset(initial_cursor);
