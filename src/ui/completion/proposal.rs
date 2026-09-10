@@ -4,8 +4,13 @@ use adw::{prelude::*, subclass::prelude::*};
 use async_lsp::lsp_types::{
     CompletionItem, CompletionTextEdit, Documentation, InsertTextFormat, MarkupContent, MarkupKind,
 };
-use gtk::{glib, glib::Properties};
+use gtk::{
+    TextSearchFlags,
+    glib::{self, Properties},
+};
 use sourceview5::{CompletionProposal, subclass::prelude::*};
+
+use crate::ui::buffer::Buffer;
 
 mod imp {
 
@@ -32,6 +37,7 @@ mod imp {
         type Interfaces = (CompletionProposal,);
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for LspCompletionProposal {}
 
     impl CompletionProposalImpl for LspCompletionProposal {}
@@ -80,28 +86,63 @@ impl LspCompletionProposal {
 
     pub fn apply(&self, buffer: sourceview5::Buffer) {
         let item = self.item().expect("Completion not fully formed");
+        let initial_cursor = buffer.cursor_position();
+        let mut insert_text = item.insert_text.unwrap_or(item.label);
+        buffer.begin_user_action();
         // TODO does it want me to replace the currently typed text to complete, or should I leave that, and the edit takes care of it??
         match item.text_edit {
             // Apply text edit with buffer.apply_text_edit
             Some(CompletionTextEdit::Edit(edit)) => {
+                insert_text = edit.new_text.clone();
                 crate::ui::buffer::Buffer::apply_text_edit(&buffer, edit);
             }
             // Remove the replace range, then insert in the insert range.
             // Not supported by Kyanite because What the Actual Fuck is the docs trying to tell me to do. (see: client capabilities)
             Some(CompletionTextEdit::InsertAndReplace(_edit)) => (),
             // fallback: insert and replace with insert_text
-            None => match item.insert_text_format {
-                // NOTE GtkSourceView doesn't have support for tabstops afaik
-                Some(InsertTextFormat::SNIPPET) => {
-                    // Insert the text
-                    buffer.insert_at_cursor(&item.insert_text.unwrap());
-                    // TODO Select the first snippet tabstop
-                    // TODO replace other tabstops with a name
-                }
-                _ => buffer.insert_at_cursor(&item.insert_text.unwrap()),
-            },
+            None => buffer.insert_at_cursor(&insert_text),
         }
-        // TODO: apply additional edits
+        // Handle snippets
+        if let Some(InsertTextFormat::SNIPPET) = item.insert_text_format {
+            println!("[info] Snippet inserted: `{0}`", insert_text);
+            // TODO fully support tabstop syntax. with all its quirks (what have I gotten myself into)
+            // TODO https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#snippet_syntax
+            // Replace placeholders
+            {
+                while let Some((mut tabstop_start, _)) =
+                    buffer.iter_at_offset(initial_cursor).forward_search(
+                        "${",
+                        TextSearchFlags::empty(),
+                        Some(&buffer.iter_at_offset(buffer.cursor_position())),
+                    )
+                    && let Some((_, mut tabstop_end)) = tabstop_start.forward_search(
+                        "}",
+                        TextSearchFlags::empty(),
+                        Some(&buffer.iter_at_offset(buffer.cursor_position())),
+                    )
+                {
+                    let text = buffer.text(&tabstop_start, &tabstop_end, false);
+                    buffer.delete(&mut tabstop_start, &mut tabstop_end);
+                    buffer.insert(&mut tabstop_start, &text[4..(text.len() - 1)]);
+                }
+            }
+            // finish -- Place cursor at $0
+            let start = buffer.iter_at_offset(initial_cursor);
+            let end = buffer.iter_at_offset(buffer.cursor_position());
+            if let Some((mut start, mut end)) =
+                start.forward_search("$0", TextSearchFlags::empty(), Some(&end))
+            {
+                buffer.delete(&mut start, &mut end);
+                buffer.place_cursor(&start);
+            }
+        }
+        // Apply additional edits
+        if let Some(edits) = item.additional_text_edits {
+            for edit in edits {
+                Buffer::apply_text_edit(&buffer, edit);
+            }
+        }
+        buffer.end_user_action();
     }
 
     pub fn item(&self) -> Option<CompletionItem> {

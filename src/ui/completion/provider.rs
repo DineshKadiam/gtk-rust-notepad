@@ -149,7 +149,7 @@ mod imp {
                                 proposal
                                     .item()
                                     .unwrap_or_default()
-                                    .sort_text
+                                    .filter_text
                                     .unwrap_or(proposal.label().unwrap_or_default()),
                             )
                         } else {
