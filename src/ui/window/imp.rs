@@ -139,7 +139,13 @@ impl EditorWindow {
         if let Some(path) = path {
             buffer_ui.load_file(path);
             // LSP servers
-            lsp::file::open(path, self.workspace_uri.borrow().as_str());
+            {
+                let workspace_path = self.workspace_uri.borrow().clone();
+                let path = path.to_string();
+                gtk::gio::spawn_blocking(move || {
+                    lsp::file::open(&path, &workspace_path);
+                });
+            }
             // Page icons
             if let Some(ref file) = *buffer_ui.imp().file.borrow()
                 && let Ok(info) = file.location().unwrap().query_info(

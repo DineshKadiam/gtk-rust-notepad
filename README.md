@@ -85,9 +85,6 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 ## Roadmap/TODO
 
 ### to 0.5.0 aka "having a stable editor"
-- bundle KyaniteBlocks in gresource
-- async loading of files. maybe with a popup
-    - having to wait to load a markdown file is really annoying
 - undoing a formatting thingy actually scrolls to the top and it's annoying
 - gracefully close lsp when window closes
 
