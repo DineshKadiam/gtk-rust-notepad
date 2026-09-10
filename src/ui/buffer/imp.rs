@@ -45,59 +45,22 @@ impl ObjectImpl for Buffer {
         self.parent_constructed();
 
         // Custom SourceMap fonts
-        self.source_map.set_font_map(None::<&FontMap>);
-        self.source_map
-            .set_font_desc(Some(&FontDescription::from_string("KyaniteBlocks")));
+        if self
+            .obj()
+            .pango_context()
+            .font_map()
+            .unwrap()
+            .family("KyaniteBlocks")
+            .is_some()
+        {
+            self.source_map.set_font_map(None::<&FontMap>);
+            self.source_map
+                .set_font_desc(Some(&FontDescription::from_string("KyaniteBlocks")));
+        }
 
         // Show map on mouse motion only
-        let motion_controller = EventControllerMotion::new();
-        let coords = Arc::new((AtomicUsize::new(0), AtomicUsize::new(0)));
-        motion_controller.connect_motion(clone!(
-            #[strong(rename_to=revealer)]
-            self.map_revealer,
-            #[strong]
-            coords,
-            #[weak(rename_to=this)]
-            self,
-            move |_controller, x, y| {
-                if !*this.pin_mmap.borrow()
-                    && coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
-                    && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
-                    && let Some(old) =
-                        this.mmap_timer
-                            .borrow_mut()
-                            .replace(glib::timeout_add_seconds_local(
-                                1,
-                                clone!(
-                                    #[strong]
-                                    revealer,
-                                    #[strong]
-                                    this,
-                                    move || {
-                                        revealer.set_reveal_child(false);
-                                        this.mmap_timer.take();
-                                        ControlFlow::Break
-                                    }
-                                ),
-                            ))
-                {
-                    revealer.set_reveal_child(true);
-                    old.remove();
-                }
-            }
-        ));
-        motion_controller.connect_leave(clone!(
-            #[strong(rename_to=revealer)]
-            self.map_revealer,
-            #[weak(rename_to=this)]
-            self,
-            move |_controller| {
-                if !*this.pin_mmap.borrow() {
-                    revealer.set_reveal_child(false);
-                }
-            }
-        ));
-        self.obj().add_controller(motion_controller);
+        self.obj().auto_map();
+
         // Set up gutter mark attributes (fancy words for icons in your line number bar)
         self.obj().unfuck_gutters();
         // Set up completion
