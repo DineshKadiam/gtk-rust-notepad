@@ -85,7 +85,6 @@ Only thing I ask is the same as all my projects: No "AI" -- that's the reason I 
 ## Roadmap/TODO
 
 ### to 0.5.0 aka "having a stable editor"
-- support lsp code completion snippets edits
 - bundle KyaniteBlocks in gresource
 - async loading of files. maybe with a popup
     - having to wait to load a markdown file is really annoying
