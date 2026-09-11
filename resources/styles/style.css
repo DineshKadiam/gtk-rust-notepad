@@ -6,6 +6,27 @@
     );
 }
 
+@keyframes wiggle {
+    0% {
+        transform: rotate(0deg);
+    }
+    10% {
+        transform: rotate(30deg);
+    }
+    20% {
+        transform: rotate(-30deg);
+    }
+    30% {
+        transform: rotate(30deg);
+    }
+    40% {
+        transform: rotate(-30deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
 @keyframes blink {
     0% {
         background: var(--accent-bg-color);
@@ -154,21 +175,6 @@ separator {
 }
 
 /* Notifications */
-@keyframes wiggle {
-    0% {
-        transform: rotate(0deg);
-    }
-    10% {
-        transform: rotate(30deg);
-    }
-    20% {
-        transform: rotate(-30deg);
-    }
-    100% {
-        transform: rotate(0deg);
-    }
-}
-
 .notifs-button.visible {
     animation: wiggle 0.3s ease;
 }
