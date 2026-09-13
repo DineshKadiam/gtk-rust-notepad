@@ -18,41 +18,39 @@ template $WelcomeScreen: Adw.Bin {
           "pill",
         ]
 
-        label: _("Recent files…");
+        label: _("Open recent…");
         action-name: "win.show_recents";
       }
 
       Box {
-        styles [
-          "linked",
-        ]
+        spacing: 12;
 
         Button {
           styles [
             "pill",
           ]
 
-          label: _("Open a file");
+          label: _("Open file…");
           action-name: "win.open.file";
         }
 
         Button {
           styles [
-            "pill",
+            "circular",
           ]
 
-          label: _("Open a folder");
+          icon-name: "folder-open-symbolic";
           action-name: "win.open.folder";
         }
-      }
 
-      Button {
-        styles [
-          "pill",
-        ]
+        Button {
+          styles [
+            "circular",
+          ]
 
-        label: _("New empty buffer…");
-        action-name: "win.tab.new_scratch";
+          icon-name: "document-new-symbolic";
+          action-name: "win.tab.new_scratch";
+        }
       }
     };
   }

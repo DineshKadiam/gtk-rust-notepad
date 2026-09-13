@@ -77,6 +77,12 @@ headerbar button {
     min-height: 0;
 }
 
+/* Welcome page buttons */
+statuspage button.circular {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
 /* Compact tabs */
 tabbox {
     padding-top: 2px;
