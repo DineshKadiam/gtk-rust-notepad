@@ -122,23 +122,29 @@ impl super::Buffer {
             #[strong(rename_to=this)]
             self,
             move |_| {
-                let annotations = this.imp().annotations.borrow().clone();
-                let buffer = this.get_sourceview_buffer();
-                for annotation in annotations {
-                    if let Some(mut iter) = buffer.iter_at_line(annotation.line) {
-                        iter.forward_to_line_end();
-                        let location = this.imp().source_view.iter_location(&iter);
-                        this.imp().source_view.move_overlay(
-                            &annotation.widget,
-                            location.x() + MARGIN,
-                            location.y(),
-                        );
-                        annotation.widget.set_visible(true);
-                    } else {
-                        annotation.widget.set_visible(false);
-                    }
-                }
+                this.update_annotations();
             }
         ));
     }
+    
+    pub fn update_annotations(&self) {
+        // TODO use TextMark to mark a position and just update on that
+        let annotations = self.imp().annotations.borrow().clone();
+        let buffer = self.get_sourceview_buffer();
+        for annotation in annotations {
+            if let Some(mut iter) = buffer.iter_at_line(annotation.line) {
+                iter.forward_to_line_end();
+                let location = self.imp().source_view.iter_location(&iter);
+                self.imp().source_view.move_overlay(
+                    &annotation.widget,
+                    location.x() + MARGIN,
+                    location.y(),
+                );
+                annotation.widget.set_visible(true);
+            } else {
+                annotation.widget.set_visible(false);
+            }
+        }
+    }
 }
+

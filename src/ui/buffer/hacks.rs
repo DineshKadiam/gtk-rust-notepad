@@ -70,7 +70,34 @@ impl Buffer {
             buffer.place_cursor(&start);
         }
         self.imp().source_view.set_buffer(Some(&buffer));
-        // Scroll back FIXME: cursed gtk stuff :(
+        // Update diagnostics
+        let diagnostics = self.imp().diagnostics.borrow().clone();
+        self.clear_diagnostics();
+        gtk::glib::timeout_add_local(
+            std::time::Duration::from_millis(100),
+            clone!(
+                #[strong(rename_to=this)]
+                self,
+                move || {
+                    if this
+                        .get_sourceview_buffer()
+                        .tag_table()
+                        .lookup("diag_error")
+                        .is_none()
+                    {
+                        for diag in &diagnostics {
+                            this.highlight_diagnostic(
+                                &diag.range,
+                                diag.message.clone(),
+                                diag.severity.unwrap_or(DiagnosticSeverity::INFORMATION),
+                            );
+                        }
+                    }
+                    ControlFlow::Break
+                }
+            ),
+        );
+        // Scoll back FIXME: cursed gtk stuff :(
         // GTK4 recomputes the size of the SourceView widget as it reloads from the buffer. This cases it to scroll up
         // for an indeterminate time until it's done loading. There's no signal I can follow for when it's done, so I
         // don't know when to scroll back safely. Instead, I have to continually set the horizontal/scroll values
