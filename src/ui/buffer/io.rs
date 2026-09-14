@@ -119,7 +119,6 @@ impl Buffer {
         if let Some(path) = self.file_path() {
             self.set_buffer_text(&fs::read_to_string(&path).unwrap(), reversible);
             self.set_file(&path);
-            let workspace_uri = self.imp().workspace_uri.borrow().clone();
         }
     }
 
@@ -169,6 +168,7 @@ impl Buffer {
             .unwrap();
     }
 }
+
 
 
 

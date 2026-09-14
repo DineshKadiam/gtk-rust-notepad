@@ -35,6 +35,8 @@ impl Buffer {
     /// original position and scroll to the original position. Good for reloading files, or formatting
     /// files.
     pub fn set_buffer_text(&self, text: &str, reversible: bool) {
+        // Clear diagnostics
+        self.clear_diagnostics();
         // Save cursor/scroll positions
         let cursor = self.get_sourceview_buffer().cursor_position();
         let scroll_window = self
@@ -72,19 +74,13 @@ impl Buffer {
         self.imp().source_view.set_buffer(Some(&buffer));
         // Update diagnostics
         let diagnostics = self.imp().diagnostics.borrow().clone();
-        self.clear_diagnostics();
         gtk::glib::timeout_add_local(
             std::time::Duration::from_millis(100),
             clone!(
                 #[strong(rename_to=this)]
                 self,
                 move || {
-                    if this
-                        .get_sourceview_buffer()
-                        .tag_table()
-                        .lookup("diag_error")
-                        .is_none()
-                    {
+                    if !this.annotations_is_empty() {
                         for diag in &diagnostics {
                             this.highlight_diagnostic(
                                 &diag.range,

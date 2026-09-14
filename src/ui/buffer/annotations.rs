@@ -146,5 +146,12 @@ impl super::Buffer {
             }
         }
     }
+    
+    pub fn annotations_is_empty(&self) -> bool {
+        self.imp().annotations.borrow().is_empty()
+    }
 }
+
+
+
 
