@@ -50,14 +50,18 @@ impl Buffer {
         // Get buffer
         let buffer = self.get_sourceview_buffer();
         // Reload manually, blocking
+        let mut bounds = buffer.bounds();
         if reversible {
-            let mut bounds = buffer.bounds();
             buffer.begin_user_action();
-            buffer.delete(&mut bounds.0, &mut bounds.1);
-            buffer.insert(&mut buffer.bounds().0, text);
+        } else {
+            buffer.begin_irreversible_action();
+        }
+        buffer.delete(&mut bounds.0, &mut bounds.1);
+        buffer.insert(&mut buffer.start_iter(), text.trim_end_matches("\n"));
+        if reversible {
             buffer.end_user_action();
         } else {
-            buffer.set_text(text);
+            buffer.end_irreversible_action();
         }
         buffer.set_modified(false);
         // Move cursor back if that position still exists
@@ -192,7 +196,7 @@ impl Buffer {
 pub mod text_view_child {
     use std::ffi::{c_int, c_void};
 
-    use gtk::{Widget, ffi::*, glib::ffi::*, prelude::*};
+    use gtk::{ffi::*, glib::ffi::*, prelude::*, Widget};
 
     #[repr(C)]
     pub struct _GtkTextViewChild {
