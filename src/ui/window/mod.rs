@@ -308,9 +308,7 @@ impl EditorWindow {
 
     pub fn update_folder(&self, dir_path: &str) {
         self.imp().sidebar.update_folder(dir_path);
-
         self.imp().terminal_view.setup(dir_path);
-
         self.set_property("workspace_uri", dir_path.to_string());
 
         // add to recents

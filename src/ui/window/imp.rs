@@ -271,8 +271,13 @@ impl ObjectImpl for EditorWindow {
         self.parent_constructed();
         self.obj().setup_actions();
         self.obj().setup_callbacks();
-        self.obj()
-            .update_folder(std::env::home_dir().unwrap().to_str().unwrap());
+        {
+            let home_dir = std::env::home_dir().unwrap();
+            let home_dir = home_dir.to_str().unwrap();
+            self.sidebar.update_folder(home_dir);
+            self.terminal_view.setup(home_dir);
+            self.obj().set_property("workspace_uri", home_dir.to_string());
+        }
         self.reload_config();
         self.setup_diagnostics();
         // Style
