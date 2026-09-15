@@ -47,8 +47,7 @@ mod imp {
                 .items()
                 .into_iter()
                 .collect::<Vec<gtk::RecentInfo>>();
-            items.sort_by_key(|a| a.modified());
-            items.reverse();
+            items.sort_by(|a, b| b.modified().cmp(&a.modified()));
             items.iter().for_each(|item| {
                 if item.exists()
                     && item.is_local()
