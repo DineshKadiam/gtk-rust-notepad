@@ -1,6 +1,6 @@
 use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::{CompositeTemplate, glib, glib::clone};
+use gtk::{glib, glib::clone, CompositeTemplate};
 
 mod imp {
 
@@ -47,7 +47,8 @@ mod imp {
                 .items()
                 .into_iter()
                 .collect::<Vec<gtk::RecentInfo>>();
-            items.sort_by_key(|a| a.age());
+            items.sort_by_key(|a| a.modified());
+            items.reverse();
             items.iter().for_each(|item| {
                 if item.exists()
                     && item.is_local()
