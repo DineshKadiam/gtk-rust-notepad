@@ -49,7 +49,7 @@ textview.GtkSourceMap {
         color-mix(in srgb, var(--border-color) 30%, transparent);
     background: transparent;
     font-size: 2pt;
-    line-height: 1em;
+    /*line-height: 1em;*/
 }
 
 textview.GtkSourceMap *:last-child {
