@@ -12,14 +12,14 @@ use async_lsp::{
     LanguageServer, ServerSocket,
     concurrency::ConcurrencyLayer,
     lsp_types::{
-        ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
+        self, ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
         CodeActionLiteralSupport, CompletionClientCapabilities, CompletionItemCapability,
         DidCloseTextDocumentParams, DidOpenTextDocumentParams, HoverClientCapabilities,
         InitializeParams, InitializedParams, InsertTextMode, InsertTextModeSupport, MarkupKind,
         MessageType, ProgressParamsValue, ProgressToken, PublishDiagnosticsParams,
         TextDocumentClientCapabilities, TextDocumentIdentifier, TextDocumentItem, Url,
         WindowClientCapabilities, WorkDoneProgress, WorkDoneProgressReport, WorkspaceFolder,
-        notification::{Progress, PublishDiagnostics, ShowMessage},
+        notification::{LogMessage, Progress, PublishDiagnostics, ShowMessage},
         request::WorkDoneProgressCreate,
     },
     panic::CatchUnwindLayer,
@@ -127,6 +127,11 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                         ControlFlow::Continue(())
                     }
                 ))
+                .notification::<LogMessage>(|_this, prog| {
+                    // TODO
+                    println!("[lsp] {}", prog.message);
+                    ControlFlow::Continue(())
+                })
                 .notification::<PublishDiagnostics>(|_, prog| {
                     DIAG_SENDERS.write().unwrap().iter_mut().for_each(|sender| {
                         sender.send_blocking(prog.clone()).unwrap();
@@ -182,10 +187,13 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
     tokio::spawn(async move {
         match mainloop.run_buffered(stdout, stdin).await {
             Ok(_) => (),
-            Err(_) => {
+            Err(e) => {
                 // Read stderr
                 let err = String::from_utf8(BufReader::new(stderr).buffer().to_vec()).unwrap();
                 // Send notification
+                eprintln!(
+                    "[warn] LSP command `{command_full}` crashed with stderr `{err}` and Rust error `{e}`"
+                );
                 notifications::push(Notification {
                     summary: format!("{command_full} crashed"),
                     details: err,
