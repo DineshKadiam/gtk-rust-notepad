@@ -1,5 +1,7 @@
 // TODO: this should be its own rust crate, actually...
-use gtk::{Align, Orientation, TextBuffer, TextIter, WrapMode, pango::Underline, prelude::*};
+use gtk::{
+    Align, CssProvider, Orientation, TextBuffer, TextIter, WrapMode, pango::Underline, prelude::*,
+};
 use markdown::mdast::{
     Code, Heading, InlineCode, Link, LinkReference, Node, Paragraph, Strong, Text, ThematicBreak,
 };
@@ -78,11 +80,15 @@ fn parse_node(node: Node) -> gtk::Widget {
         }) => {
             let view = sourceview5::View::new();
             let buffer = view.buffer().downcast::<sourceview5::Buffer>().unwrap();
+            let prov = CssProvider::new();
+            prov.load_from_string("textview, textview text { background-color: transparent; }");
+            view.style_context().add_provider(&prov, u32::MAX);
             view.add_css_class("flat");
             view.add_css_class("monospace");
             view.set_editable(false);
             view.set_wrap_mode(WrapMode::Word);
             buffer.set_text(&value);
+
             // Set language
             if let Some(lang) = lang
                 && let Some(ref language) = sourceview5::LanguageManager::new().language(&lang)
