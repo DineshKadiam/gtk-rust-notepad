@@ -163,7 +163,7 @@ flowboxchild {
 /* Styling headerbars to look like GNOME Builder's (libpanel header) */
 toolbarview .top-bar,
 toolbarview .bottom-bar {
-    background-color: @window_bg_color;
+    background-color: transparent;
     --headerbar-darker-shade-color: var(--border-light-color);
 }
 
@@ -232,6 +232,8 @@ gutterrenderer:first-child {
     padding-right: 24px;
     margin: 0;
 }
+
+textview.transparent > border, textview.transparent gutter { background-color: transparent; }
 
 /* Inlay hints/diagnostics */
 .inlay {

@@ -5,7 +5,7 @@ use crate::utils;
 /// Rewrite of GNOME Builder/Text Editor's recoloring algorithms
 pub fn generate_css(style_scheme: StyleScheme) -> String {
     // Don't restyle Adwaita as we already have it
-    if style_scheme.id().contains("Adwaita") {
+    if style_scheme.id() == "Adwaita" || style_scheme.id() == "Adwaita-dark" {
         return String::new();
     }
 
@@ -85,7 +85,7 @@ pub fn generate_css(style_scheme: StyleScheme) -> String {
 
     // Popover colors
     style += &format!(
-        "@define-color popover_bg_color mix({}, #ffffff, {});\n",
+        "@define-color popover_bg_color alpha(mix({}, #ffffff, {}), 2.0);\n",
         text_style.background().unwrap(),
         if is_dark { 0.07 } else { 0.25 }
     );

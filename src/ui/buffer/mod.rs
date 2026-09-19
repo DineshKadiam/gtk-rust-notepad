@@ -1,5 +1,6 @@
 use std::{
     cell::RefCell,
+    fmt::Debug,
     fs,
     io::Error,
     sync::{
@@ -11,7 +12,7 @@ use std::{
 use adw::{AlertDialog, ResponseAppearance, prelude::*, subclass::prelude::*};
 use async_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Range};
 use gtk::{
-    CompositeTemplate, EventControllerMotion, Revealer, TextSearchFlags,
+    CompositeTemplate, CssProvider, EventControllerMotion, Revealer, TextSearchFlags,
     gio::{self, Cancellable, FileQueryInfoFlags},
     glib::{self, ControlFlow, Properties, SourceId, clone},
     pango::{FontDescription, FontMap, Underline},
@@ -119,6 +120,19 @@ impl Buffer {
             } else {
                 buffer.set_style_scheme(Some(scheme));
             }
+        }
+        if let Some(ref scheme) = buffer.style_scheme()
+            && scheme.style("ky:blur").is_some()
+        {
+            let prov = CssProvider::new();
+            prov.load_from_string(
+                "textview, textview text, textview > border, gutter { background-color: transparent; }",
+            );
+            self.imp().source_view.add_css_class("transparent");
+            self.imp()
+                .source_view
+                .style_context()
+                .add_provider(&prov, u32::MAX);
         }
         self.imp().map_revealer.set_visible(config.ui.show_minimap);
         if config.ui.word_wrap {
