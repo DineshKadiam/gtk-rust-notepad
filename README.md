@@ -1,7 +1,7 @@
 <h1> <img height="32px" src="resources/icons.src/ca.potatoe.Kyanite.svg"/> Kyanite </h1>
 
 ![trans rights](https://img.shields.io/badge/-rights_btw-wtf?style=flat&label=trans&labelColor=5BCEFA&color=F5A9B8)
-![please theme my app](https://img.shields.io/badge/-my_app-wtf?style=flat&label=please%20theme&color=43c98b)
+<a href="https://potatoe.ca/ethical-software"><img alt="ethical software" src="https://img.shields.io/badge/-software-wtf?style=flat&label=ethical&color=43c98b" /></a>
 
 A lightweight, graphical text editor.
 
