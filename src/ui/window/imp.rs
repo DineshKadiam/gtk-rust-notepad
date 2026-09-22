@@ -4,7 +4,6 @@ use async_lsp::lsp_types::DiagnosticSeverity;
 use gtk::{
     Button, CssProvider, SearchBar, SearchEntry, Stack, ToggleButton,
     gio::{Cancellable, FileQueryInfoFlags},
-    prelude::*,
 };
 use sourceview5::StyleSchemeManager;
 

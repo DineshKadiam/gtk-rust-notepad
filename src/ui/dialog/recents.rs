@@ -190,6 +190,6 @@ impl RecentsDialog {
                 }
             ));
         }
-        return row;
+        row
     }
 }

@@ -12,7 +12,7 @@ use async_lsp::{
     LanguageServer, ServerSocket,
     concurrency::ConcurrencyLayer,
     lsp_types::{
-        self, ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
+        ClientCapabilities, CodeActionClientCapabilities, CodeActionKindLiteralSupport,
         CodeActionLiteralSupport, CompletionClientCapabilities, CompletionItemCapability,
         DidCloseTextDocumentParams, DidOpenTextDocumentParams, HoverClientCapabilities,
         InitializeParams, InitializedParams, InsertTextMode, InsertTextModeSupport, MarkupKind,

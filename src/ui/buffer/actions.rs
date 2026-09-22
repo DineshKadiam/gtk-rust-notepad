@@ -32,12 +32,13 @@ impl Buffer {
                                 buffer,
                                 async move {
                                     lsp::loading::add(1);
+                                    let diags = buffer.imp().diagnostics.borrow().clone();
                                     if let Some(actions) = lsp::request::actions(
                                         &path,
                                         &workspace_path,
                                         start,
                                         end,
-                                        buffer.imp().diagnostics.borrow().clone(),
+                                        diags,
                                     )
                                     .await
                                     {
