@@ -1,14 +1,20 @@
 /* GtkSourceView code completion hacks */
-.completion, .completion-info {
+.completion,
+.completion-info {
     background: transparent;
 }
 
-.completion > *, .completion-info > * {
+.completion > *,
+.completion-info > * {
     min-width: 258px;
     background: @sidebar_bg_color;
-    margin: 0;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px 3px var(--shade-color), 0 0 0 1px rgba(0, 0, 0, 0.09);
+    margin: 4px;
+    border-radius: 12px;
+    /* Copy dialog shadows */
+    box-shadow:
+        0 0 14px 2px RGB(0 0 6 / 3%),
+        0 0 5px 2px RGB(0 0 6 / 10%),
+        0 0 0 1px RGB(0 0 0 / 5%);
 }
 
 .completion-info contents {
@@ -23,12 +29,17 @@
     border-bottom: unset;
 }
 
-GtkSourceAssistant.completion-info  {
+GtkSourceAssistant.completion-info {
     margin: 8px;
     padding: 8px;
 }
 
-.completion row  {
+.completion list row {
+    margin: 4px;
+    border-radius: 9px;
+}
+
+.completion row {
     padding: 6px 16px;
 }
 
@@ -53,5 +64,6 @@ cell.details {
 }
 
 box.details {
-    border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    border-top: 1px solid
+        color-mix(in srgb, var(--border-color) 60%, transparent);
 }
