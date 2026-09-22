@@ -129,6 +129,7 @@ impl Buffer {
                 "textview, textview text, textview > border, gutter { background-color: transparent; }",
             );
             self.imp().source_view.add_css_class("transparent");
+            #[allow(deprecated)]
             self.imp()
                 .source_view
                 .style_context()

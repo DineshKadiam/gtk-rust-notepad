@@ -82,6 +82,7 @@ fn parse_node(node: Node) -> gtk::Widget {
             let buffer = view.buffer().downcast::<sourceview5::Buffer>().unwrap();
             let prov = CssProvider::new();
             prov.load_from_string("textview, textview text { background-color: transparent; }");
+            #[allow(deprecated)]
             view.style_context().add_provider(&prov, u32::MAX);
             view.add_css_class("flat");
             view.add_css_class("monospace");
