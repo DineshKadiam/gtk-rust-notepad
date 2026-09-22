@@ -13,8 +13,8 @@ use vte4::prelude::*;
 use crate::{
     lsp,
     ui::{
-        buffer::Buffer, dialog::rename_file, preferences::PreferencesDialog,
-        recents::RecentsDialog, terminal::TerminalView, window::EditorWindow,
+        buffer::Buffer, dialog::rename_file, dialog::preferences::PreferencesDialog,
+        dialog::recents::RecentsDialog, terminal::TerminalView, window::EditorWindow,
     },
     utils,
 };
