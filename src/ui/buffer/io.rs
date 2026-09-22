@@ -47,18 +47,17 @@ impl Buffer {
 
     /// Force writes buffer to a file.
     pub async fn write(&self) {
-        if let Some(ref file) = self.imp().file.borrow().clone() {
-            let save = sourceview5::FileSaver::new(
-                self.imp()
-                    .source_view
-                    .buffer()
-                    .downcast_ref::<sourceview5::Buffer>()
-                    .unwrap(),
-                file,
-            );
-            save.set_flags(FileSaverFlags::IGNORE_MODIFICATION_TIME);
-            save.save_future(glib::Priority::default()).0.await.unwrap();
-        }
+        let Some(file) = self.imp().file.borrow().clone() else { return };
+        let save = sourceview5::FileSaver::new(
+            self.imp()
+                .source_view
+                .buffer()
+                .downcast_ref::<sourceview5::Buffer>()
+                .unwrap(),
+            &file,
+        );
+        save.set_flags(FileSaverFlags::IGNORE_MODIFICATION_TIME);
+        save.save_future(glib::Priority::default()).0.await.unwrap();
     }
 
     /// Tries to save the file -- if there is a conflict (the file was edited externally), show an alert
@@ -168,9 +167,3 @@ impl Buffer {
             .unwrap();
     }
 }
-
-
-
-
-
-
