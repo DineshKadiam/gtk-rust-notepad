@@ -258,3 +258,8 @@ box.padded {
 .monospace:not(.GtkSourceMap) {
     font-family: Monospace;
 }
+
+/* Transparent ToggleButtons (e.g. if the icon shows state) */
+button.transparent:checked:not(:hover) {
+	background: transparent;
+}

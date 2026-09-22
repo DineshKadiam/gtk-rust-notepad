@@ -1,4 +1,7 @@
-use std::fs::{self};
+use std::{
+    fs::{self},
+    io::ErrorKind::AlreadyExists,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +12,7 @@ pub struct Config {
     pub ui: UI,
     pub sidebar: Sidebar,
     pub lang_server: Vec<LanguageServer>,
+    pub pinned_files: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -47,6 +51,7 @@ pub struct LanguageServer {
     pub language: String,
 }
 
+// TODO this should read from a file, like helix
 pub fn default_lang_servers() -> Vec<LanguageServer> {
     vec![
         LanguageServer {
@@ -92,11 +97,9 @@ impl Config {
         let file = toml::to_string_pretty(self).unwrap();
         match fs::create_dir(Config::get_folder()) {
             Ok(_) => (), // ok
+            Err(err) if err.kind() == AlreadyExists => (),
             Err(err) => {
-                if err.kind() == std::io::ErrorKind::AlreadyExists {
-                } else {
-                    panic!()
-                }
+                panic!("[fatal] error writing config file: {err}")
             }
         }; // ensure folder exists
         fs::write(Config::get_folder() + "/config.toml", file).unwrap();

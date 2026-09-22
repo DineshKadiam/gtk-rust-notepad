@@ -5,6 +5,10 @@ pub fn from_file_info(file_info: &FileInfo) -> ThemedIcon {
 }
 
 pub fn from_mime_type(mime_type: String) -> ThemedIcon {
+    // folders
+    if mime_type == "inode/directory" {
+        return ThemedIcon::new("folder-symbolic");
+    }
     // audio, video, images
     if mime_type.contains("audio") {
         return ThemedIcon::new("audio-x-generic-symbolic");
