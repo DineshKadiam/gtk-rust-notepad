@@ -66,20 +66,20 @@ template $PreferencesDialog: Adw.PreferencesDialog {
                 };
             }
 
-            // Adw.SwitchRow custom_opacity_toggle {
-            //     title: _("Use translucency");
-            // }
+            Adw.SwitchRow custom_opacity_toggle {
+                title: _("Use a custom opacity");
+            }
             
-            // Adw.SpinRow custom_opactiy {
-            //     title: _("Custom opacity");
-            //     subtitle: _("Uses custom CSS - use at your own risk!");
-            //     adjustment: Adjustment {
-            //       lower: 0.0;
-            //       upper: 1.0;
-            //       value: 0;
-            //       step-increment: 0.1;
-            //     };
-            // }
+            Adw.SpinRow custom_opacity {
+                title: _("Custom opacity");
+                subtitle: _("Uses custom CSS - use at your own risk!");
+                adjustment: Adjustment {
+                  lower: 0.0;
+                  upper: 100.0;
+                  value: 100.0;
+                  step-increment: 1.0;
+                };
+            }
         }
 
         Adw.PreferencesGroup {

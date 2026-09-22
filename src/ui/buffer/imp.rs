@@ -79,6 +79,17 @@ impl ObjectImpl for Buffer {
 
         // Set up actions
         self.obj().setup_actions();
+
+        // Set up custom CSS
+        let prov = CssProvider::new();
+        prov.load_from_string(
+                "window.custom-opacity textview, window.custom-opacity textview text, window.custom-opacity textview > border, window.custom-opacity gutter { background-color: transparent; }",
+            );
+        self.source_view.add_css_class("transparent");
+        #[allow(deprecated)]
+        self.source_view
+            .style_context()
+            .add_provider(&prov, u32::MAX);
     }
 }
 impl WidgetImpl for Buffer {}

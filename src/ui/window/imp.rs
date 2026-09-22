@@ -83,13 +83,24 @@ impl EditorWindow {
                 .borrow()
                 .load_from_string(&utils::recolor::generate_css(scheme.clone()));
         }
-        if let Some(corner_radius) = cfg.ui.corner_radius {
-            self.obj().add_css_class("custom-corners");
-            self.accent_style
+        // Custom CSS variable overrides
+        {
+            let mut variable_overrides = "".to_string();
+            if let Some(corner_radius) = cfg.ui.corner_radius {
+                self.obj().add_css_class("custom-corners");
+                variable_overrides += &format!("--corner-radius: {corner_radius}px;");
+            } else {
+                self.obj().remove_css_class("custom-corners");
+            }
+            if let Some(opacity) = cfg.ui.opacity {
+                self.obj().add_css_class("custom-opacity");
+                variable_overrides += &format!("--opacity: {};", opacity / 100.);
+            } else {
+                self.obj().remove_css_class("custom-opacity");
+            }
+            self.css_overrides
                 .borrow()
-                .load_from_string(&format!(":root {{ --corner-radius: {corner_radius}px; }}"));
-        } else {
-            self.obj().remove_css_class("custom-corners");
+                .load_from_string(&format!(":root {{ {variable_overrides} }}"));
         }
         self.tab_view.pages().iter::<TabPage>().for_each(|page| {
             if let Ok(page) = page {

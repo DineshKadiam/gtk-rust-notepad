@@ -211,15 +211,26 @@ window.custom-corners.csd {
     --window-radius: min(var(--window-radius), 4px);
 }
 
-.custom-corners button,
-.custom-corners button *,
-.custom-corners row,
-.custom-corners popover *,
-.custom-corners sheet,
-.custom-corners list,
-.custom-corners tabbox * {
+window.custom-corners button,
+window.custom-corners button *,
+window.custom-corners row,
+window.custom-corners popover *,
+window.custom-corners sheet,
+window.custom-corners list,
+window.custom-corners tabbox * {
     border-radius: var(--corner-radius);
 }
+
+/* Custom opacity/translucency */
+window.custom-opacity {
+    background-color: alpha(@window_bg_color, var(--opacity));
+}
+
+window.custom-opacity .sidebar-pane {
+    background-color: alpha(@sidebar_bg_color, calc(var(--opacity) * 0.5));
+}
+
+window.custom-opacity textview > border, window.custom-opacity textview gutter { background-color: transparent; }
 
 /* Gutter */
 gutter > gutterrenderer:last-child {
@@ -232,8 +243,6 @@ gutterrenderer:first-child {
     padding-right: 24px;
     margin: 0;
 }
-
-textview.transparent > border, textview.transparent gutter { background-color: transparent; }
 
 /* Inlay hints/diagnostics */
 .inlay {

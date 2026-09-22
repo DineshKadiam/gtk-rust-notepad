@@ -29,6 +29,10 @@ mod imp {
         #[template_child]
         pub custom_corners: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub custom_opacity_toggle: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub custom_opacity: TemplateChild<adw::SpinRow>,
+        #[template_child]
         pub show_hidden: TemplateChild<adw::SwitchRow>,
     }
 
@@ -78,18 +82,6 @@ macro_rules! connect_switch {
     };
 }
 
-/* macro_rules! connect_spinner {
-    ($spinner:expr, $cfg:ident.$setting:ident.$key:ident) => {
-        $spinner.set_value($cfg.$setting.$key);
-        $spinner.connect_value_notify(|s| {
-            let mut config = Config::get_or_default();
-            config.$setting.$key = s.value();
-            config.write();
-            s.activate_action("win.reload_config", None).unwrap();
-        });
-    };
-} */
-
 macro_rules! connect_optional_spinner {
     ($switch:expr, $spinner:expr, $cfg:ident.$setting:ident.$key:ident) => {
         let spinner = $spinner.clone();
@@ -105,7 +97,7 @@ macro_rules! connect_optional_spinner {
             let mut config = Config::get_or_default();
             spinner.set_visible(s.is_active());
             if s.is_active() {
-                config.$setting.$key = Some(0.0);
+                config.$setting.$key = Some(spinner.value());
             } else {
                 config.$setting.$key = None;
             }
@@ -139,6 +131,11 @@ impl PreferencesDialog {
             self.imp().custom_corners_toggle,
             self.imp().custom_corners,
             config.ui.corner_radius
+        );
+        connect_optional_spinner!(
+            self.imp().custom_opacity_toggle,
+            self.imp().custom_opacity,
+            config.ui.opacity
         );
         // NOTE position of the strings in the blueprint file matters for this one lmao
         self.imp()

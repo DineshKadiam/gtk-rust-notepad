@@ -121,20 +121,6 @@ impl Buffer {
                 buffer.set_style_scheme(Some(scheme));
             }
         }
-        if let Some(ref scheme) = buffer.style_scheme()
-            && scheme.style("ky:blur").is_some()
-        {
-            let prov = CssProvider::new();
-            prov.load_from_string(
-                "textview, textview text, textview > border, gutter { background-color: transparent; }",
-            );
-            self.imp().source_view.add_css_class("transparent");
-            #[allow(deprecated)]
-            self.imp()
-                .source_view
-                .style_context()
-                .add_provider(&prov, u32::MAX);
-        }
         self.imp().map_revealer.set_visible(config.ui.show_minimap);
         if config.ui.word_wrap {
             self.imp().pin_mmap.replace(true);
