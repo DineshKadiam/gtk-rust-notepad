@@ -25,7 +25,9 @@ mod imp {
         #[template_child]
         pub word_wrap: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub flat_corners: TemplateChild<adw::SwitchRow>,
+        pub custom_corners_toggle: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub custom_corners: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub show_hidden: TemplateChild<adw::SwitchRow>,
     }
@@ -76,6 +78,49 @@ macro_rules! connect_switch {
     };
 }
 
+/* macro_rules! connect_spinner {
+    ($spinner:expr, $cfg:ident.$setting:ident.$key:ident) => {
+        $spinner.set_value($cfg.$setting.$key);
+        $spinner.connect_value_notify(|s| {
+            let mut config = Config::get_or_default();
+            config.$setting.$key = s.value();
+            config.write();
+            s.activate_action("win.reload_config", None).unwrap();
+        });
+    };
+} */
+
+macro_rules! connect_optional_spinner {
+    ($switch:expr, $spinner:expr, $cfg:ident.$setting:ident.$key:ident) => {
+        let spinner = $spinner.clone();
+        if let Some(setting) = $cfg.$setting.$key {
+            $spinner.set_value(setting);
+            $spinner.set_visible(true);
+            $switch.set_active(true);
+        } else {
+            $spinner.set_visible(false);
+            $switch.set_active(false);
+        }
+        $switch.connect_active_notify(move |s| {
+            let mut config = Config::get_or_default();
+            spinner.set_visible(s.is_active());
+            if s.is_active() {
+                config.$setting.$key = Some(0.0);
+            } else {
+                config.$setting.$key = None;
+            }
+            config.write();
+            s.activate_action("win.reload_config", None).unwrap();
+        });
+        $spinner.connect_value_notify(|s| {
+            let mut config = Config::get_or_default();
+            config.$setting.$key = Some(s.value());
+            config.write();
+            s.activate_action("win.reload_config", None).unwrap();
+        });
+    };
+}
+
 impl PreferencesDialog {
     pub fn new() -> Self {
         glib::Object::builder::<Self>().build()
@@ -89,8 +134,12 @@ impl PreferencesDialog {
         connect_switch!(self.imp().minimap, config.ui.show_minimap);
         connect_switch!(self.imp().grid_bg, config.ui.grid_bg);
         connect_switch!(self.imp().word_wrap, config.ui.word_wrap);
-        connect_switch!(self.imp().flat_corners, config.ui.flat_corners);
         connect_switch!(self.imp().show_hidden, config.sidebar.show_hidden);
+        connect_optional_spinner!(
+            self.imp().custom_corners_toggle,
+            self.imp().custom_corners,
+            config.ui.corner_radius
+        );
         // NOTE position of the strings in the blueprint file matters for this one lmao
         self.imp()
             .theme_variant

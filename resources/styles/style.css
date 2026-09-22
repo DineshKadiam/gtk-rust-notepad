@@ -207,18 +207,18 @@ separator {
 }
 
 /* Flat (sharp corners) window styling */
-window.flat.csd {
+window.custom-corners.csd {
     --window-radius: min(var(--window-radius), 4px);
 }
 
-.flat button,
-.flat button *,
-.flat row,
-.flat popover *,
-.flat sheet,
-.flat list,
-.flat tabbox * {
-    border-radius: 4px;
+.custom-corners button,
+.custom-corners button *,
+.custom-corners row,
+.custom-corners popover *,
+.custom-corners sheet,
+.custom-corners list,
+.custom-corners tabbox * {
+    border-radius: var(--corner-radius);
 }
 
 /* Gutter */

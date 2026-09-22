@@ -24,7 +24,8 @@ pub struct UI {
     pub hl_line: bool,
     pub grid_bg: bool,
     pub word_wrap: bool,
-    pub flat_corners: bool,
+    pub corner_radius: Option<f64>,
+    pub opacity: Option<f64>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -78,7 +79,8 @@ impl Default for UI {
             hl_line: true,
             grid_bg: false,
             word_wrap: false,
-            flat_corners: false,
+            corner_radius: None,
+            opacity: None,
         }
     }
 }

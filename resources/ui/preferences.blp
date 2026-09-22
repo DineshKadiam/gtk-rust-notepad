@@ -50,11 +50,36 @@ template $PreferencesDialog: Adw.PreferencesDialog {
             Adw.SwitchRow word_wrap {
                 title: _("Use word wrap");
             }
-            
-            Adw.SwitchRow flat_corners {
-                title: _("Use flat corners");
-                subtitle: _("Uses custom CSS - use at your own risk!");
+
+            Adw.SwitchRow custom_corners_toggle {
+                title: _("Use a custom corner radius");
             }
+            
+            Adw.SpinRow custom_corners {
+                title: _("Custom corner radius");
+                subtitle: _("Uses custom CSS - use at your own risk!");
+                adjustment: Adjustment {
+                  lower: 0;
+                  upper: 128;
+                  value: 0;
+                  step-increment: 1;
+                };
+            }
+
+            // Adw.SwitchRow custom_opacity_toggle {
+            //     title: _("Use translucency");
+            // }
+            
+            // Adw.SpinRow custom_opactiy {
+            //     title: _("Custom opacity");
+            //     subtitle: _("Uses custom CSS - use at your own risk!");
+            //     adjustment: Adjustment {
+            //       lower: 0.0;
+            //       upper: 1.0;
+            //       value: 0;
+            //       step-increment: 0.1;
+            //     };
+            // }
         }
 
         Adw.PreferencesGroup {

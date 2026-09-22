@@ -55,6 +55,8 @@ pub struct EditorWindow {
     #[property(get, set)]
     pub accent_style: RefCell<CssProvider>,
     #[property(get, set)]
+    pub css_overrides: RefCell<CssProvider>,
+    #[property(get, set)]
     pub workspace_uri: RefCell<String>,
 }
 
@@ -67,12 +69,6 @@ impl EditorWindow {
             crate::config::ThemeVariant::Light => adw::ColorScheme::ForceLight,
             crate::config::ThemeVariant::Dark => adw::ColorScheme::ForceDark,
         });
-        // Round corners (also a theme thing)
-        if cfg.ui.flat_corners {
-            self.obj().add_css_class("flat");
-        } else if self.obj().has_css_class("flat") {
-            self.obj().remove_css_class("flat");
-        }
         // Set theme
         if let Some(ref scheme) = StyleSchemeManager::new().scheme(&cfg.ui.theme) {
             let scheme = if adw::StyleManager::default().is_dark() {
@@ -86,6 +82,14 @@ impl EditorWindow {
             self.accent_style
                 .borrow()
                 .load_from_string(&utils::recolor::generate_css(scheme.clone()));
+        }
+        if let Some(corner_radius) = cfg.ui.corner_radius {
+            self.obj().add_css_class("custom-corners");
+            self.accent_style
+                .borrow()
+                .load_from_string(&format!(":root {{ --corner-radius: {corner_radius}px; }}"));
+        } else {
+            self.obj().remove_css_class("custom-corners");
         }
         self.tab_view.pages().iter::<TabPage>().for_each(|page| {
             if let Ok(page) = page {
@@ -275,7 +279,8 @@ impl ObjectImpl for EditorWindow {
             let home_dir = home_dir.to_str().unwrap();
             self.sidebar.update_folder(home_dir);
             self.terminal_view.setup(home_dir);
-            self.obj().set_property("workspace_uri", home_dir.to_string());
+            self.obj()
+                .set_property("workspace_uri", home_dir.to_string());
         }
         self.reload_config();
         self.setup_diagnostics();
@@ -283,6 +288,11 @@ impl ObjectImpl for EditorWindow {
         gtk::style_context_add_provider_for_display(
             &gtk::gdk::Display::default().expect("Could not connect to a display."),
             &self.accent_style.borrow().clone(),
+            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+        );
+        gtk::style_context_add_provider_for_display(
+            &gtk::gdk::Display::default().expect("Could not connect to a display."),
+            &self.css_overrides.borrow().clone(),
             gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
         );
         self.stack.connect_visible_child_notify(clone!(
