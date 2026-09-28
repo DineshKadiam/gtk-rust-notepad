@@ -62,10 +62,8 @@ mod imp {
                             }
                             _child = child.next_sibling();
                         }
-                        gtk::gio::spawn_blocking(move || {
-                            ids.iter().for_each(|id| {
-                                notifications::pop(id.to_string());
-                            });
+                        ids.iter().for_each(|id| {
+                            notifications::pop(id.to_string());
                         });
                     }
                 ))
