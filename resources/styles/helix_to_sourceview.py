@@ -1,8 +1,13 @@
-import tomllib, sys, os, argparse
+import argparse
+import os
+import sys
+
+import tomllib
 from colour import Color
 
 # TODO: we should lighten the selection bg a substantial amount
 # TODO: copy styles over, not just colors
+
 
 # Function -- Fill in palette
 def fill_palette(hx):
@@ -14,6 +19,7 @@ def fill_palette(hx):
             return replace
         else:
             return n
+
     for key, val in hx["palette"].items():
         for i in hx:
             if i != "palette":
@@ -23,13 +29,14 @@ def fill_palette(hx):
                     hx[i] = _fill_palette(hx[i], key, val)
     return hx
 
+
 def compat(hx):
     if "ui.cursorline.primary" not in hx:
         hx["ui.cursorline.primary"] = hx["ui.cursorline"]
     if "markup.link.url" not in hx:
         hx["markup.link.url"] = hx["markup.link.text"]
     if "ui.gutter" not in hx:
-        hx["ui.gutter"] = { "bg": hx["ui.background"]["bg"] }
+        hx["ui.gutter"] = {"bg": hx["ui.background"]["bg"]}
     if "ui.selection.primary" not in hx:
         hx["ui.selection.primary"] = hx["ui.selection"]
     if "constant.builtin" not in hx:
@@ -40,7 +47,7 @@ def compat(hx):
         hx["markup.raw.inline"] = hx["markup.raw"]
     if "ui.virtual.whitespace" not in hx:
         hx["ui.virtual.whitespace"] = hx["ui.virtual"]
-        
+
     if "bg" not in hx["ui.gutter"]:
         hx["ui.gutter"]["bg"] = hx["ui.background"]["bg"]
     if "bg" not in hx["ui.cursor.match"]:
@@ -64,13 +71,26 @@ def compat(hx):
     hx["ui.selection.primary"]["bg"] = sel.hex
     return hx
 
+
 # Load Helix UI theme
 parser = argparse.ArgumentParser()
 parser.add_argument("input", help="Path to the Helix theme file", type=str)
-parser.add_argument("-v", "--variant", help="Theme variant; can be `dark` or `light`", type=str, default="dark")
+parser.add_argument(
+    "-v",
+    "--variant",
+    help="Theme variant; can be `dark` or `light`",
+    type=str,
+    default="dark",
+)
 args = parser.parse_args()
 
-hx = tomllib.load(open(args.input, 'rb'))
+hx = tomllib.load(open(args.input, "rb"))
+
+if "inherits" in hx:
+    inherit = tomllib.load(open(hx["inherits"] + ".toml", "rb"))
+    inherit.update(hx)
+    hx = inherit
+
 hx = compat(fill_palette(hx))
 id = os.path.basename(sys.argv[1]).replace(".toml", "")
 variant = args.variant
@@ -84,7 +104,7 @@ print(f"""<?xml version="1.0" encoding="UTF-8"?>
   </metadata>
 
   <!-- Global Styles -->
-  { f"""<style name="background-pattern"      background="{hx["ui.virtual"]["fg"]}"/>""" if "ui.virtual" in hx else "" }
+  {f'''<style name="background-pattern"      background="{hx["ui.virtual"]["fg"]}"/>''' if "ui.virtual" in hx else ""}
   <style name="bracket-match"           background="{hx["ui.cursor.match"]["bg"]}" foreground="{hx["ui.cursor.match"]["fg"]}" italic="false" strikethrough="false"/>
   <style name="current-line"            background="{hx["ui.cursorline.primary"]["bg"]}"/>
   <style name="current-line-number"     background="{hx["ui.linenr.selected"]["bg"]}" foreground="{hx["ui.linenr.selected"]["fg"]}" bold="false"/>
