@@ -24,6 +24,7 @@ pub struct UI {
     pub hl_line: bool,
     pub grid_bg: bool,
     pub word_wrap: bool,
+    pub font: String,
     pub corner_radius: Option<f64>,
     pub opacity: Option<f64>,
 }
@@ -79,6 +80,7 @@ impl Default for UI {
             hl_line: true,
             grid_bg: false,
             word_wrap: false,
+            font: "Monospace".to_string(),
             corner_radius: None,
             opacity: None,
         }

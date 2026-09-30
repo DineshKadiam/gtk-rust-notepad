@@ -13,6 +13,8 @@ pub struct Buffer {
     pub map_revealer: TemplateChild<Revealer>,
     #[template_child]
     pub toast_overlay: TemplateChild<adw::ToastOverlay>,
+    #[property(get, set)]
+    pub css_provider: RefCell<CssProvider>,
 
     // Variables
     pub workspace_uri: RefCell<String>,
@@ -90,6 +92,10 @@ impl ObjectImpl for Buffer {
         self.source_view
             .style_context()
             .add_provider(&prov, u32::MAX);
+        #[allow(deprecated)]
+        self.source_view
+            .style_context()
+            .add_provider(&self.css_provider.borrow().clone(), u32::MAX);
     }
 }
 impl WidgetImpl for Buffer {}

@@ -15,7 +15,7 @@ use gtk::{
     CompositeTemplate, CssProvider, EventControllerMotion, Revealer, TextSearchFlags,
     gio::{self, Cancellable, FileQueryInfoFlags},
     glib::{self, ControlFlow, Properties, SourceId, clone},
-    pango::{FontDescription, FontMap, Underline},
+    pango::{FontDescription, FontMap, Underline, ffi::PANGO_SCALE},
 };
 use sourceview5::{BackgroundPatternType, FileSaverFlags, StyleSchemeManager, prelude::*};
 
@@ -114,6 +114,7 @@ impl Buffer {
     pub fn configure(&self) {
         let config = Config::get_or_default();
         let buffer = self.get_sourceview_buffer();
+        let font = FontDescription::from_string(&config.ui.font);
         if let Some(ref scheme) = StyleSchemeManager::new().scheme(&config.ui.theme) {
             if adw::StyleManager::default().is_dark() {
                 buffer.set_style_scheme(Some(&utils::scheme::dark(scheme)));
@@ -121,7 +122,21 @@ impl Buffer {
                 buffer.set_style_scheme(Some(scheme));
             }
         }
-        self.imp().map_revealer.set_visible(config.ui.show_minimap);
+        self.css_provider().load_from_string(&format!(
+            "textview {{ font: {} {}; {} }}",
+            if font.size() > 0 {
+                format!("{}pt", font.size() / PANGO_SCALE)
+            } else {
+                String::new()
+            },
+            font.family().unwrap(),
+            match font.weight() {
+                gtk::pango::Weight::Thin => "font-weight: thin",
+                gtk::pango::Weight::Light => "font-weight: light",
+                gtk::pango::Weight::Bold => "font-weight: bold",
+                _ => "",
+            }
+        ));
         if config.ui.word_wrap {
             self.imp().pin_mmap.replace(true);
             self.imp()

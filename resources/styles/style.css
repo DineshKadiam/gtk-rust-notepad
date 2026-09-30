@@ -263,11 +263,6 @@ box.padded {
     padding: 8px 12px;
 }
 
-/* Thank you GTK on MacOS for this hack /s */
-.monospace:not(.GtkSourceMap) {
-    font-family: Monospace;
-}
-
 /* Transparent ToggleButtons (e.g. if the icon shows state) */
 button.transparent:checked:not(:hover) {
 	background: transparent;
