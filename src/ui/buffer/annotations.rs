@@ -101,6 +101,10 @@ impl super::Buffer {
                 self.imp().annotations.replace(annotations);
                 Ok(annotation.clone())
             } else {
+                println!(
+                    "[warn] Unable to create annotation \"{}\" at line {}",
+                    message, line
+                );
                 Err(())
             }
         }
@@ -126,7 +130,7 @@ impl super::Buffer {
             }
         ));
     }
-    
+
     pub fn update_annotations(&self) {
         // TODO use TextMark to mark a position and just update on that
         let annotations = self.imp().annotations.borrow().clone();
@@ -146,12 +150,8 @@ impl super::Buffer {
             }
         }
     }
-    
+
     pub fn annotations_is_empty(&self) -> bool {
         self.imp().annotations.borrow().is_empty()
     }
 }
-
-
-
-

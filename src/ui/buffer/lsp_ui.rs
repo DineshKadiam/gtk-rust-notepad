@@ -50,14 +50,13 @@ impl Buffer {
     ) {
         let buffer = self.get_sourceview_buffer();
 
-        let annotation = self
-            .new_annotation(&message, range.end.line as i32)
-            .unwrap();
-        match severity {
-            DiagnosticSeverity::ERROR => annotation.add_css_class("error"),
-            DiagnosticSeverity::WARNING => annotation.add_css_class("warning"),
-            _ => (),
-        };
+        if let Ok(annotation) = self.new_annotation(&message, range.end.line as i32) {
+            match severity {
+                DiagnosticSeverity::ERROR => annotation.add_css_class("error"),
+                DiagnosticSeverity::WARNING => annotation.add_css_class("warning"),
+                _ => (),
+            }
+        }
 
         // Add tag
         if let Some(start) = position_iter!(buffer, range.start)
