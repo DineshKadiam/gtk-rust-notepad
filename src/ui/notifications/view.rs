@@ -77,9 +77,9 @@ mod imp {
                 #[strong(rename_to=button)]
                 self.button,
                 async move {
-                    let rx = notifications::subscribe();
+                    let mut rx = notifications::subscribe().await;
                     let mut labels: Vec<NotificationRow> = vec![];
-                    while let Ok(event) = rx.recv().await {
+                    while let Some(event) = rx.recv().await {
                         match event {
                             Event::Push(notif) => {
                                 let progress = if let notifications::data::Status::Progress(p) =

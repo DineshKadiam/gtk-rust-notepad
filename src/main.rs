@@ -1,4 +1,3 @@
-mod async_bus;
 mod config;
 mod lsp;
 mod notifications;
