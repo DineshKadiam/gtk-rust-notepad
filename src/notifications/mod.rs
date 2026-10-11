@@ -5,18 +5,23 @@ use tokio::runtime::Runtime;
 
 pub mod data;
 
-lazy_static! {
-    static ref RUNTIME: Runtime = Runtime::new().unwrap();
-    static ref BUS: Sender<data::Event> = {
-        let (mut tx, mut rx) = async_broadcast::broadcast(128);
-        RUNTIME.spawn(async move {
+macro_rules! bus {
+    () => {{
+        let (tx, mut rx) = async_broadcast::broadcast(128);
+        // Put receiver in endless hell so the channel never dies
+        tokio::runtime::Runtime::new().unwrap().spawn(async move {
             loop {
                 let _ = rx.recv().await;
             }
         });
-        tx.set_overflow(true);
+        // (Customise tx here)
         tx
-    };
+    }};
+}
+
+lazy_static! {
+    static ref RUNTIME: Runtime = Runtime::new().unwrap();
+    static ref BUS: Sender<data::Event> = bus!();
 }
 
 pub fn push(notif: data::Notification) {
