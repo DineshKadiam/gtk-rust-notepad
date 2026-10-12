@@ -26,4 +26,4 @@ markdown = "1.0.0"
 serde_json = "1.0.151"
 itertools = "0.15.0"
 lazy_static = "1.5.0"
-async-broadcast = "0.7.2"
+async_bus = { git = "https://codeberg.org/pastthepixels/async_bus" }
