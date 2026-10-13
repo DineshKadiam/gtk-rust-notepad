@@ -1,4 +1,10 @@
-use std::{cell::RefCell, fs, fs::DirEntry, io, path::Path, sync::Arc};
+use std::{
+    cell::RefCell,
+    fs::{self, DirEntry},
+    io,
+    path::Path,
+    rc::Rc,
+};
 
 #[cfg(not(debug_assertions))]
 const GRESOURCES_TEMPLATE: &'static str = r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -24,7 +30,7 @@ const GRESOURCES_FILE_TEMPLATE: &str = r#"
 fn main() {
     let out = std::env::var("OUT_DIR").unwrap();
     // 1. Build ca.potatoe.Kyanite.gresources.xml. Include resources
-    let strings = Arc::new(RefCell::new(vec![]));
+    let strings = Rc::new(RefCell::new(vec![]));
     // 1.a. Walk directory for icons
     visit_dirs(Path::new("./resources/icons"), &|entry: &DirEntry| {
         let path = entry
