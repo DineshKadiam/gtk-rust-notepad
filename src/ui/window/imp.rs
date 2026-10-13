@@ -224,10 +224,10 @@ impl EditorWindow {
 
     /// Set up displaying diagnostics for files
     fn setup_diagnostics(&self) {
-        let rx = lsp::listen_diagnostics();
+        let mut rx = lsp::listen_diagnostics();
         let tab_view = self.tab_view.clone();
         glib::spawn_future_local(async move {
-            while let Ok(diagnostics) = rx.recv().await {
+            while let Some(diagnostics) = rx.recv().await {
                 let uri = diagnostics.uri.path();
                 // Look for a buffer with corresponding uri
                 tab_view.pages().iter::<TabPage>().for_each(|page| {
@@ -320,10 +320,10 @@ impl ObjectImpl for EditorWindow {
             }
         ));
         // Set up LSP loading spinner
-        let listener = lsp::loading::listen();
+        let mut listener = lsp::loading::listen();
         let lsp_load = self.status_lsp_load.clone();
         glib::spawn_future_local(async move {
-            while listener.recv().await.is_ok() {
+            while listener.recv().await.is_some() {
                 lsp_load.set_visible(lsp::loading::is_loading());
             }
         });

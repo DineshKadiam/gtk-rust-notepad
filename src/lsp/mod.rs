@@ -7,7 +7,7 @@ use std::{
     sync::{LazyLock, RwLock},
 };
 
-use async_channel::{Receiver, Sender};
+use async_bus::{Bus, Receiver};
 use async_lsp::{
     LanguageServer, ServerSocket,
     concurrency::ConcurrencyLayer,
@@ -28,13 +28,14 @@ use async_lsp::{
 };
 use futures::io::BufReader;
 use gtk::glib::clone;
+use lazy_static::lazy_static;
 use tokio::runtime::Runtime;
 use tower::ServiceBuilder;
 
 use crate::{
+    RUNTIME,
     config::{self, Config},
-    notifications,
-    notifications::data::Notification,
+    notifications::{self, data::Notification},
 };
 
 /// Stores language servers globally, and marks their names along with a socket.
@@ -51,9 +52,10 @@ static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
 /// Keeps track of how many files are loading/being indexed.
 pub mod loading;
 
-/// Senders for diagnostics.
-type Senders<T> = RwLock<Vec<Sender<T>>>;
-pub static DIAG_SENDERS: Senders<PublishDiagnosticsParams> = RwLock::new(Vec::new());
+lazy_static! {
+    /// Senders for diagnostics.
+    pub static ref DIAG_BUS: Bus<PublishDiagnosticsParams> = Bus::new(64);
+}
 
 /// File ops (fops 🦊)
 pub mod file;
@@ -70,9 +72,7 @@ struct Stop;
 
 /// Create listener/sender pair for diagnostics
 pub fn listen_diagnostics() -> Receiver<PublishDiagnosticsParams> {
-    let (tx, rx) = async_channel::unbounded();
-    DIAG_SENDERS.write().unwrap().push(tx);
-    rx
+    DIAG_BUS.new_rx()
 }
 
 /// Creates a new language server instance (e.g. spawns a command and main loop) and returns a socket to that instance.
@@ -133,8 +133,8 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
                     ControlFlow::Continue(())
                 })
                 .notification::<PublishDiagnostics>(|_, prog| {
-                    DIAG_SENDERS.write().unwrap().iter_mut().for_each(|sender| {
-                        sender.send_blocking(prog.clone()).unwrap();
+                    RUNTIME.spawn(async move {
+                        DIAG_BUS.queue(prog).await;
                     });
                     ControlFlow::Continue(())
                 })

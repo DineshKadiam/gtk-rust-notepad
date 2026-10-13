@@ -10,8 +10,14 @@ use gtk::{
     gdk::Display,
     gio::{ApplicationFlags, Cancellable, FileQueryInfoFlags},
 };
+use lazy_static::lazy_static;
+use tokio::runtime::Runtime;
 
 use crate::ui::window::EditorWindow;
+
+lazy_static! {
+    pub static ref RUNTIME: Runtime = Runtime::new().unwrap();
+}
 
 fn main() {
     // Set id to "*.Devel" if ran with debug profile
