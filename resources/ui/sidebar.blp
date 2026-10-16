@@ -7,13 +7,15 @@ template $Sidebar: Adw.Bin {
 
 		menu-model: menu {
 			section {
-				item (_("New file…"), "win.tree.new_file")
-				item (_("Rename"), "win.tree.rename_file")
+				item (_("Open folder"), "win.tree.open_folder")
+				item (_("Open with…"), "win.tree.launch")
+				item (_("Expand/hide…"), "win.tree.toggle_expand")
 			}
 
 			section {
-				item (_("Open folder"), "win.tree.open_folder")
-				item (_("Toggle expanded"), "win.tree.toggle_expand")
+				item (_("New folder…"), "win.tree.new_folder")
+				item (_("New file…"), "win.tree.new_file")
+				item (_("Rename folder"), "win.tree.rename_file")
 			}
 		};
 	}
@@ -22,9 +24,18 @@ template $Sidebar: Adw.Bin {
 		position: right;
 
 		menu-model: menu {
-			item (_("New file…"), "win.tree.new_file")
-			item (_("Rename"), "win.tree.rename_file")
-			item (_("Delete"), "win.tree.delete_file")
+			section {
+				item (_("Open in Kyanite"), "win.tree.edit")
+				item (_("Open with…"), "win.tree.launch")
+			}
+			section {
+				item (_("Rename…"), "win.tree.rename_file")
+				item (_("Move to Trash"), "win.tree.delete_file")
+			}
+			section {
+				item (_("New folder…"), "win.tree.new_folder")
+				item (_("New file…"), "win.tree.new_file")
+			}
 		};
 	}
 

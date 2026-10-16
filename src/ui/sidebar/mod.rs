@@ -69,7 +69,7 @@ pub struct Sidebar(ObjectSubclass<imp::Sidebar>)
 
 impl Sidebar {
     /// Returns the selected folder from the TreeView
-    pub fn get_selected_folder(&self) -> Option<String> {
+    pub fn get_selected_uri(&self) -> Option<String> {
         if let Some(selected) = self
             .imp()
             .file_tree

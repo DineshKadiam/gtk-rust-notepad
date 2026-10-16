@@ -3,9 +3,9 @@ use async_lsp::lsp_types::{
     DocumentChangeOperation, DocumentChanges, TextDocumentEdit, WorkspaceEdit,
 };
 use gtk::{
-    Label, gio,
-    gio::{Cancellable, SimpleAction},
-    glib::{self, Variant, clone},
+    FileLauncher, Label, UriLauncher,
+    gio::{self, Cancellable, SimpleAction},
+    glib::{self, Priority, Variant, clone},
 };
 use sourceview5::prelude::*;
 use vte4::prelude::*;
@@ -13,8 +13,8 @@ use vte4::prelude::*;
 use crate::{
     lsp,
     ui::{
-        buffer::Buffer, dialog::rename_file, dialog::preferences::PreferencesDialog,
-        dialog::recents::RecentsDialog, terminal::TerminalView, window::EditorWindow,
+        buffer::Buffer, dialog::preferences::PreferencesDialog, dialog::recents::RecentsDialog,
+        dialog::rename_file, terminal::TerminalView, window::EditorWindow,
     },
     utils,
 };
@@ -236,10 +236,27 @@ pub fn status_set_file(window: &EditorWindow, _: &SimpleAction, param: Option<&V
     window.imp().status_files.set_visible(is_shown);
 }
 
+/// Open file tree URI with system handler
+pub fn tree_launch(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
+        let window = window.clone();
+        let file = gio::File::for_path(path);
+        let launcher = FileLauncher::new(Some(&file));
+        glib::spawn_future_local(async move { launcher.launch_future(Some(&window)).await });
+    }
+}
+
 /// Open folder from file tree
 pub fn tree_open_folder(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
-    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
         window.update_folder(&path);
+    }
+}
+
+/// Open file from file tree
+pub fn tree_edit(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
+        window.imp().new_tab(Some(&path));
     }
 }
 
@@ -250,7 +267,7 @@ pub fn tree_toggle_expand(window: &EditorWindow, _: &SimpleAction, _: Option<&Va
 
 /// Create file from file tree
 pub fn tree_new_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
-    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
         let dialog = rename_file::new(rename_file::Kind::Create, path);
         let window: &gtk::Window = &window.clone().into();
         adw::prelude::AdwDialogExt::present(&dialog, Some(window));
@@ -259,7 +276,7 @@ pub fn tree_new_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant
 
 /// Rename file/folder in file tree
 pub fn tree_rename(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
-    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
         // Unparent popover (if exists)
         window.imp().sidebar.imp().folder_popover.unparent();
         window.imp().sidebar.imp().file_popover.unparent();
@@ -270,31 +287,15 @@ pub fn tree_rename(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>)
     }
 }
 
-/// Delete file from file tree
+/// Moves a selected file from file tree into the user's trash directory.
 pub fn tree_delete_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
-    if let Some(path) = window.imp().sidebar.get_selected_folder() {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
         // Unparent popover (if exists)
         window.imp().sidebar.imp().folder_popover.unparent();
         window.imp().sidebar.imp().file_popover.unparent();
-        // Create alert dialog
-        let dialog = AlertDialog::new(
-            Some("Delete file..."),
-            Some(&format!(
-                "Really delete <tt>{}</tt>?\n<b>It will be gone forever (a very long time).</b>",
-                path.replace(std::env::home_dir().unwrap().to_str().unwrap(), "~")
-            )),
-        );
-        dialog.set_body_use_markup(true);
-        let window: &gtk::Window = &window.clone().into();
-        dialog.add_responses(&[("cancel", "_Cancel"), ("confirm", "_Delete")]);
-        dialog.set_response_appearance("confirm", ResponseAppearance::Destructive);
-        dialog.set_default_response(Some("cancel"));
-        dialog.set_close_response("cancel");
-        dialog.connect_response(Some("confirm"), move |_, _| {
-            std::fs::remove_file(path.clone()).unwrap();
-            // TODO close all tabs with the file open
+        glib::spawn_future_local(async move {
+            gio::File::for_path(path).trash_future(Priority::HIGH).await
         });
-        adw::prelude::AdwDialogExt::present(&dialog, Some(window));
     }
 }
 

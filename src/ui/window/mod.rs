@@ -62,6 +62,8 @@ impl EditorWindow {
             action_entry!("tree.rename_file", None, tree_rename),
             action_entry!("tree.new_file", None, tree_new_file),
             action_entry!("tree.open_folder", None, tree_open_folder),
+            action_entry!("tree.launch", None, tree_launch),
+            action_entry!("tree.edit", None, tree_edit),
             action_entry!("tree.toggle_expand", None, tree_toggle_expand),
             // LSP things
             action_entry!("lsp.edit", Some(VariantTy::STRING), lsp_edit),
