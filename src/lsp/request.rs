@@ -11,7 +11,7 @@ pub async fn completion(
     workspace_uri: &str,
     position: Position,
 ) -> Option<CompletionResponse> {
-    match get_server_safe(uri, workspace_uri) {
+    match get_server_safe(uri, workspace_uri).await {
         Some(mut server) => match server
             .completion(CompletionParams {
                 text_document_position: TextDocumentPositionParams {
@@ -41,7 +41,7 @@ pub async fn completion(
 }
 
 pub async fn hover(uri: &str, workspace_uri: &str, position: Position) -> Option<Hover> {
-    match get_server_safe(uri, workspace_uri) {
+    match get_server_safe(uri, workspace_uri).await {
         Some(mut server) => match server
             .hover(HoverParams {
                 text_document_position_params: TextDocumentPositionParams {
@@ -75,7 +75,7 @@ pub async fn actions(
     end: Position,
     diagnostics: Vec<Diagnostic>,
 ) -> Option<CodeActionResponse> {
-    match get_server_safe(uri, workspace_uri) {
+    match get_server_safe(uri, workspace_uri).await {
         Some(mut server) => {
             let result = server
                 .code_action(CodeActionParams {

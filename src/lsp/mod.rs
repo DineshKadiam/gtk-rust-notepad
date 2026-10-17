@@ -1,10 +1,8 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
     fs,
-    hash::{BuildHasherDefault, DefaultHasher},
     ops::ControlFlow,
     process::Stdio,
-    sync::{LazyLock, RwLock},
 };
 
 use async_bus::{Bus, Receiver};
@@ -29,7 +27,7 @@ use async_lsp::{
 use futures::io::BufReader;
 use gtk::glib::clone;
 use lazy_static::lazy_static;
-use tokio::runtime::Runtime;
+use tokio::sync::RwLock;
 use tower::ServiceBuilder;
 
 use crate::{
@@ -38,24 +36,19 @@ use crate::{
     notifications::{self, data::Notification},
 };
 
-/// Stores language servers globally, and marks their names along with a socket.
-/// > [!NOTE]
-/// > Security doesn't actually matter because we're just building a convenient lookup table
-/// > so it's fine to use a non-random hasher
-/// >
-static SERVERS: RwLock<HashMap<String, ServerSocket, BuildHasherDefault<DefaultHasher>>> =
-    RwLock::new(HashMap::with_hasher(BuildHasherDefault::new()));
-
-/// Tokio runtime for async tasks
-static RT: LazyLock<Runtime> = LazyLock::new(|| Runtime::new().unwrap());
-
-/// Keeps track of how many files are loading/being indexed.
-pub mod loading;
-
 lazy_static! {
+    /// Stores language servers globally, and marks their names along with a socket.
+    /// > [!NOTE]
+    /// > Security doesn't actually matter because we're just building a convenient lookup table
+    /// > so it's fine to use a non-random hasher
+    /// >
+    static ref SERVERS: RwLock<HashMap<String, ServerSocket>> = RwLock::new(HashMap::new());
     /// Senders for diagnostics.
     pub static ref DIAG_BUS: Bus<PublishDiagnosticsParams> = Bus::new(64);
 }
+
+/// Keeps track of how many files are loading/being indexed.
+pub mod loading;
 
 /// File ops (fops 🦊)
 pub mod file;
@@ -77,7 +70,7 @@ pub fn listen_diagnostics() -> Receiver<PublishDiagnosticsParams> {
 
 /// Creates a new language server instance (e.g. spawns a command and main loop) and returns a socket to that instance.
 /// Most of the code here is taken from the async_lsp example; I should probably clean it up a bit...
-async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSocket> {
+async fn new_lsp(workspace_uri: String, command: String) -> std::io::Result<ServerSocket> {
     let (mainloop, mut server) = {
         let command = command.split(" ").collect::<Vec<&str>>()[0].to_string();
         async_lsp::MainLoop::new_client(move |_server| {
@@ -173,7 +166,7 @@ async fn new_lsp(workspace_uri: &str, command: &str) -> std::io::Result<ServerSo
     let command_full = command.to_string();
     let mut command = command.split(" ").collect::<Vec<&str>>();
     let child = async_process::Command::new(command[0])
-        .current_dir(workspace_uri)
+        .current_dir(&workspace_uri)
         .args(command.split_off(1))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -301,35 +294,25 @@ pub fn lookup_lsp(uri: &str) -> (String, String) {
     (String::new(), String::new())
 }
 
-pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error::Error> {
+pub async fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error::Error> {
     let (lsp_command, _) = lookup_lsp(uri);
     if !lsp_command.is_empty() {
-        let mut a = SERVERS.write().unwrap();
+        let mut a = SERVERS.write().await;
         match a.entry(lsp_command.to_string()) {
-            Entry::Vacant(entry) => match RT.block_on(new_lsp(workspace_uri, &lsp_command)) {
-                Ok(server) => Ok(entry.insert(server).clone()),
-                Err(err) => {
-                    if let std::io::ErrorKind::NotFound = err.kind() {
-                        Err(error::Error::NotFound(lsp_command))
-                    } else {
-                        Err(error::Error::Crashed(lsp_command))
+            Entry::Vacant(entry) => {
+                match new_lsp(workspace_uri.to_string(), lsp_command.clone()).await {
+                    Ok(server) => Ok(entry.insert(server).clone()),
+                    Err(err) => {
+                        if let std::io::ErrorKind::NotFound = err.kind() {
+                            Err(error::Error::NotFound(lsp_command.clone()))
+                        } else {
+                            Err(error::Error::Crashed(lsp_command))
+                        }
                     }
                 }
-            },
+            }
             Entry::Occupied(mut entry) => {
                 let server = entry.get_mut().clone();
-                // TODO why am I doing this, again?
-                // server
-                //     .did_change_workspace_folders(DidChangeWorkspaceFoldersParams {
-                //         event: WorkspaceFoldersChangeEvent {
-                //             added: vec![WorkspaceFolder {
-                //                 uri: Url::from_file_path(workspace_uri).unwrap(),
-                //                 name: "root".into(),
-                //             }],
-                //             removed: vec![],
-                //         },
-                //     })
-                //     .unwrap();
                 Ok(server)
             }
         }
@@ -340,8 +323,8 @@ pub fn get_server(uri: &str, workspace_uri: &str) -> Result<ServerSocket, error:
 
 /// Safe wrapper around get_server() which returns an Option of a server and handles errors by printing them with the Notifications API.
 /// Used in lsp::request -- lsp::file has its own error handling
-pub fn get_server_safe(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {
-    match get_server(uri, workspace_uri) {
+pub async fn get_server_safe(uri: &str, workspace_uri: &str) -> Option<ServerSocket> {
+    match get_server(uri, workspace_uri).await {
         Ok(server) => Some(server),
         Err(error::Error::NotConfigured(_)) => None,
         Err(error::Error::NotFound(_)) => None,
