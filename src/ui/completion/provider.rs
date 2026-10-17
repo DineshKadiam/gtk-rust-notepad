@@ -21,7 +21,7 @@ mod imp {
     };
 
     use super::*;
-    use crate::{iter_position, lsp, ui::gmark};
+    use crate::{gmark_config, iter_position, lsp};
 
     #[derive(Debug, Default)]
     pub struct LspCompletionProvider {
@@ -81,7 +81,7 @@ mod imp {
                 sourceview5::CompletionColumn::Details => {
                     if let Some(docs) = proposal.documentation() {
                         let scroll_window = gtk::ScrolledWindow::new();
-                        scroll_window.set_child(Some(&gmark::parse(&docs)));
+                        scroll_window.set_child(Some(&gmark::parse(&docs, gmark_config!())));
                         cell.set_hexpand(true);
                         cell.set_vexpand(true);
                         cell.set_halign(Align::Fill);

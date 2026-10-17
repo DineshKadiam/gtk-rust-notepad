@@ -520,6 +520,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmark"
+version = "0.1.0"
+source = "git+https://codeberg.org/pastthepixels/gmark#6ecf557aa7f0b048060b00a9193b0f01fcbc3467"
+dependencies = [
+ "gtk4",
+ "libadwaita",
+ "markdown",
+ "sourceview5",
+]
+
+[[package]]
 name = "gobject-sys"
 version = "0.22.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -796,6 +807,7 @@ dependencies = [
  "async-process",
  "async_bus",
  "futures",
+ "gmark",
  "gtk4",
  "itertools",
  "lazy_static",

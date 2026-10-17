@@ -1,8 +1,8 @@
 use adw::{prelude::*, subclass::prelude::*};
 use glib::Properties;
-use gtk::{Align, CompositeTemplate, Orientation, glib};
+use gtk::{glib, Align, CompositeTemplate, Orientation};
 
-use crate::ui::gmark;
+use crate::gmark_config;
 
 mod imp {
 
@@ -48,7 +48,11 @@ pub struct HoverDialog(ObjectSubclass<imp::HoverDialog>)
 impl HoverDialog {
     pub fn new(text: &str) -> Self {
         let dialog = glib::Object::builder::<Self>().build();
-        dialog.imp().bin.set_child(Some(&gmark::parse(text)));
+
+        dialog
+            .imp()
+            .bin
+            .set_child(Some(&gmark::parse(text, gmark_config!())));
         dialog
     }
 
@@ -60,7 +64,7 @@ impl HoverDialog {
             .build();
         contents.set_valign(Align::Start);
         for msg in text {
-            let out = gmark::parse(msg);
+            let out = gmark::parse(msg, gmark_config!());
             out.set_css_classes(&["card", "padded"]);
             out.queue_resize();
             contents.append(&out);

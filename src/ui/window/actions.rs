@@ -1,9 +1,9 @@
-use adw::{AlertDialog, ResponseAppearance, TabPage, prelude::*, subclass::prelude::*};
+use adw::{TabPage, prelude::*, subclass::prelude::*};
 use async_lsp::lsp_types::{
     DocumentChangeOperation, DocumentChanges, TextDocumentEdit, WorkspaceEdit,
 };
 use gtk::{
-    FileLauncher, Label, UriLauncher,
+    FileLauncher, Label,
     gio::{self, Cancellable, SimpleAction},
     glib::{self, Priority, Variant, clone},
 };

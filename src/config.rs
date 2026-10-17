@@ -5,6 +5,32 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+#[macro_export]
+macro_rules! gmark_config {
+    () => {
+        gmark::Config {
+            sourceview5_scheme: {
+                let config = crate::config::Config::get_or_default();
+                if let Some(ref scheme) =
+                    sourceview5::StyleSchemeManager::new().scheme(&config.ui.theme)
+                {
+                    Some(
+                        if adw::StyleManager::default().is_dark() {
+                            crate::utils::scheme::dark(scheme)
+                        } else {
+                            scheme.clone()
+                        }
+                        .id()
+                        .to_string(),
+                    )
+                } else {
+                    None
+                }
+            },
+        }
+    };
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(default)]
 #[derive(Default)]
