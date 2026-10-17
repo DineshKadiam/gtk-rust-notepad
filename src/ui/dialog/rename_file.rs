@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use adw::{
-    prelude::*, Dialog, EntryRow, HeaderBar, PreferencesGroup, PreferencesPage, ToolbarView,
+    Dialog, EntryRow, HeaderBar, PreferencesGroup, PreferencesPage, ToolbarView, prelude::*,
 };
 use gtk::glib::clone;
 
@@ -19,7 +19,7 @@ pub fn new(kind: Kind, path: String) -> Dialog {
     let view = ToolbarView::builder().build();
     let dialog = Dialog::builder()
         .title(match kind {
-            Kind::Rename => "Rename File",
+            Kind::Rename => "Rename File or Folder",
             Kind::NewFolder => "New Folder",
             Kind::NewFile => "New File",
         })
@@ -54,7 +54,11 @@ pub fn new(kind: Kind, path: String) -> Dialog {
     group.add(&entry);
     group.add(&revealer);
     group.add(&button);
-    entry.set_title("File Name");
+    entry.set_title(match kind {
+        Kind::Rename => "File or Folder Name",
+        Kind::NewFolder => "Folder Name",
+        Kind::NewFile => "File Name",
+    });
     view.set_content(Some(&page));
     entry.connect_changed(clone!(
         #[strong]
