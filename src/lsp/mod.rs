@@ -200,7 +200,7 @@ async fn new_lsp(workspace_uri: String, command: String) -> std::io::Result<Serv
             }
         }
         // Remove language server socket from hashmap
-        let mut a = SERVERS.write().unwrap();
+        let mut a = SERVERS.write().await;
         a.remove(&command_full);
     });
 
