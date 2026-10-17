@@ -522,7 +522,8 @@ dependencies = [
 [[package]]
 name = "gmark"
 version = "0.1.0"
-source = "git+https://codeberg.org/pastthepixels/gmark#6ecf557aa7f0b048060b00a9193b0f01fcbc3467"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77ba1ab9949f07a0d034d3e834eb04f7b0de5054263f25e71647da60cf4ee94c"
 dependencies = [
  "gtk4",
  "libadwaita",
