@@ -5,11 +5,14 @@ use adw::{
 };
 use gtk::glib::clone;
 
+use crate::notifications::{self, data::Notification};
+
 #[derive(Default, Debug)]
 pub enum Kind {
     #[default]
     Rename,
-    Create,
+    NewFolder,
+    NewFile,
 }
 
 pub fn new(kind: Kind, path: String) -> Dialog {
@@ -17,7 +20,8 @@ pub fn new(kind: Kind, path: String) -> Dialog {
     let dialog = Dialog::builder()
         .title(match kind {
             Kind::Rename => "Rename File",
-            Kind::Create => "New File",
+            Kind::NewFolder => "New Folder",
+            Kind::NewFile => "New File",
         })
         .child(&view)
         .content_width(450)
@@ -40,7 +44,7 @@ pub fn new(kind: Kind, path: String) -> Dialog {
     let button = gtk::Button::builder()
         .label(match kind {
             Kind::Rename => "Rename",
-            Kind::Create => "Create",
+            _ => "Create",
         })
         .halign(gtk::Align::Center)
         .sensitive(false)
@@ -72,20 +76,33 @@ pub fn new(kind: Kind, path: String) -> Dialog {
             let filename = binding.trim();
             let mut path_buf = Path::new(&path).to_path_buf();
             if !filename.is_empty() {
-                match kind {
-                    Kind::Rename => {
-                        std::fs::rename(
-                            &path,
-                            path_buf.parent().unwrap().join(filename).to_str().unwrap(),
-                        )
-                        .unwrap();
-                    }
-                    Kind::Create => {
+                let err = match kind {
+                    Kind::Rename => std::fs::rename(
+                        &path,
+                        path_buf.parent().unwrap().join(filename).to_str().unwrap(),
+                    )
+                    .is_err(),
+                    Kind::NewFile => {
                         if path_buf.is_file() {
                             path_buf = path_buf.parent().unwrap().to_path_buf();
                         }
-                        std::fs::File::create(path_buf.join(filename).to_str().unwrap()).unwrap();
+                        std::fs::File::create(path_buf.join(filename).to_str().unwrap()).is_err()
                     }
+                    Kind::NewFolder => {
+                        if path_buf.is_file() {
+                            path_buf = path_buf.parent().unwrap().to_path_buf();
+                        }
+                        std::fs::create_dir(path_buf.join(filename).to_str().unwrap()).is_err()
+                    }
+                };
+                if err {
+                    notifications::push(Notification {
+                        status: notifications::data::Status::Normal,
+                        priority: notifications::data::Priority::High,
+                        summary: format!("File operation failed for {filename}"),
+                        details: String::new(),
+                        id: "fops_failed".to_string(),
+                    });
                 }
                 adw::prelude::AdwDialogExt::close(&dialog);
             }

@@ -268,7 +268,16 @@ pub fn tree_toggle_expand(window: &EditorWindow, _: &SimpleAction, _: Option<&Va
 /// Create file from file tree
 pub fn tree_new_file(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
     if let Some(path) = window.imp().sidebar.get_selected_uri() {
-        let dialog = rename_file::new(rename_file::Kind::Create, path);
+        let dialog = rename_file::new(rename_file::Kind::NewFile, path);
+        let window: &gtk::Window = &window.clone().into();
+        adw::prelude::AdwDialogExt::present(&dialog, Some(window));
+    }
+}
+
+/// Create folder from file tree
+pub fn tree_new_folder(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>) {
+    if let Some(path) = window.imp().sidebar.get_selected_uri() {
+        let dialog = rename_file::new(rename_file::Kind::NewFolder, path);
         let window: &gtk::Window = &window.clone().into();
         adw::prelude::AdwDialogExt::present(&dialog, Some(window));
     }

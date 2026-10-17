@@ -61,6 +61,7 @@ impl EditorWindow {
             action_entry!("tree.delete_file", None, tree_delete_file),
             action_entry!("tree.rename_file", None, tree_rename),
             action_entry!("tree.new_file", None, tree_new_file),
+            action_entry!("tree.new_folder", None, tree_new_folder),
             action_entry!("tree.open_folder", None, tree_open_folder),
             action_entry!("tree.launch", None, tree_launch),
             action_entry!("tree.edit", None, tree_edit),
