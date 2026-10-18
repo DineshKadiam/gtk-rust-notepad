@@ -33,6 +33,8 @@ pub struct EditorWindow {
     #[template_child]
     pub startpage: TemplateChild<WelcomeScreen>,
     #[template_child]
+    pub folder_startpage: TemplateChild<adw::StatusPage>,
+    #[template_child]
     pub search_bar: TemplateChild<SearchBar>,
     #[template_child]
     pub search_entry: TemplateChild<SearchEntry>,

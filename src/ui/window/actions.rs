@@ -181,6 +181,7 @@ pub fn open_folder(window: &EditorWindow, _: &SimpleAction, _: Option<&Variant>)
                     window.update_folder(file.path().unwrap().to_str().unwrap());
                     // close tabs + open sidebar
                     window.imp().split_view.set_show_sidebar(true);
+                    window.imp().stack.set_visible_child_name("empty_folder");
                     for page in window.imp().tab_view.pages().iter::<TabPage>() {
                         window.imp().tab_view.close_page(&page.unwrap());
                     }

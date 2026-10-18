@@ -310,9 +310,14 @@ impl EditorWindow {
     }
 
     pub fn update_folder(&self, dir_path: &str) {
+        let home_dir = std::env::home_dir().unwrap();
         self.imp().sidebar.update_folder(dir_path);
         self.imp().terminal_view.setup(dir_path);
         self.set_property("workspace_uri", dir_path.to_string());
+        self.imp().stack.set_visible_child_name("empty_folder");
+        self.imp()
+            .folder_startpage
+            .set_title(&dir_path.replace(home_dir.to_str().unwrap(), "~"));
 
         // add to recents
         let recents = gtk::RecentManager::default();
