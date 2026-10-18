@@ -23,7 +23,6 @@ pub struct Buffer {
     pub completion_provider: RefCell<Option<LspCompletionProvider>>,
     pub file: RefCell<Option<sourceview5::File>>,
     pub mmap_timer: RefCell<Option<SourceId>>,
-    pub pin_mmap: RefCell<bool>,
 }
 
 #[glib::object_subclass]

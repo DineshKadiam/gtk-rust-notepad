@@ -137,12 +137,6 @@ impl Buffer {
                 _ => "",
             }
         ));
-        if config.ui.word_wrap {
-            self.imp().pin_mmap.replace(true);
-            self.imp()
-                .map_revealer
-                .set_reveal_child(config.ui.show_minimap);
-        }
         self.imp()
             .source_view
             .set_highlight_current_line(config.ui.hl_line);

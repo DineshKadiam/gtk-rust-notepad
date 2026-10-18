@@ -47,7 +47,7 @@ gutter > * {
 textview.GtkSourceMap {
     border-left: 1px solid
         color-mix(in srgb, var(--border-color) 30%, transparent);
-    background: transparent;
+    background: var(--window-bg-color);
     font-size: 2pt;
     /*line-height: 1em;*/
 }

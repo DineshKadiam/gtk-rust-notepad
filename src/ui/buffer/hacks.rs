@@ -175,8 +175,7 @@ impl Buffer {
             #[weak(rename_to=this)]
             self.imp(),
             move |_controller, x, y| {
-                if !*this.pin_mmap.borrow()
-                    && coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
+                if coords.0.swap(x as usize, Ordering::Relaxed) != x as usize
                     && coords.1.swap(y as usize, Ordering::Relaxed) != y as usize
                     && let Some(old) =
                         this.mmap_timer
@@ -204,12 +203,8 @@ impl Buffer {
         motion_controller.connect_leave(clone!(
             #[strong(rename_to=revealer)]
             self.imp().map_revealer,
-            #[weak(rename_to=this)]
-            self.imp(),
             move |_controller| {
-                if !*this.pin_mmap.borrow() {
-                    revealer.set_reveal_child(false);
-                }
+                revealer.set_reveal_child(false);
             }
         ));
         self.add_controller(motion_controller);
@@ -219,7 +214,7 @@ impl Buffer {
 pub mod text_view_child {
     use std::ffi::{c_int, c_void};
 
-    use gtk::{ffi::*, glib::ffi::*, prelude::*, Widget};
+    use gtk::{Widget, ffi::*, glib::ffi::*, prelude::*};
 
     #[repr(C)]
     pub struct _GtkTextViewChild {

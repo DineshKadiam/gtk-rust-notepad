@@ -3,51 +3,58 @@ using GtkSource 5;
 using Adw 1;
 
 template $Buffer: Box {
-  orientation: horizontal;
+    orientation: horizontal;
 
-  Adw.ToastOverlay toast_overlay {
-    ScrolledWindow {
-      vscrollbar-policy: external;
-
-      GtkSource.View source_view {
-        styles[
-          "monospace"
-        ]
-      
+    Overlay {
         vexpand: true;
         hexpand: true;
-        monospace: true;
-        show-line-numbers: true;
-        show-line-marks: true;
-        top-margin: 6;
-        bottom-margin: 32;
-        pixels-below-lines: 4;
-        // Helix-like indentation
-        left-margin: 0;
-        tab-width: 4;
-        insert-spaces-instead-of-tabs: true;
-        indent-width: 4;
-        auto-indent: true;
-        // Extra options
-        extra-menu: menu {
-          section {
-            item (_("Code actions…"), "buffer.lsp.actions")
-            item (_("Code details…"), "buffer.lsp.hover")
-          }
-        };
-      }
-    }
-  }
 
-  Revealer map_revealer {
-    transition-type: slide_left;
+        Adw.ToastOverlay toast_overlay {
+            ScrolledWindow {
+                vscrollbar-policy: external;
 
-    GtkSource.Map source_map {
-      halign: end;
-      valign: fill;
-      view: source_view;
-      highlight-current-line: true;
-      vexpand: true;
+                GtkSource.View source_view {
+                    styles [
+                        "monospace",
+                    ]
+
+                    vexpand: true;
+                    hexpand: true;
+                    monospace: true;
+                    show-line-numbers: true;
+                    show-line-marks: true;
+                    top-margin: 6;
+                    bottom-margin: 32;
+                    pixels-below-lines: 4;
+                    // Helix-like indentation
+                    left-margin: 0;
+                    tab-width: 4;
+                    insert-spaces-instead-of-tabs: true;
+                    indent-width: 4;
+                    auto-indent: true;
+                    // Extra options
+                    extra-menu: menu {
+                        section {
+                            item (_("Code actions…"), "buffer.lsp.actions")
+                            item (_("Code details…"), "buffer.lsp.hover")
+                        }
+                    };
+                }
+            }
+        }
+
+        [overlay]
+        Revealer map_revealer {
+            transition-type: slide_left;
+            halign: end;
+
+            GtkSource.Map source_map {
+                halign: end;
+                valign: fill;
+                view: source_view;
+                highlight-current-line: true;
+                vexpand: true;
+            }
+        }
     }
-  }
 }
