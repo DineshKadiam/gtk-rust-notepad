@@ -8,6 +8,7 @@
 .completion-info > * {
     min-width: 258px;
     background: @sidebar_bg_color;
+    border: 0.5px solid var(--border-color);
     margin: 4px;
     border-radius: 12px;
     /* Copy dialog shadows */
