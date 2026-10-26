@@ -1,3 +1,5 @@
+> Originally developed at [codeberg.org/pastthepixels/kyanite](https://codeberg.org/pastthepixels/kyanite) · GPL-3.0
+
 <h1> <img height="32px" src="resources/icons.src/ca.potatoe.Kyanite.svg"/> Kyanite </h1>
 
 ![trans rights](https://img.shields.io/badge/-rights_btw-wtf?style=flat&label=trans&labelColor=5BCEFA&color=F5A9B8)
